@@ -4,10 +4,11 @@ date_default_timezone_set('Asia/Kolkata');
 define('APPLICATION', 'Catalog');
 
 // HTTP
-define('HTTP_SERVER', 'https://myteknoland.com/JEWELLERY2/');
+define('HTTP_SERVER', 'http://localhost:8000/');
+define('HTTPS_SERVER', 'http://localhost:8000/');
 
 // DIR
-define('DIR_OPENCART', '/home/k5ahkheh1fv2/public_html/JEWELLERY2/');
+define('DIR_OPENCART', '/home/surya/Videos/JEWELLERY2/');
 define('DIR_APPLICATION', DIR_OPENCART . 'catalog/');
 define('DIR_SYSTEM', DIR_OPENCART . 'system/');
 define('DIR_EXTENSION', DIR_OPENCART . 'extension/');
@@ -26,10 +27,9 @@ define('OPENCART_DEBUG', true);
 // DB
 define('DB_DRIVER', 'mysqli');
 define('DB_HOSTNAME', 'localhost');
-define('DB_USERNAME', 'i10322861_saleem_pro');
-define('DB_PASSWORD', 'i10322861_saleem_pro');
-define('DB_DATABASE', 'i10322861_saleem_pro');
-
+define('DB_USERNAME', 'surya552');
+define('DB_PASSWORD', '@Surya552@!');
+define('DB_DATABASE', 'saleem-gold');
 define('DB_PREFIX', 'xwzk_');
 define('DB_PORT', '3306');
 

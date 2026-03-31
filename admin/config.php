@@ -3,11 +3,11 @@
 define('APPLICATION', 'Admin');
 
 // HTTP
-define('HTTP_SERVER', 'https://myteknoland.com/JEWELLERY2/admin/');
-define('HTTP_CATALOG', 'https://myteknoland.com/JEWELLERY2/');
-define('HTTPS_CATALOG', 'https://myteknoland.com/JEWELLERY2/');
+define('HTTP_SERVER', 'http://localhost:8000/admin/');
+define('HTTP_CATALOG', 'http://localhost:8000/');
+define('HTTPS_CATALOG', 'http://localhost:8000/');
 // DIR
-define('DIR_OPENCART', '/home/k5ahkheh1fv2/public_html/JEWELLERY2/');
+define('DIR_OPENCART', '/home/surya/Videos/JEWELLERY2/');
 define('DIR_APPLICATION', DIR_OPENCART . 'admin/');
 define('DIR_SYSTEM', DIR_OPENCART . 'system/');
 define('DIR_EXTENSION', DIR_OPENCART . 'extension/');
@@ -27,9 +27,9 @@ define('DISPLAY_UPLOAD_PATH', HTTP_CATALOG . 'system/storagex8nclbm3t3z3/upload/
 // DB
 define('DB_DRIVER', 'mysqli');
 define('DB_HOSTNAME', 'localhost');
-define('DB_USERNAME', 'i10322861_saleem_pro');
-define('DB_PASSWORD', 'i10322861_saleem_pro');
-define('DB_DATABASE', 'i10322861_saleem_pro');
+define('DB_USERNAME', 'surya552');
+define('DB_PASSWORD', '@Surya552@!');
+define('DB_DATABASE', 'saleem-gold');
 define('DB_PREFIX', 'xwzk_');
 define('DB_PORT', '3306');
 
