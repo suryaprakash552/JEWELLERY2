@@ -1798,6 +1798,100 @@ private function revertRewardPoints(int $order_id): void
     }
 }
 
+public function returnOrderFull(int $order_id): void
+{
+    $this->db->query("START TRANSACTION");
+
+    try {
+        $this->restorePosQuantity($order_id); // same as cancel
+        $this->markOrderReturned($order_id);
+        $this->revertRewardPointsOnReturn($order_id);
+
+        $this->db->query("COMMIT");
+    } catch (Throwable $e) {
+        $this->db->query("ROLLBACK");
+        throw $e;
+    }
+}
+
+private function markOrderReturned(int $order_id): void
+{
+    // 4 = Returned
+    $this->db->query("
+        UPDATE `" . DB_PREFIX . "order`
+        SET order_status_id = 4, date_modified = NOW()
+        WHERE order_id = '" . (int)$order_id . "'
+    ");
+
+    $this->db->query("
+        INSERT INTO `" . DB_PREFIX . "order_history`
+        SET order_id = '" . (int)$order_id . "',
+            order_status_id = 4,
+            notify = 0,
+            comment = 'Order returned via API',
+            date_added = NOW()
+    ");
+}
+
+public function isOrderReturned(int $order_id): bool
+{
+    $q = $this->db->query("
+        SELECT order_status_id
+        FROM `" . DB_PREFIX . "order`
+        WHERE order_id = '" . (int)$order_id . "'
+        LIMIT 1
+    ");
+
+    return $q->num_rows && (int)$q->row['order_status_id'] === 4;
+}
+
+private function revertRewardPointsOnReturn(int $order_id): void
+{
+    $rewards = $this->db->query("
+        SELECT customer_reward_id, customer_id, points, status
+        FROM `" . DB_PREFIX . "customer_reward`
+        WHERE order_id = '" . (int)$order_id . "'
+        AND status = 'active'
+    ");
+
+    if (!$rewards->num_rows) {
+        return;
+    }
+
+    foreach ($rewards->rows as $r) {
+        $this->db->query("
+            UPDATE `" . DB_PREFIX . "customer_reward`
+            SET status = 'clear',
+                description = CONCAT(description, ' (ORDER RETURNED)')
+            WHERE customer_reward_id = '" . (int)$r['customer_reward_id'] . "'
+        ");
+    }
+
+    // restore used reward points
+    $invoice = $this->db->query("
+        SELECT rewards
+        FROM `" . DB_PREFIX . "order_invoice`
+        WHERE order_id = '" . (int)$order_id . "'
+        LIMIT 1
+    ");
+
+    if ($invoice->num_rows && (float)$invoice->row['rewards'] > 0) {
+
+        $used_points = (float)$invoice->row['rewards'];
+        $customer_id = (int)$rewards->row['customer_id'];
+
+        $this->db->query("
+            INSERT INTO `" . DB_PREFIX . "customer_reward`
+            SET customer_id = '" . $customer_id . "',
+                order_id = '" . (int)$order_id . "',
+                points = '" . $used_points . "',
+                status = 'active',
+                description = 'Reward points restored due to order return',
+                date_added = NOW()
+        ");
+    }
+}
+
 
 public function updateDailyAmount() {
 

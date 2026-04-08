@@ -29504,3 +29504,1336 @@ Function: require_once
 2026-03-30 16:54:35 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
 2026-03-30 16:54:35 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
 2026-03-30 16:54:35 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-03-31 14:43:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-03-31 14:43:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-03-31 14:43:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-03-31 14:43:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-03-31 14:43:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-03-31 14:43:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-03-31 14:43:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-03-31 14:43:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-03-31 14:43:38 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-03-31 14:43:38 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-03-31 14:43:38 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-03-31 14:43:38 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-03-31 14:43:40 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-03-31 14:43:40 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-03-31 14:43:40 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-03-31 14:43:40 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-03-31 14:46:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-03-31 14:46:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-03-31 14:46:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-03-31 14:46:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-03-31 14:52:38 - Error: Error: Unknown column 'contact' in 'field list'<br/>Error No: 1054<br/>INSERT INTO xwzk_address SET
+
+customer_id='959',
+
+firstname='surya',
+
+lastname='prakash',
+
+contact='1234567890',
+
+company='aslfa;dlm',
+
+address_1='asfdgsfas',
+
+address_2='',
+
+city='91',
+
+postcode='91',
+
+country_id='99',
+
+zone_id='91',
+
+custom_field='',
+
+`default`='0'
+
+
+File: /home/surya/Videos/JEWELLERY2/system/library/db/mysqli.php
+Line: 122
+
+Backtrace: 0
+File: /home/surya/Videos/JEWELLERY2/system/library/db.php
+Line: 54
+Class: Opencart\System\Library\DB\MySQLi
+Function: query
+
+Backtrace: 1
+File: /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php
+Line: 754
+Class: Opencart\System\Library\DB
+Function: query
+
+Backtrace: 2
+File: /home/surya/Videos/JEWELLERY2/system/engine/loader.php
+Line: 343
+Class: Opencart\Catalog\Model\Groceries\Categories
+Function: addAddress
+
+Backtrace: 3
+File: /home/surya/Videos/JEWELLERY2/system/engine/proxy.php
+Line: 87
+Class: Opencart\System\Engine\Loader
+Function: {closure:Opencart\System\Engine\Loader::callback():312}
+
+Backtrace: 4
+File: /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php
+Line: 1480
+Class: Opencart\System\Engine\Proxy
+Function: __call
+
+Backtrace: 5
+File: /home/surya/Videos/JEWELLERY2/system/engine/action.php
+Line: 96
+Class: Opencart\Catalog\Controller\Groceries\Categories
+Function: addAddress
+
+Backtrace: 6
+File: /home/surya/Videos/JEWELLERY2/system/framework.php
+Line: 259
+Class: Opencart\System\Engine\Action
+Function: execute
+
+Backtrace: 7
+File: /home/surya/Videos/JEWELLERY2/index.php
+Line: 20
+Function: require_once
+2026-03-31 16:07:40 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-03-31 16:07:40 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-03-31 16:07:40 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-03-31 16:07:40 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-03 15:36:20 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-03 15:36:20 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-03 15:36:20 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-03 15:36:20 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-03 15:36:21 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-03 15:36:21 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-03 15:36:21 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-03 15:36:21 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-03 15:37:54 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-03 15:37:54 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-03 15:37:54 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-03 15:37:54 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-03 17:47:31 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-03 17:47:31 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-03 17:47:31 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-03 17:47:31 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-03 17:47:32 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-03 17:47:32 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-03 17:47:32 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-03 17:47:32 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-03 17:58:47 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-03 17:58:47 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-03 17:58:47 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-03 17:58:47 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-03 12:40:38 - Error: Error: Table 'saleem-gold.xwzk_store' doesn't exist<br/>Error No: 1146<br/>SELECT * FROM `xwzk_store` WHERE REPLACE(`url`, 'www.', '') = 'http://192.168.100.25:8000/'
+File: /home/surya/Videos/JEWELLERY2/system/library/db/mysqli.php
+Line: 122
+
+Backtrace: 0
+File: /home/surya/Videos/JEWELLERY2/system/library/db.php
+Line: 54
+Class: Opencart\System\Library\DB\MySQLi
+Function: query
+
+Backtrace: 1
+File: /home/surya/Videos/JEWELLERY2/catalog/model/setting/store.php
+Line: 46
+Class: Opencart\System\Library\DB
+Function: query
+
+Backtrace: 2
+File: /home/surya/Videos/JEWELLERY2/system/engine/loader.php
+Line: 343
+Class: Opencart\Catalog\Model\Setting\Store
+Function: getStoreByHostname
+
+Backtrace: 3
+File: /home/surya/Videos/JEWELLERY2/system/engine/proxy.php
+Line: 87
+Class: Opencart\System\Engine\Loader
+Function: {closure:Opencart\System\Engine\Loader::callback():312}
+
+Backtrace: 4
+File: /home/surya/Videos/JEWELLERY2/catalog/controller/startup/setting.php
+Line: 20
+Class: Opencart\System\Engine\Proxy
+Function: __call
+
+Backtrace: 5
+File: /home/surya/Videos/JEWELLERY2/system/engine/action.php
+Line: 96
+Class: Opencart\Catalog\Controller\Startup\Setting
+Function: index
+
+Backtrace: 6
+File: /home/surya/Videos/JEWELLERY2/system/framework.php
+Line: 208
+Class: Opencart\System\Engine\Action
+Function: execute
+
+Backtrace: 7
+File: /home/surya/Videos/JEWELLERY2/index.php
+Line: 20
+Function: require_once
+2026-04-03 12:40:38 - Error: Error: Table 'saleem-gold.xwzk_store' doesn't exist<br/>Error No: 1146<br/>SELECT * FROM `xwzk_store` WHERE REPLACE(`url`, 'www.', '') = 'http://192.168.100.25:8000/index.php/'
+File: /home/surya/Videos/JEWELLERY2/system/library/db/mysqli.php
+Line: 122
+
+Backtrace: 0
+File: /home/surya/Videos/JEWELLERY2/system/library/db.php
+Line: 54
+Class: Opencart\System\Library\DB\MySQLi
+Function: query
+
+Backtrace: 1
+File: /home/surya/Videos/JEWELLERY2/catalog/model/setting/store.php
+Line: 46
+Class: Opencart\System\Library\DB
+Function: query
+
+Backtrace: 2
+File: /home/surya/Videos/JEWELLERY2/system/engine/loader.php
+Line: 343
+Class: Opencart\Catalog\Model\Setting\Store
+Function: getStoreByHostname
+
+Backtrace: 3
+File: /home/surya/Videos/JEWELLERY2/system/engine/proxy.php
+Line: 87
+Class: Opencart\System\Engine\Loader
+Function: {closure:Opencart\System\Engine\Loader::callback():312}
+
+Backtrace: 4
+File: /home/surya/Videos/JEWELLERY2/catalog/controller/startup/setting.php
+Line: 20
+Class: Opencart\System\Engine\Proxy
+Function: __call
+
+Backtrace: 5
+File: /home/surya/Videos/JEWELLERY2/system/engine/action.php
+Line: 96
+Class: Opencart\Catalog\Controller\Startup\Setting
+Function: index
+
+Backtrace: 6
+File: /home/surya/Videos/JEWELLERY2/system/framework.php
+Line: 208
+Class: Opencart\System\Engine\Action
+Function: execute
+
+Backtrace: 7
+File: /home/surya/Videos/JEWELLERY2/index.php
+Line: 20
+Function: require_once
+2026-04-03 12:40:44 - Error: Error: Table 'saleem-gold.xwzk_store' doesn't exist<br/>Error No: 1146<br/>SELECT * FROM `xwzk_store` WHERE REPLACE(`url`, 'www.', '') = 'http://192.168.100.25:8000/'
+File: /home/surya/Videos/JEWELLERY2/system/library/db/mysqli.php
+Line: 122
+
+Backtrace: 0
+File: /home/surya/Videos/JEWELLERY2/system/library/db.php
+Line: 54
+Class: Opencart\System\Library\DB\MySQLi
+Function: query
+
+Backtrace: 1
+File: /home/surya/Videos/JEWELLERY2/catalog/model/setting/store.php
+Line: 46
+Class: Opencart\System\Library\DB
+Function: query
+
+Backtrace: 2
+File: /home/surya/Videos/JEWELLERY2/system/engine/loader.php
+Line: 343
+Class: Opencart\Catalog\Model\Setting\Store
+Function: getStoreByHostname
+
+Backtrace: 3
+File: /home/surya/Videos/JEWELLERY2/system/engine/proxy.php
+Line: 87
+Class: Opencart\System\Engine\Loader
+Function: {closure:Opencart\System\Engine\Loader::callback():312}
+
+Backtrace: 4
+File: /home/surya/Videos/JEWELLERY2/catalog/controller/startup/setting.php
+Line: 20
+Class: Opencart\System\Engine\Proxy
+Function: __call
+
+Backtrace: 5
+File: /home/surya/Videos/JEWELLERY2/system/engine/action.php
+Line: 96
+Class: Opencart\Catalog\Controller\Startup\Setting
+Function: index
+
+Backtrace: 6
+File: /home/surya/Videos/JEWELLERY2/system/framework.php
+Line: 208
+Class: Opencart\System\Engine\Action
+Function: execute
+
+Backtrace: 7
+File: /home/surya/Videos/JEWELLERY2/index.php
+Line: 20
+Function: require_once
+2026-04-03 12:44:23 - Error: Error: Table 'saleem-gold.xwzk_store' doesn't exist<br/>Error No: 1146<br/>SELECT * FROM `xwzk_store` WHERE REPLACE(`url`, 'www.', '') = 'http://192.168.100.25:8000/index.php/api/v1/'
+File: /home/surya/Videos/JEWELLERY2/system/library/db/mysqli.php
+Line: 122
+
+Backtrace: 0
+File: /home/surya/Videos/JEWELLERY2/system/library/db.php
+Line: 54
+Class: Opencart\System\Library\DB\MySQLi
+Function: query
+
+Backtrace: 1
+File: /home/surya/Videos/JEWELLERY2/catalog/model/setting/store.php
+Line: 46
+Class: Opencart\System\Library\DB
+Function: query
+
+Backtrace: 2
+File: /home/surya/Videos/JEWELLERY2/system/engine/loader.php
+Line: 343
+Class: Opencart\Catalog\Model\Setting\Store
+Function: getStoreByHostname
+
+Backtrace: 3
+File: /home/surya/Videos/JEWELLERY2/system/engine/proxy.php
+Line: 87
+Class: Opencart\System\Engine\Loader
+Function: {closure:Opencart\System\Engine\Loader::callback():312}
+
+Backtrace: 4
+File: /home/surya/Videos/JEWELLERY2/catalog/controller/startup/setting.php
+Line: 20
+Class: Opencart\System\Engine\Proxy
+Function: __call
+
+Backtrace: 5
+File: /home/surya/Videos/JEWELLERY2/system/engine/action.php
+Line: 96
+Class: Opencart\Catalog\Controller\Startup\Setting
+Function: index
+
+Backtrace: 6
+File: /home/surya/Videos/JEWELLERY2/system/framework.php
+Line: 208
+Class: Opencart\System\Engine\Action
+Function: execute
+
+Backtrace: 7
+File: /home/surya/Videos/JEWELLERY2/index.php
+Line: 20
+Function: require_once
+2026-04-05 12:27:49 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:49 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:50 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:50 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:27:54 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:10 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:10 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:15 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:20 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $start in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 12:28:24 - PHP Warning:  Undefined variable $limit in /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php on line 164
+2026-04-05 18:36:43 - PHP Warning:  imagecreatefromstring(): Data is not in a recognized format in /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php on line 635
+2026-04-05 18:36:54 - PHP Warning:  imagecreatefromstring(): Data is not in a recognized format in /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php on line 635
+2026-04-05 18:37:05 - PHP Warning:  imagecreatefromstring(): Data is not in a recognized format in /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php on line 635
+2026-04-05 18:37:20 - PHP Warning:  imagecreatefromstring(): Data is not in a recognized format in /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php on line 635
+2026-04-05 18:37:40 - PHP Warning:  imagecreatefromstring(): Data is not in a recognized format in /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php on line 635
+2026-04-05 18:37:45 - PHP Warning:  imagecreatefromstring(): Data is not in a recognized format in /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php on line 635
+2026-04-05 18:38:31 - PHP Warning:  imagecreatefromstring(): Data is not in a recognized format in /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php on line 635
+2026-04-05 19:06:45 - PHP Warning:  imagecreatefromstring(): Data is not in a recognized format in /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php on line 635
+2026-04-05 19:07:06 - PHP Warning:  imagecreatefromstring(): Data is not in a recognized format in /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php on line 635
+2026-04-05 19:38:19 - PHP Warning:  imagecreatefromstring(): Data is not in a recognized format in /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php on line 635
+2026-04-05 20:07:42 - PHP Warning:  imagecreatefromstring(): Data is not in a recognized format in /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php on line 635
+2026-04-05 20:07:49 - PHP Warning:  imagecreatefromstring(): Data is not in a recognized format in /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php on line 635
+2026-04-05 20:08:07 - PHP Warning:  imagecreatefromstring(): Data is not in a recognized format in /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php on line 635
+2026-04-05 20:19:38 - PHP Warning:  imagecreatefromstring(): Data is not in a recognized format in /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php on line 635
+2026-04-06 10:50:56 - PHP Warning:  imagecreatefromstring(): Data is not in a recognized format in /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php on line 635
+2026-04-06 11:09:06 - PHP Warning:  imagecreatefromstring(): Data is not in a recognized format in /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php on line 635
+2026-04-06 13:10:22 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 13:10:22 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 13:10:22 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 13:10:22 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 13:10:23 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 13:10:23 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 13:10:23 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 13:10:23 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 13:10:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 13:10:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 13:10:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 13:10:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 13:10:58 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 13:10:58 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 13:10:58 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 13:10:58 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 13:10:58 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 13:10:58 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 13:10:58 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 13:10:58 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 13:32:22 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 13:32:22 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 13:32:22 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 13:32:22 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 13:32:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 13:32:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 13:32:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 13:32:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 13:32:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 13:32:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 13:32:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 13:32:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 13:33:05 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 13:33:05 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 13:33:05 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 13:33:05 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 13:33:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 13:33:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 13:33:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 13:33:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 13:33:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 13:33:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 13:33:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 13:33:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 13:33:23 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 13:33:23 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 13:33:23 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 13:33:23 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 13:33:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 13:33:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 13:33:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 13:33:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 13:33:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 13:33:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 13:33:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 13:33:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 13:34:36 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 13:34:36 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 13:34:36 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 13:34:36 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 14:58:19 - Error: Error: Unknown column 'p.product_id' in 'on clause'<br/>Error No: 1054<br/>SELECT 
+                p.product_id,
+                p.price,
+                p.image,
+                pd.name,
+                pp.*
+                FROM `xwzk_product` p
+                JOIN `xwzk_product_description` pd
+                LEFT JOIN xwzk_pts_pos_product pp
+                ON p.product_id = pp.product_id
+                ON p.product_id = pd.product_id
+                WHERE pd.language_id = '1'
+                ORDER BY p.product_id DESC
+                LIMIT 0, 10
+File: /home/surya/Videos/JEWELLERY2/system/library/db/mysqli.php
+Line: 122
+
+Backtrace: 0
+File: /home/surya/Videos/JEWELLERY2/system/library/db.php
+Line: 54
+Class: Opencart\System\Library\DB\MySQLi
+Function: query
+
+Backtrace: 1
+File: /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php
+Line: 70
+Class: Opencart\System\Library\DB
+Function: query
+
+Backtrace: 2
+File: /home/surya/Videos/JEWELLERY2/system/engine/loader.php
+Line: 343
+Class: Opencart\Catalog\Model\Groceries\Categories
+Function: getAllProducts
+
+Backtrace: 3
+File: /home/surya/Videos/JEWELLERY2/system/engine/proxy.php
+Line: 87
+Class: Opencart\System\Engine\Loader
+Function: {closure:Opencart\System\Engine\Loader::callback():312}
+
+Backtrace: 4
+File: /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php
+Line: 2984
+Class: Opencart\System\Engine\Proxy
+Function: __call
+
+Backtrace: 5
+File: /home/surya/Videos/JEWELLERY2/system/engine/action.php
+Line: 96
+Class: Opencart\Catalog\Controller\Groceries\Categories
+Function: getAllProducts
+
+Backtrace: 6
+File: /home/surya/Videos/JEWELLERY2/system/framework.php
+Line: 259
+Class: Opencart\System\Engine\Action
+Function: execute
+
+Backtrace: 7
+File: /home/surya/Videos/JEWELLERY2/index.php
+Line: 20
+Function: require_once
+2026-04-06 15:08:22 - Error: Error: Unknown column 'p.product_id' in 'on clause'<br/>Error No: 1054<br/>SELECT 
+                p.product_id,
+                p.price,
+                p.image,
+                pd.name,
+                pp.*
+                FROM `xwzk_product` p
+                JOIN `xwzk_product_description` pd
+                LEFT JOIN xwzk_pts_pos_product pp
+                ON p.product_id = pp.product_id
+                ON p.product_id = pd.product_id
+                WHERE pd.language_id = '1'
+                ORDER BY p.product_id DESC
+                LIMIT 0, 10
+File: /home/surya/Videos/JEWELLERY2/system/library/db/mysqli.php
+Line: 122
+
+Backtrace: 0
+File: /home/surya/Videos/JEWELLERY2/system/library/db.php
+Line: 54
+Class: Opencart\System\Library\DB\MySQLi
+Function: query
+
+Backtrace: 1
+File: /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php
+Line: 70
+Class: Opencart\System\Library\DB
+Function: query
+
+Backtrace: 2
+File: /home/surya/Videos/JEWELLERY2/system/engine/loader.php
+Line: 343
+Class: Opencart\Catalog\Model\Groceries\Categories
+Function: getAllProducts
+
+Backtrace: 3
+File: /home/surya/Videos/JEWELLERY2/system/engine/proxy.php
+Line: 87
+Class: Opencart\System\Engine\Loader
+Function: {closure:Opencart\System\Engine\Loader::callback():312}
+
+Backtrace: 4
+File: /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php
+Line: 2984
+Class: Opencart\System\Engine\Proxy
+Function: __call
+
+Backtrace: 5
+File: /home/surya/Videos/JEWELLERY2/system/engine/action.php
+Line: 96
+Class: Opencart\Catalog\Controller\Groceries\Categories
+Function: getAllProducts
+
+Backtrace: 6
+File: /home/surya/Videos/JEWELLERY2/system/framework.php
+Line: 259
+Class: Opencart\System\Engine\Action
+Function: execute
+
+Backtrace: 7
+File: /home/surya/Videos/JEWELLERY2/index.php
+Line: 20
+Function: require_once
+2026-04-06 15:08:31 - Error: Error: Unknown column 'p.product_id' in 'on clause'<br/>Error No: 1054<br/>SELECT 
+                p.product_id,
+                p.price,
+                p.image,
+                pd.name,
+                pp.*
+                FROM `xwzk_product` p
+                JOIN `xwzk_product_description` pd
+                LEFT JOIN xwzk_pts_pos_product pp
+                ON p.product_id = pp.product_id
+                ON p.product_id = pd.product_id
+                WHERE pd.language_id = '1'
+                ORDER BY p.product_id DESC
+                LIMIT 0, 10
+File: /home/surya/Videos/JEWELLERY2/system/library/db/mysqli.php
+Line: 122
+
+Backtrace: 0
+File: /home/surya/Videos/JEWELLERY2/system/library/db.php
+Line: 54
+Class: Opencart\System\Library\DB\MySQLi
+Function: query
+
+Backtrace: 1
+File: /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php
+Line: 70
+Class: Opencart\System\Library\DB
+Function: query
+
+Backtrace: 2
+File: /home/surya/Videos/JEWELLERY2/system/engine/loader.php
+Line: 343
+Class: Opencart\Catalog\Model\Groceries\Categories
+Function: getAllProducts
+
+Backtrace: 3
+File: /home/surya/Videos/JEWELLERY2/system/engine/proxy.php
+Line: 87
+Class: Opencart\System\Engine\Loader
+Function: {closure:Opencart\System\Engine\Loader::callback():312}
+
+Backtrace: 4
+File: /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php
+Line: 2984
+Class: Opencart\System\Engine\Proxy
+Function: __call
+
+Backtrace: 5
+File: /home/surya/Videos/JEWELLERY2/system/engine/action.php
+Line: 96
+Class: Opencart\Catalog\Controller\Groceries\Categories
+Function: getAllProducts
+
+Backtrace: 6
+File: /home/surya/Videos/JEWELLERY2/system/framework.php
+Line: 259
+Class: Opencart\System\Engine\Action
+Function: execute
+
+Backtrace: 7
+File: /home/surya/Videos/JEWELLERY2/index.php
+Line: 20
+Function: require_once
+2026-04-06 15:21:29 - Error: Error: Duplicate entry '0' for key 'xwzk_pieces.PRIMARY'<br/>Error No: 1062<br/>INSERT INTO xwzk_pieces 
+        SET piece = 'dozen',
+        status = '1',
+        date_added = NOW()
+File: /home/surya/Videos/JEWELLERY2/system/library/db/mysqli.php
+Line: 122
+
+Backtrace: 0
+File: /home/surya/Videos/JEWELLERY2/system/library/db.php
+Line: 54
+Class: Opencart\System\Library\DB\MySQLi
+Function: query
+
+Backtrace: 1
+File: /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php
+Line: 687
+Class: Opencart\System\Library\DB
+Function: query
+
+Backtrace: 2
+File: /home/surya/Videos/JEWELLERY2/system/engine/loader.php
+Line: 343
+Class: Opencart\Catalog\Model\Groceries\Categories
+Function: addPiece
+
+Backtrace: 3
+File: /home/surya/Videos/JEWELLERY2/system/engine/proxy.php
+Line: 87
+Class: Opencart\System\Engine\Loader
+Function: {closure:Opencart\System\Engine\Loader::callback():312}
+
+Backtrace: 4
+File: /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php
+Line: 1029
+Class: Opencart\System\Engine\Proxy
+Function: __call
+
+Backtrace: 5
+File: /home/surya/Videos/JEWELLERY2/system/engine/action.php
+Line: 96
+Class: Opencart\Catalog\Controller\Groceries\Categories
+Function: addPiece
+
+Backtrace: 6
+File: /home/surya/Videos/JEWELLERY2/system/framework.php
+Line: 259
+Class: Opencart\System\Engine\Action
+Function: execute
+
+Backtrace: 7
+File: /home/surya/Videos/JEWELLERY2/index.php
+Line: 20
+Function: require_once
+2026-04-06 16:09:26 - Error: Error: Duplicate entry '0' for key 'xwzk_pieces.PRIMARY'<br/>Error No: 1062<br/>INSERT INTO xwzk_pieces 
+        SET piece = 'box',
+        status = '1',
+        date_added = NOW()
+File: /home/surya/Videos/JEWELLERY2/system/library/db/mysqli.php
+Line: 122
+
+Backtrace: 0
+File: /home/surya/Videos/JEWELLERY2/system/library/db.php
+Line: 54
+Class: Opencart\System\Library\DB\MySQLi
+Function: query
+
+Backtrace: 1
+File: /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php
+Line: 698
+Class: Opencart\System\Library\DB
+Function: query
+
+Backtrace: 2
+File: /home/surya/Videos/JEWELLERY2/system/engine/loader.php
+Line: 343
+Class: Opencart\Catalog\Model\Groceries\Categories
+Function: addPiece
+
+Backtrace: 3
+File: /home/surya/Videos/JEWELLERY2/system/engine/proxy.php
+Line: 87
+Class: Opencart\System\Engine\Loader
+Function: {closure:Opencart\System\Engine\Loader::callback():312}
+
+Backtrace: 4
+File: /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php
+Line: 1029
+Class: Opencart\System\Engine\Proxy
+Function: __call
+
+Backtrace: 5
+File: /home/surya/Videos/JEWELLERY2/system/engine/action.php
+Line: 96
+Class: Opencart\Catalog\Controller\Groceries\Categories
+Function: addPiece
+
+Backtrace: 6
+File: /home/surya/Videos/JEWELLERY2/system/framework.php
+Line: 259
+Class: Opencart\System\Engine\Action
+Function: execute
+
+Backtrace: 7
+File: /home/surya/Videos/JEWELLERY2/index.php
+Line: 20
+Function: require_once
+2026-04-06 17:43:05 - PHP Warning:  Undefined array key "file" in /home/surya/Videos/JEWELLERY2/catalog/controller/startup/error.php on line 78
+2026-04-06 17:43:05 - PHP Warning:  Undefined array key "line" in /home/surya/Videos/JEWELLERY2/catalog/controller/startup/error.php on line 79
+2026-04-06 17:43:05 - Error: syntax error, unexpected token "public"
+File: /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php
+Line: 1715
+
+Backtrace: 0
+File: /home/surya/Videos/JEWELLERY2/system/engine/autoloader.php
+Line: 26
+Class: Opencart\System\Engine\Autoloader
+Function: load
+
+Backtrace: 1
+File: 
+Line: 
+Class: Opencart\System\Engine\Autoloader
+Function: {closure:Opencart\System\Engine\Autoloader::__construct():25}
+
+Backtrace: 2
+File: /home/surya/Videos/JEWELLERY2/system/engine/factory.php
+Line: 66
+Function: class_exists
+
+Backtrace: 3
+File: /home/surya/Videos/JEWELLERY2/system/engine/loader.php
+Line: 139
+Class: Opencart\System\Engine\Factory
+Function: model
+
+Backtrace: 4
+File: /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php
+Line: 228
+Class: Opencart\System\Engine\Loader
+Function: model
+
+Backtrace: 5
+File: /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php
+Line: 270
+Class: Opencart\Catalog\Controller\Groceries\Categories
+Function: validateToken
+
+Backtrace: 6
+File: /home/surya/Videos/JEWELLERY2/system/engine/action.php
+Line: 96
+Class: Opencart\Catalog\Controller\Groceries\Categories
+Function: getInitialData
+
+Backtrace: 7
+File: /home/surya/Videos/JEWELLERY2/system/framework.php
+Line: 259
+Class: Opencart\System\Engine\Action
+Function: execute
+
+Backtrace: 8
+File: /home/surya/Videos/JEWELLERY2/index.php
+Line: 20
+Function: require_once
+2026-04-06 17:43:05 - PHP Warning:  Undefined array key "file" in /home/surya/Videos/JEWELLERY2/catalog/controller/startup/error.php on line 78
+2026-04-06 17:43:05 - PHP Warning:  Undefined array key "line" in /home/surya/Videos/JEWELLERY2/catalog/controller/startup/error.php on line 79
+2026-04-06 17:43:05 - Error: syntax error, unexpected token "public"
+File: /home/surya/Videos/JEWELLERY2/catalog/model/groceries/categories.php
+Line: 1715
+
+Backtrace: 0
+File: /home/surya/Videos/JEWELLERY2/system/engine/autoloader.php
+Line: 26
+Class: Opencart\System\Engine\Autoloader
+Function: load
+
+Backtrace: 1
+File: 
+Line: 
+Class: Opencart\System\Engine\Autoloader
+Function: {closure:Opencart\System\Engine\Autoloader::__construct():25}
+
+Backtrace: 2
+File: /home/surya/Videos/JEWELLERY2/system/engine/factory.php
+Line: 66
+Function: class_exists
+
+Backtrace: 3
+File: /home/surya/Videos/JEWELLERY2/system/engine/loader.php
+Line: 139
+Class: Opencart\System\Engine\Factory
+Function: model
+
+Backtrace: 4
+File: /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php
+Line: 228
+Class: Opencart\System\Engine\Loader
+Function: model
+
+Backtrace: 5
+File: /home/surya/Videos/JEWELLERY2/catalog/controller/groceries/categories.php
+Line: 356
+Class: Opencart\Catalog\Controller\Groceries\Categories
+Function: validateToken
+
+Backtrace: 6
+File: /home/surya/Videos/JEWELLERY2/system/engine/action.php
+Line: 96
+Class: Opencart\Catalog\Controller\Groceries\Categories
+Function: getCategoryData
+
+Backtrace: 7
+File: /home/surya/Videos/JEWELLERY2/system/framework.php
+Line: 259
+Class: Opencart\System\Engine\Action
+Function: execute
+
+Backtrace: 8
+File: /home/surya/Videos/JEWELLERY2/index.php
+Line: 20
+Function: require_once
+2026-04-06 18:34:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:34:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:34:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:34:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:34:12 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:34:12 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:34:12 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:34:12 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:35:01 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:35:01 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:35:01 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:35:01 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:35:04 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:35:04 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:35:04 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:35:04 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:36:46 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:36:46 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:36:46 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:36:46 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:37:36 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:37:36 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:37:36 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:37:36 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:37:46 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:37:46 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:37:46 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:37:46 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:38:34 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:38:34 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:38:34 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:38:34 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:38:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:38:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:38:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:38:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:38:57 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:38:57 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:38:57 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:38:57 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:39:34 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:39:34 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:39:34 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:39:34 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:39:39 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:39:39 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:39:39 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:39:39 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:39:52 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:39:52 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:39:52 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:39:52 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:40:01 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:40:01 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:40:01 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:40:01 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:40:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:40:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:40:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:40:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:40:14 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:40:14 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:40:14 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:40:14 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:40:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:40:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:40:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:40:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:40:27 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:40:27 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:40:27 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:40:27 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:40:33 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:40:33 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:40:33 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:40:33 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:40:42 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:40:42 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:40:42 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:40:42 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:40:49 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:40:49 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:40:49 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:40:49 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:40:51 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:40:51 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:40:51 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:40:51 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:40:57 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:40:57 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:40:57 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:40:57 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:41:06 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:41:06 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:41:06 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:41:06 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:41:20 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:41:20 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:41:20 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:41:20 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:41:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:41:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:41:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:41:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:41:33 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:41:33 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:41:33 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:41:33 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:41:42 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:41:42 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:41:42 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:41:42 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:41:45 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:41:45 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:41:45 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:41:45 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:42:13 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:42:13 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:42:13 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:42:13 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:42:17 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:42:17 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:42:17 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:42:17 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:42:21 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:42:21 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:42:21 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:42:21 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:42:30 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:42:30 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:42:30 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:42:30 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:42:34 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:42:34 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:42:34 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:42:34 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:42:43 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:42:43 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:42:43 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:42:43 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:42:48 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:42:48 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:42:48 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:42:48 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:43:00 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:43:00 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:43:00 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:43:00 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:43:08 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:43:08 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:43:08 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:43:08 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:43:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:43:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:43:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:43:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:43:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:43:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:43:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:43:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:43:33 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:43:33 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:43:33 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:43:33 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:43:38 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:43:38 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:43:38 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:43:38 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:43:48 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:43:48 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:43:48 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:43:48 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:43:54 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:43:54 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:43:54 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:43:54 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:43:57 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:43:57 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:43:57 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:43:57 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:44:02 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:44:02 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:44:02 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:44:02 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:44:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:44:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:44:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:44:07 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:55:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:55:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:55:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:55:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 18:55:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 18:55:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 18:55:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 18:55:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:01:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:01:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:01:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:01:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:01:33 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:01:33 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:01:33 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:01:33 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:02:04 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:02:04 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:02:04 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:02:04 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:02:12 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:02:12 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:02:12 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:02:12 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:02:32 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:02:32 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:02:32 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:02:32 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:02:41 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:02:41 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:02:41 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:02:41 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:03:02 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:03:02 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:03:02 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:03:02 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:03:05 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:03:05 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:03:05 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:03:05 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:03:26 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:03:26 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:03:26 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:03:26 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:03:30 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:03:30 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:03:30 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:03:30 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:03:50 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:03:50 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:03:50 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:03:50 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:03:59 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:03:59 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:03:59 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:03:59 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:04:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:04:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:04:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:04:24 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:04:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:04:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:04:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:04:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:04:49 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:04:49 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:04:49 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:04:49 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:05:32 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:05:32 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:05:32 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:05:32 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:06:04 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:06:04 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:06:04 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:06:04 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:06:10 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:06:10 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:06:10 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:06:10 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:06:37 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:06:37 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:06:37 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:06:37 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:06:48 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:06:48 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:06:48 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:06:48 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:07:08 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:07:08 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:07:08 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:07:08 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:07:11 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:07:11 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:07:11 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:07:11 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:07:57 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:07:57 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:07:57 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:07:57 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-06 19:08:01 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-06 19:08:01 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-06 19:08:01 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-06 19:08:01 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:15:39 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:15:39 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:15:39 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:15:39 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:15:42 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:15:42 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:15:42 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:15:42 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:15:45 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:15:45 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:15:45 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:15:45 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:15:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:15:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:15:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:15:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:16:05 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:16:05 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:16:05 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:16:05 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:16:09 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:16:09 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:16:09 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:16:09 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:17:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:17:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:17:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:17:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:17:31 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:17:31 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:17:31 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:17:31 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:19:46 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:19:46 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:19:46 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:19:46 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:19:49 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:19:49 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:19:49 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:19:49 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:19:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:19:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:19:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:19:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:21:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:21:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:21:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:21:19 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:26:38 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:26:38 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:26:38 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:26:38 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:26:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:26:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:26:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:26:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:27:09 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:27:09 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:27:09 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:27:09 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:27:50 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:27:50 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:27:50 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:27:50 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:27:56 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:27:56 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:27:56 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:27:56 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:28:09 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:28:09 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:28:09 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:28:09 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:28:17 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:28:17 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:28:17 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:28:17 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:28:22 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:28:22 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:28:22 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:28:22 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:28:58 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:28:58 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:28:58 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:28:58 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 11:29:00 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 11:29:00 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 11:29:00 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 11:29:00 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 12:32:26 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 12:32:26 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 12:32:26 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 12:32:26 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 12:32:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 12:32:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 12:32:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 12:32:28 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 12:32:31 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 12:32:31 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 12:32:31 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 12:32:31 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 17:08:20 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 17:08:20 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 17:08:20 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 17:08:20 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 17:08:21 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 17:08:21 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 17:08:21 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 17:08:21 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 17:19:53 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 17:19:53 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 17:19:53 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 17:19:53 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 17:19:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 17:19:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 17:19:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 17:19:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 17:19:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 17:19:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 17:19:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 17:19:55 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 17:24:03 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 17:24:03 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 17:24:03 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 17:24:03 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 17:39:40 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 17:39:40 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 17:39:40 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 17:39:40 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 17:39:41 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 17:39:41 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 17:39:41 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 17:39:41 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 17:42:14 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 17:42:14 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 17:42:14 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 17:42:14 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 17:42:15 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 17:42:15 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 17:42:15 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 17:42:15 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 17:42:15 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 17:42:15 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 17:42:15 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 17:42:15 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90
+2026-04-07 18:43:05 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 87
+2026-04-07 18:43:05 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 88
+2026-04-07 18:43:05 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 89
+2026-04-07 18:43:05 - PHP Warning:  Undefined array key "customer_token" in /home/surya/Videos/JEWELLERY2/catalog/controller/common/header.php on line 90

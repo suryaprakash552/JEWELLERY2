@@ -53,11 +53,11 @@
                  </div>
             
                   <div class="col-sm-6">
-                    <input type="text"
-                           name="path"
-                           value="{{ path }}"
-                           placeholder="Parent"
-                           class="form-control">
+                    <input type="text" name="path" value="{{ path }}" placeholder="{{ entry_parent }}" id="input-parent" data-oc-target="autocomplete-parent" class="form-control" autocomplete="off"/>
+                          <ul id="autocomplete-parent" class="dropdown-menu"></ul>
+                          <input type="hidden" name="parent_id" value="{{ parent_id }}" id="input-parent-id"/>
+                          <div class="form-text">{{ help_parent }}</div>
+                          <div id="error-parent" class="invalid-feedback"></div>
                   </div>
                 </div>
             

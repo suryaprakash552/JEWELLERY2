@@ -237,6 +237,9 @@ class Home extends \Opencart\System\Engine\Controller {
             if ($activeQuoteId > 0) {
                 $this->model_checkout_order->completeQuote($activeQuoteId);
             }
+            $this->load->model('groceries/categories');
+
+            $this->model_groceries_categories->insertOrderTracking($order_id);
 
 
             if (!$order_id) {

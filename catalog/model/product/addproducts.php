@@ -27,6 +27,7 @@ class Addproducts extends \Opencart\System\Engine\Model {
                                                                 r_tag='" . $this->db->escape($data['r_tag']) . "',
                                                                 w_tag='" . $this->db->escape($data['w_tag']) . "',
                                                                 status='" . (int)$data['status'] . "',
+                                                                featured='" . (int)$data['featured'] . "',
                                                                 image='" . $this->db->escape($data['image']) . "',
                                                                 weight_class_id = '1',
                                                                 length_class_id ='1',
@@ -91,6 +92,7 @@ class Addproducts extends \Opencart\System\Engine\Model {
                                                                                                 r_tag='" . $this->db->escape($data['r_tag']) . "',
                                                                                                 w_tag='" . $this->db->escape($data['w_tag']) . "',
                                                                                                 status='" . (int)$data['status'] . "',
+                                                                                                featured='" . (int)$data['featured'] . "',
                                                                                                 image='" . $this->db->escape($data['image']) . "',
                                                                                                 date_modified = NOW()
                                                                                                 WHERE product_id = '" . (int)$product_id . "'");

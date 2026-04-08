@@ -50,18 +50,34 @@ class Categories extends \Opencart\System\Engine\Model {
     }
 
 
-    public function getAllProducts() {
+    public function getAllProducts($start = 0, $limit = 10, $search = '') {
 
-        $sql = "SELECT *
+        $sql = "SELECT 
+                p.product_id,
+                p.price,
+                p.image,
+                pd.name,
+                pp.*
                 FROM `" . DB_PREFIX . "product` p
                 JOIN `" . DB_PREFIX . "product_description` pd
                 ON p.product_id = pd.product_id
-                WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
-                ORDER BY p.product_id DESC
-                LIMIT " . (int)$start . ", " . (int)$limit;
+                LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
+                ON p.product_id = pp.product_id
+                WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
+
+        if(!empty($search)){
+        $sql .= " AND pd.name LIKE '%".$this->db->escape($search)."%'";
+        }
+
+        $sql .= " ORDER BY p.product_id DESC";
+
+        if(empty($search)){
+        $sql .= " LIMIT " . (int)$start . ", " . (int)$limit;
+        }
 
         return $this->db->query($sql)->rows;
-    }
+
+        }
 
     public function getSubCategories($category_id) {
 
@@ -121,7 +137,7 @@ class Categories extends \Opencart\System\Engine\Model {
     
     }
 
-   public function getProductsOnly($category_id, $start = 0, $limit = 5){
+   public function getProductsOnly($category_id){
 
     $sql = "SELECT 
             p.product_id,
@@ -158,10 +174,7 @@ class Categories extends \Opencart\System\Engine\Model {
             ON ptp.piece_id = ps.piece_id
 
             WHERE pc.category_id = '" . (int)$category_id . "'
-            AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
-
-            ORDER BY p.product_id DESC
-            LIMIT " . (int)$start . ", " . (int)$limit;
+            AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
 
     return $this->db->query($sql)->rows;
 }
@@ -170,14 +183,14 @@ class Categories extends \Opencart\System\Engine\Model {
         $sql = "SELECT *
         FROM `" . DB_PREFIX . "product` p
         JOIN `" . DB_PREFIX . "product_description` pd
-        ON p.product_id = pd.product_id
-        WHERE pd.language_id='".(int)$this->config->get('config_language_id')."'
+            ON p.product_id = pd.product_id
+        WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+        AND p.featured = '1'
         ORDER BY RAND()
         LIMIT 9";
-        
+
         return $this->db->query($sql)->rows;
-        
-        }
+    }
         
         public function getOfferCategories() {
 
@@ -261,117 +274,70 @@ public function getRelatedProducts($product_id){
     return $this->db->query($sql)->rows;
 }
 
-public function loginCustomerOtp($telephone){
+public function loginCustomerOtp($telephone) {
 
-// CHECK CUSTOMER EXISTS
+    $telephone = trim($telephone);
 
-$query = $this->db->query(
+    if (!$telephone) {
+        return [
+            'status' => false,
+            'message' => 'Telephone is required'
+        ];
+    }
 
-"SELECT customer_id
-FROM " . DB_PREFIX . "customer
-WHERE telephone='" . $this->db->escape($telephone) . "'
-AND status='1'
-LIMIT 1"
+    // CHECK CUSTOMER EXISTS
+    $query = $this->db->query(
+        "SELECT customer_id 
+         FROM " . DB_PREFIX . "customer 
+         WHERE telephone = '" . $this->db->escape($telephone) . "' 
+         AND status = '1' 
+         LIMIT 1"
+    );
 
-);
+    if ($query->num_rows) {
 
+        $customer_id = $query->row['customer_id'];
 
-// EXISTING CUSTOMER
+    } else {
 
-if($query->num_rows){
+        // DEFAULT PASSWORD
+        $password = password_hash('Admin@123', PASSWORD_DEFAULT);
 
-$customer_id = $query->row['customer_id'];
+        // INSERT CUSTOMER (EMPTY FIELDS)
+        $this->db->query(
+            "INSERT INTO " . DB_PREFIX . "customer SET
+            firstname = '',
+            lastname  = '',
+            email     = '',
+            telephone = '" . $this->db->escape($telephone) . "',
+            password  = '" . $this->db->escape($password) . "',
+            newsletter = '0',
+            language_id = '1',
+            customer_group_id = '1',
+            store_id = '3',
+            status = '1',
+            date_added = NOW()"
+        );
 
-}else{
+        $customer_id = $this->db->getLastId();
+    }
 
-// -------- CREATE NEW CUSTOMER --------
+    // GENERATE TOKEN
+    $token = bin2hex(random_bytes(32));
 
-// REQUIRED EMAIL IN OPENCART
+    $this->db->query(
+        "UPDATE " . DB_PREFIX . "customer 
+         SET token = '" . $this->db->escape($token) . "' 
+         WHERE customer_id = '" . (int)$customer_id . "'"
+    );
 
-$email = $telephone . '@otpuser.com';
-
-
-// CHECK DUPLICATE EMAIL
-
-$checkEmail = $this->db->query(
-
-"SELECT customer_id FROM " . DB_PREFIX . "customer
-WHERE email='".$this->db->escape($email)."'"
-
-);
-
-if($checkEmail->num_rows){
-
-$email = $telephone . time() . '@otpuser.com';
-
-}
-
-
-// PASSWORD = Admin@123
-
-$password = password_hash(
-'Admin@123',
-PASSWORD_DEFAULT
-);
-
-
-// INSERT CUSTOMER
-
-$this->db->query(
-
-"INSERT INTO ".DB_PREFIX."customer SET
-
-firstname='OTP',
-
-lastname='User',
-
-email='".$this->db->escape($email)."',
-
-telephone='".$this->db->escape($telephone)."',
-
-password='".$this->db->escape($password)."',
-
-newsletter='0',
-
-customer_group_id='1',
-
-status='1',
-
-date_added=NOW()"
-
-);
-
-$customer_id = $this->db->getLastId();
-
-}
-
-
-// TOKEN
-
-$token = bin2hex(random_bytes(32));
-
-
-$this->db->query(
-
-"UPDATE ".DB_PREFIX."customer
-
-SET token='".$this->db->escape($token)."'
-
-WHERE customer_id='".(int)$customer_id."'"
-
-);
-
-
-// RESPONSE
-
-return [
-
-"customer_id"=>$customer_id,
-
-"token"=>$token
-
-];
-
+    return [
+        'status' => true,
+        'message' => 'Login successful',
+        'customer_id' => $customer_id,
+        
+        'token' => $token
+    ];
 }
 
 public function logoutCustomer($token) {
@@ -396,29 +362,34 @@ public function logoutCustomer($token) {
     return true;
 }
 
-public function addCategory(string $name): int {
+public function addCategory($data): int {
 
-
-// -------- CATEGORY INSERT --------
+/* CATEGORY TABLE */
 
 $this->db->query("INSERT INTO `" . DB_PREFIX . "category` SET
 
-parent_id='0',
+image='".$this->db->escape($data['image'])."',
 
-sort_order='0',
+parent_id='".(int)$data['parent_id']."',
 
-offer='0',
+offer='".(int)$data['offer']."',
 
-gst='0',
+offer_from=".(!empty($data['offer_from']) ? "'".$this->db->escape($data['offer_from'])."'" : "NULL").",
 
-status='1'
+offer_to=".(!empty($data['offer_to']) ? "'".$this->db->escape($data['offer_to'])."'" : "NULL").",
 
+offer_percentage='".(float)$data['offer_percentage']."',
+
+gst='".(float)$data['gst']."',
+
+sort_order='".(int)$data['sort_order']."',
+
+status='".(int)$data['status']."'
 ");
 
 $category_id = (int)$this->db->getLastId();
 
-
-// -------- DESCRIPTION --------
+/* DESCRIPTION TABLE */
 
 $this->db->query("INSERT INTO `" . DB_PREFIX . "category_description` SET
 
@@ -426,31 +397,27 @@ category_id='".(int)$category_id."',
 
 language_id='".(int)$this->config->get('config_language_id')."',
 
-name='".$this->db->escape($name)."',
+name='".$this->db->escape($data['name'])."',
 
 description='',
 
-meta_title='".$this->db->escape($name)."',
+meta_title='".$this->db->escape($data['name'])."',
 
 meta_description='',
 
-meta_keyword=''"
+meta_keyword=''
+");
 
-);
-
-
-// -------- STORE --------
+/* STORE */
 
 $this->db->query("INSERT INTO `" . DB_PREFIX . "category_to_store` SET
 
 category_id='".(int)$category_id."',
 
 store_id='0'
-
 ");
 
-
-// -------- PATH --------
+/* PATH */
 
 $this->db->query("INSERT INTO `" . DB_PREFIX . "category_path` SET
 
@@ -459,13 +426,41 @@ category_id='".(int)$category_id."',
 path_id='".(int)$category_id."',
 
 level='0'
-
 ");
-
 
 return $category_id;
 
 }
+public function getCategories(): array {
+
+    $sql = "SELECT 
+
+    cp.category_id,
+    c.image,
+    GROUP_CONCAT(cd.name ORDER BY cp.level SEPARATOR ' > ') AS name,
+    c.parent_id
+
+    FROM " . DB_PREFIX . "category_path cp
+
+    LEFT JOIN " . DB_PREFIX . "category c
+    ON cp.category_id = c.category_id
+
+    LEFT JOIN " . DB_PREFIX . "category_description cd
+    ON cp.path_id = cd.category_id
+
+    WHERE cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+    AND c.status = 1
+
+    GROUP BY cp.category_id
+
+    ORDER BY name ASC";
+
+    $query = $this->db->query($sql);
+
+    return $query->rows;
+
+}
+
 
 public function getFullOrderDetails(int $order_id) {
 
@@ -751,6 +746,17 @@ public function addPiece($piece) {
 
 public function addAddress($data){
 
+// If new address is default → remove old default
+if(!empty($data['default'])){
+
+$this->db->query("
+UPDATE ".DB_PREFIX."address 
+SET `default`='0'
+WHERE customer_id='".(int)$data['customer_id']."'
+");
+
+}
+
 $this->db->query("INSERT INTO " . DB_PREFIX . "address SET
 
 customer_id='".(int)$data['customer_id']."',
@@ -777,8 +783,7 @@ zone_id='".(int)$data['zone_id']."',
 
 custom_field='',
 
-`default`='0'
-
+`default`='".(int)$data['default']."'
 ");
 
 return $this->db->getLastId();
@@ -829,6 +834,17 @@ if(!$query->num_rows){
 return false;
 }
 
+// If setting this address as default → remove previous default
+if(!empty($data['default'])){
+
+$this->db->query("
+UPDATE ".DB_PREFIX."address
+SET `default`='0'
+WHERE customer_id='".(int)$customer_id."'
+");
+
+}
+
 $this->db->query("
 UPDATE ".DB_PREFIX."address SET
 
@@ -841,7 +857,8 @@ address_2='".$this->db->escape($data['address_2'])."',
 city='".$this->db->escape($data['city'])."',
 postcode='".$this->db->escape($data['postcode'])."',
 country_id='".(int)$data['country_id']."',
-zone_id='".(int)$data['zone_id']."'
+zone_id='".(int)$data['zone_id']."',
+`default`='".(int)$data['default']."'
 
 WHERE address_id='".(int)$address_id."'
 AND customer_id='".(int)$customer_id."'
@@ -865,6 +882,40 @@ public function deleteAddress($customer_id,$address_id){
 
  }
 
+ public function getZoneByPostcode($postcode){
+
+$query = $this->db->query("
+SELECT zone_id 
+FROM ".DB_PREFIX."zone 
+WHERE code='".$this->db->escape($postcode)."'
+AND status='1'
+LIMIT 1
+");
+
+if($query->num_rows){
+return $query->row['zone_id'];
+}
+
+return 0;
+
+}
+
+public function checkZoneAvailability($postcode){
+
+$query = $this->db->query("
+SELECT z.zone_id, zd.name
+FROM ".DB_PREFIX."zone z
+LEFT JOIN ".DB_PREFIX."zone_description zd
+ON z.zone_id = zd.zone_id
+WHERE z.code='".$this->db->escape($postcode)."'
+AND z.status='1'
+LIMIT 1
+");
+
+return $query->row;
+
+}
+
 public function getCoupon($customer_id){
 
     $query = $this->db->query("SELECT *  FROM " . DB_PREFIX . "coupon WHERE status = '1'");
@@ -877,7 +928,9 @@ public function getCoupon($customer_id){
     $this->db->query("INSERT INTO " . DB_PREFIX . "store SET
                                                     name = '" . $this->db->escape($data['name']) . "',
                                                     url  = '" . $this->db->escape($data['url']) . "',
-                                                    logo = '" . $this->db->escape($data['logo']) . "'
+                                                    logo = '" . $this->db->escape($data['logo']) . "',
+                                                    contact = '" . $this->db->escape($data['contact']) . "',
+                                                    min_order_value = '" . $this->db->escape($data['min_order_value']) . "'
                                                 ");
 
         return $this->db->getLastId();
@@ -887,7 +940,9 @@ public function getCoupon($customer_id){
 
         $sql = "UPDATE " . DB_PREFIX . "store SET
             name = '" . $this->db->escape($data['name']) . "',
-            url  = '" . $this->db->escape($data['url']) . "'";
+            url  = '" . $this->db->escape($data['url']) . "',
+            contact = '" . $this->db->escape($data['contact']) . "',
+            min_order_value = '" . $this->db->escape($data['min_order_value']) . "'";
     
         if(!empty($data['logo'])){
             $sql .= ", logo = '" . $this->db->escape($data['logo']) . "'";
@@ -901,7 +956,7 @@ public function getCoupon($customer_id){
     public function getStores(){
 
             $query = $this->db->query("
-                SELECT store_id,name,logo,url
+                SELECT *
                 FROM " . DB_PREFIX . "store
                 ORDER BY store_id DESC
             ");
@@ -1263,5 +1318,463 @@ return $customer_id;
 
 }
 
+public function getCustomerByIdAndPhone($agentId, $telephone) {
+
+        $query = $this->db->query("
+            SELECT customer_id 
+            FROM " . DB_PREFIX . "customer 
+            WHERE customer_id = '" . (int)$agentId . "'
+            AND telephone = '" . $this->db->escape($telephone) . "'
+            LIMIT 1
+        ");
+
+        return $query->row ?? false;
+    }
+
+    // UPDATE PROFILE
+    public function updateCustomerProfile($customer_id, $firstname, $lastname, $email) {
+
+        $this->db->query("
+            UPDATE " . DB_PREFIX . "customer SET
+            firstname = '" . $this->db->escape($firstname) . "',
+            lastname  = '" . $this->db->escape($lastname) . "',
+            email     = '" . $this->db->escape($email) . "'
+            WHERE customer_id = '" . (int)$customer_id . "'
+        ");
+    }
+
+    // INSERT IMAGE
+    public function insertKycImage($customer_id, $image_path) {
+
+        $this->db->query("
+            INSERT INTO xwzk_kyc_images SET
+            customerid = '" . (int)$customer_id . "',
+            image = '" . $this->db->escape($image_path) . "',
+            idtype = 'profile',
+            sort_order = 1
+        ");
+    }
+    public function getCustomerProfile($agentId){
+
+    $customer = $this->db->query("
+        SELECT 
+            c.customer_id,
+            c.firstname,
+            c.lastname,
+            c.email,
+            c.telephone,
+            c.store_id,
+            s.*
+        FROM " . DB_PREFIX . "customer c
+        LEFT JOIN " . DB_PREFIX . "store s 
+            ON c.store_id = s.store_id
+        WHERE c.customer_id = '" . (int)$agentId . "'
+        LIMIT 1
+    ")->row;
+
+    if(!$customer){
+        return false;
+    }
+
+    $image = $this->db->query("
+        SELECT image
+        FROM xwzk_kyc_images
+        WHERE customerid = '" . (int)$agentId . "'
+        AND idtype = 'profile'
+        ORDER BY id DESC
+        LIMIT 1
+    ")->row;
+
+    $customer['profile_image'] = $image['image'] ?? '';
+
+    return $customer;
+}
+
+public function addBanner($data){
+
+        $this->db->query("INSERT INTO " . DB_PREFIX . "banner SET
+            name = '" . $this->db->escape($data['name']) . "',
+            from_date = '" . $this->db->escape($data['from_date']) . "',
+            to_date = '" . $this->db->escape($data['to_date']) . "',
+            status = '" . (int)$data['status'] . "',
+            created_at = NOW(),
+            updated_at = NOW()");
+
+        return $this->db->getLastId();
+    }
+
+
+    // EDIT BANNER
+    public function editBanner($banner_id,$data){
+
+        $this->db->query("UPDATE " . DB_PREFIX . "banner SET
+            name = '" . $this->db->escape($data['name']) . "',
+            from_date = '" . $this->db->escape($data['from_date']) . "',
+            to_date = '" . $this->db->escape($data['to_date']) . "',
+            status = '" . (int)$data['status'] . "',
+            updated_at = NOW()
+            WHERE banner_id = '" . (int)$banner_id . "'");
+    }
+
+
+    // ADD BANNER IMAGE
+    public function addBannerImage($data){
+
+        $this->db->query("INSERT INTO " . DB_PREFIX . "banner_image SET
+            banner_id = '" . (int)$data['banner_id'] . "',
+            language_id = '1',
+            title = '" . $this->db->escape($data['title']) . "',
+            link = '" . $this->db->escape($data['link']) . "',
+            image = '" . $this->db->escape($data['image']) . "',
+            sort_order = '" . (int)$data['sort_order'] . "'");
+    }
+
+
+    // DELETE BANNER IMAGES
+    public function deleteBannerImages($banner_id){
+
+        $this->db->query("DELETE FROM " . DB_PREFIX . "banner_image
+        WHERE banner_id = '" . (int)$banner_id . "'");
+    }
+
+
+    // GET BANNER
+    public function getBanner($banner_id){
+
+        $query = $this->db->query("SELECT *
+        FROM " . DB_PREFIX . "banner
+        WHERE banner_id = '" . (int)$banner_id . "'");
+
+        return $query->row;
+    }
+
+
+    // GET BANNER IMAGES
+    public function getBannerImages($banner_id){
+
+        $query = $this->db->query("SELECT *
+        FROM " . DB_PREFIX . "banner_image
+        WHERE banner_id = '" . (int)$banner_id . "'
+        ORDER BY sort_order ASC");
+
+        return $query->rows;
+    }
+
+    public function getActiveBanners(){
+
+    $sql = "SELECT 
+                b.*,
+                bi.title,
+                bi.link,
+                bi.image,
+                bi.sort_order
+            FROM " . DB_PREFIX . "banner b
+            LEFT JOIN " . DB_PREFIX . "banner_image bi 
+                ON b.banner_id = bi.banner_id
+            WHERE b.status = 1
+            AND b.from_date IS NOT NULL
+            AND b.to_date IS NOT NULL
+            AND CURDATE() BETWEEN b.from_date AND b.to_date
+            ORDER BY bi.sort_order ASC";
+
+    $query = $this->db->query($sql);
+
+    return $query->rows;
+}
+
+public function getAllBanners(){
+
+    $sql = "SELECT 
+                b.*,
+                bi.title,
+                bi.link,
+                bi.image,
+                bi.sort_order
+            FROM " . DB_PREFIX . "banner b
+            LEFT JOIN " . DB_PREFIX . "banner_image bi 
+                ON b.banner_id = bi.banner_id
+            ORDER BY bi.sort_order ASC";
+
+    $query = $this->db->query($sql);
+
+    return $query->rows;
+}
+
+public function updateBannerImage($data): void {
+    $this->db->query("
+        UPDATE " . DB_PREFIX . "banner_image 
+        SET title = '" . $this->db->escape($data['title']) . "',
+            link  = '" . $this->db->escape($data['link'])  . "',
+            image = '" . $this->db->escape($data['image']) . "',
+            sort_order = '" . (int)$data['sort_order'] . "'
+        WHERE banner_id = '" . (int)$data['banner_id'] . "'
+    ");
+}
+
+public function getRewardPoints($customer_id) {
+    $query = $this->db->query("SELECT SUM(points) AS total FROM `" . DB_PREFIX . "customer_reward` WHERE customer_id = '" . (int)$customer_id . "' AND status = 'active'");
+    return (int)($query->row['total'] ?? 0);
+}
+
+public function addRelatedProducts($product_id, $related_ids) {
+    if (!empty($related_ids)) {
+        foreach ($related_ids as $related_id) {
+            $this->db->query("INSERT INTO " . DB_PREFIX . "product_related SET product_id = '" . (int)$product_id . "', related_id = '" . (int)$related_id . "'");
+        }
+    }
+}
+
+public function deleteRelatedProducts($product_id) {
+    $this->db->query("DELETE FROM " . DB_PREFIX . "product_related WHERE product_id = '" . (int)$product_id . "'");
+}
+
+public function getAllOrdersByDateRange($from_date = '', $to_date = '', $order_id = '', $mobile = '', $name = '') {
+
+$sql = "SELECT o.order_id FROM `" . DB_PREFIX . "order` o WHERE 1";
+
+$isSearch = !empty($order_id) || !empty($mobile) || !empty($name);
+
+if (!$isSearch && !empty($from_date) && !empty($to_date)) {
+$sql .= " AND DATE(o.date_added) >= '" . $this->db->escape($from_date) . "'";
+$sql .= " AND DATE(o.date_added) <= '" . $this->db->escape($to_date) . "'";
+}
+
+if (!empty($order_id)) {
+$sql .= " AND o.order_id LIKE '%" . $this->db->escape($order_id) . "%'";
+}
+
+if (!empty($mobile)) {
+$sql .= " AND o.telephone LIKE '%" . $this->db->escape($mobile) . "%'";
+}
+
+if (!empty($name)) {
+$sql .= " AND (
+o.firstname LIKE '%" . $this->db->escape($name) . "%'
+OR o.lastname LIKE '%" . $this->db->escape($name) . "%'
+OR CONCAT(o.firstname,' ',o.lastname) LIKE '%" . $this->db->escape($name) . "%'
+)";
+}
+
+$sql .= " ORDER BY o.order_id DESC";
+
+$orders = $this->db->query($sql)->rows;
+
+$full = [];
+
+foreach ($orders as $order) {
+$full[] = $this->getFullOrderDetails((int)$order['order_id']);
+}
+
+return $full;
+
+}
+
+
+public function getAllOrderTotalsByDateRange($from_date, $to_date) {
+
+    $sql = " SELECT
+
+        /* STATUS 5 CASH */
+        COALESCE(SUM(
+            CASE 
+                WHEN o.order_status_id = 5 
+                THEN (oi.cash_amount - 
+                        CASE 
+                            WHEN oi.cash_amount > 0 
+                            THEN oi.returnable_balance 
+                            ELSE 0 
+                        END
+                     )
+                ELSE 0
+            END
+        ),0) AS status5_cash,
+
+
+        /* STATUS 5 UPI */
+        COALESCE(SUM(
+            CASE 
+                WHEN o.order_status_id = 5 
+                THEN (oi.upi_amount - 
+                        CASE 
+                            WHEN oi.upi_amount > 0 
+                            THEN oi.returnable_balance 
+                            ELSE 0 
+                        END
+                     )
+                ELSE 0
+            END
+        ),0) AS status5_upi,
+
+
+        /* STATUS 6 CASH */
+        COALESCE(SUM(
+            CASE 
+                WHEN o.order_status_id = 6 
+                THEN (oi.cash_amount - 
+                        CASE 
+                            WHEN oi.cash_amount > 0 
+                            THEN oi.returnable_balance 
+                            ELSE 0 
+                        END
+                     )
+                ELSE 0
+            END
+        ),0) AS status6_cash,
+
+
+        /* STATUS 6 UPI */
+        COALESCE(SUM(
+            CASE 
+                WHEN o.order_status_id = 6 
+                THEN (oi.upi_amount - 
+                        CASE 
+                            WHEN oi.upi_amount > 0 
+                            THEN oi.returnable_balance 
+                            ELSE 0 
+                        END
+                     )
+                ELSE 0
+            END
+        ),0) AS status6_upi,
+
+
+        /* OTHER TOTALS */
+
+        COALESCE(SUM(
+    CASE 
+        WHEN o.order_status_id = 5 
+        THEN oi.sub_total 
+        ELSE 0 
+    END
+),0) AS status5_subtotal,
+
+COALESCE(SUM(
+    CASE 
+        WHEN o.order_status_id = 6 
+        THEN oi.sub_total 
+        ELSE 0 
+    END
+),0) AS status6_subtotal,
+
+
+COALESCE(SUM(
+    CASE 
+        WHEN o.order_status_id = 5 
+        THEN oi.total_received 
+        ELSE 0 
+    END
+),0) AS status5_total_received,
+
+COALESCE(SUM(
+    CASE 
+        WHEN o.order_status_id = 6 
+        THEN oi.total_received 
+        ELSE 0 
+    END
+),0) AS status6_total_received,
+
+
+COALESCE(SUM(
+    CASE 
+        WHEN o.order_status_id = 5 
+        THEN oi.returnable_balance 
+        ELSE 0 
+    END
+),0) AS status5_returnable,
+
+COALESCE(SUM(
+    CASE 
+        WHEN o.order_status_id = 6 
+        THEN oi.returnable_balance 
+        ELSE 0 
+    END
+),0) AS status6_returnable,
+
+
+COALESCE(SUM(
+    CASE 
+        WHEN o.order_status_id = 5 
+        THEN oi.balance 
+        ELSE 0 
+    END
+),0) AS status5_balance,
+
+COALESCE(SUM(
+    CASE 
+        WHEN o.order_status_id = 6 
+        THEN oi.balance 
+        ELSE 0 
+    END
+),0) AS status6_balance
+
+        FROM `" . DB_PREFIX . "order` o
+
+        INNER JOIN `" . DB_PREFIX . "order_invoice` oi
+        ON oi.order_id = o.order_id
+
+        WHERE DATE(o.date_added) >= '" . $this->db->escape($from_date) . "'
+        AND DATE(o.date_added) <= '" . $this->db->escape($to_date) . "'
+    ";
+
+    return $this->db->query($sql)->row;
+}
+
+public function insertOrderTracking($order_id){
+
+        $status_list = $this->db->query("
+        SELECT track_status_id 
+        FROM ".DB_PREFIX."track_status
+        ")->rows;
+
+        foreach($status_list as $status){
+
+        $track_status_id = (int)$status['track_status_id'];
+
+        $status_value = ($track_status_id == 1) ? 1 : 0;
+
+        $this->db->query("
+        INSERT INTO ".DB_PREFIX."track_order SET
+        order_id='".(int)$order_id."',
+        track_status_id='".$track_status_id."',
+        status='".$status_value."'
+        ");
+
+        }
+
+    }
+
+    public function getTrackOrder($order_id){
+
+        $sql = "
+        SELECT
+        ts.track_status_id,
+        ts.name,
+        IFNULL(to1.status,0) as status
+
+        FROM ".DB_PREFIX."track_status ts
+
+        LEFT JOIN ".DB_PREFIX."track_order to1
+        ON ts.track_status_id = to1.track_status_id
+        AND to1.order_id='".(int)$order_id."'
+
+        ORDER BY ts.track_status_id ASC
+        ";
+
+        $query = $this->db->query($sql);
+
+        return $query->rows;
+
+    }
+
+    public function updateTrackStatus($order_id,$track_status_id){
+
+    $this->db->query("
+    UPDATE ".DB_PREFIX."track_order
+    SET status = 1
+    WHERE order_id='".(int)$order_id."'
+    AND track_status_id='".(int)$track_status_id."'
+    ");
+
+    }
 
 }
