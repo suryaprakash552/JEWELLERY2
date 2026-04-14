@@ -112,7 +112,7 @@ class Order extends \Opencart\System\Engine\Model {
 	}*/
 
 
-public function addOrder(array $data, array $invoice_extra = []): int {
+public function addOrder(array $data, array $invoice_extra = [], $tracking = ''): int {
 /*
 foreach ($data['products'] as $product) {
 
@@ -166,7 +166,7 @@ foreach ($data['products'] as $product) {
                                                             `invoice_prefix` = '" . $this->db->escape($def('invoice_prefix')) . "',
                                                             `invoice_no`     = '" . $this->db->escape($def('invoice_no')) . "',
                                                             `customer_id`    = '" . (int)$def('customer_id') . "',
-                                                            `pre_order_id`       = '" . (int)$def('pre_order_id',0) . "',
+                                                            `pre_order_id`   = '" . (int)$def('pre_order_id',0) . "',
                                                             `quote_id`       = '" . (int)$def('quote_id', 0) . "',
                                                             `customer_group_id` = '" . (int)$def('customer_group_id') . "',
                                                             `sellerId`       = '" . (int)$def('sellerId') . "',
@@ -186,13 +186,14 @@ foreach ($data['products'] as $product) {
                                                             `payment_method`    = '" . $this->db->escape(json_encode($def('payment_method', []))) . "',
                                                             `comment`           = '" . $this->db->escape($def('comment')) . "',
                                                             `total`             = '" . (float)$def('total', 0) . "',
+                                                            `tracking`          = '" . $this->db->escape($tracking) . "',
                                                             `language_id`       = 1,
                                                             `currency_id`       = 1,
                                                             `currency_code`     = 'INR',
                                                             `currency_value`    = '1.00000000',
                                                             `date_added`    = '" . $this->db->escape(date('Y-m-d H:i:s')) . "',
                                                             `date_modified` = '" . $this->db->escape(date('Y-m-d H:i:s')) . "'
-                                                            ");
+                                                        ");
 
     $order_id = (int)$this->db->getLastId();
 

@@ -463,6 +463,8 @@ public function addOrder(): void {
     
     $invoiceInfo = $orderDetails['InvoiceInfo'] ?? [];
     
+    $tracking = $orderDetails['tracking'] ?? ($post['tracking'] ?? '');
+    
     if(empty($cart_products)){
     
         throw new \Exception("Cart Empty");
@@ -584,7 +586,7 @@ public function addOrder(): void {
     ];
     $this->load->model('checkout/order');
     
-    $order_id=$this->model_checkout_order->addOrder($order_data,$invoice_extra);
+    $order_id=$this->model_checkout_order->addOrder($order_data,$invoice_extra,$tracking);
     
     if(!$order_id){
     
@@ -922,7 +924,7 @@ public function addOrder(): void {
             
             }
             
-            }
+        }
     
     public function addCategory(): void {
 
@@ -1579,6 +1581,7 @@ public function addPiece(): void {
         $country_id= $post['country_id'] ?? 99;
 
         $default   = isset($post['default']) ? (int)$post['default'] : 0;
+        $tracking  = html_entity_decode($post['tracking'] ?? '', ENT_QUOTES, 'UTF-8');
 
         if(!$firstname || !$address_1 || !$city || !$postcode){
 
@@ -1618,7 +1621,8 @@ public function addPiece(): void {
                                                                     "postcode"=>$postcode,
                                                                     "country_id"=>$country_id,
                                                                     "zone_id"=>$zone_id,
-                                                                    "default"=>$default
+                                                                    "default"=>$default,
+                                                                    "tracking"=>$tracking
                                                                     ]);
 
         $this->response->setOutput(json_encode([
@@ -1727,6 +1731,7 @@ $postcode  = $post['postcode'] ?? '';
 $country_id= $post['country_id'] ?? 99;
 
 $default   = isset($post['default']) ? (int)$post['default'] : 0;
+$tracking  = html_entity_decode($post['tracking'] ?? '', ENT_QUOTES, 'UTF-8');
 
 $zone_id = $this->model_groceries_categories->getZoneByPostcode($postcode);
 
@@ -1755,7 +1760,8 @@ $address_id,
 "postcode"=>$postcode,
 "country_id"=>$country_id,
 "zone_id"=>$zone_id,
-"default"=>$default
+"default"=>$default,
+"tracking"=>$tracking
 ]
 );
 
@@ -3222,6 +3228,108 @@ public function getAllProducts(): void {
             ]));
 
         }
+
+        public function productStockReport(): void {
+
+            $this->response->addHeader('Content-Type: application/json');
+
+            if (!$this->validateToken()) {
+                $this->response->setOutput(json_encode([
+                    "status" => "error",
+                    "message" => "Invalid Token"
+                ]));
+                return;
+            }
+
+            $this->load->model('groceries/categories');
+
+
+            $search = $this->request->get['search'] ?? '';
+            $page   = $this->request->get['page'] ?? 1;
+            $limit  = $this->request->get['limit'] ?? 10;
+
+            $start = ($page - 1) * $limit;
+
+            $filter_data = [
+                'search' => $search,
+                'start' => $start,
+                'limit' => $limit
+            ];
+
+
+            $products = $this->model_groceries_categories->getProductStockReport($filter_data);
+
+            $category_totals = $this->model_groceries_categories->getCategoryWiseStockTotal();
+
+            $this->response->setOutput(json_encode([
+                "status" => "success",
+                "products" => $products,
+                "category_totals" => $category_totals,
+                "pagination" => [
+                    "page" => (int)$page,
+                    "limit" => (int)$limit
+                ]
+            ]));
+        }
+
+    public function sendUPIPayment(): void {
+
+        $this->response->addHeader('Content-Type: application/json');
+
+        if (!$this->validateToken()) {
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => "Invalid Token"
+            ]));
+            return;
+        }
+
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        $order_id = $data['order_id'] ?? 0;
+        $amount   = $data['amount'] ?? 0;
+
+        if (!$order_id || !$amount) {
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => "Invalid data"
+            ]));
+            return;
+        }
+
+        // ✅ Load your existing model
+        $this->load->model('groceries/categories');
+
+        $store = $this->model_groceries_categories->getStore();
+
+        if (!$store || empty($store['upi'])) {
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => "Store Details are Missing"
+            ]));
+            return;
+        }
+
+        $upi_id     = $store['upi'];
+        $store_name = $store['name'];
+
+        $upi_url = "upi://pay?pa=" . $upi_id .
+                "&pn=" . urlencode($store_name) .
+                "&am=" . (float)$amount .
+                "&cu=INR" .
+                "&tn=7337011206";
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "data" => [
+                "order_id"   => $order_id,
+                "amount"     => (float)$amount,
+                "upi_id"     => $upi_id,
+                "store_name" => $store_name,
+                "upi_url"    => $upi_url
+            ]
+        ]));
+    }
     
 }
 

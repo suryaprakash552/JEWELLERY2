@@ -55,9 +55,9 @@ class Home extends \Opencart\System\Engine\Controller {
         $money = function ($v) {
             return (float) preg_replace("/[^0-9.\-]/", "", (string) $v);
         };
-
         try {
             $orderDetails = $get($post, "orderDetails", []);
+            $tracking = $get($orderDetails, "tracking", $get($post, "tracking", ""));
             $incoming_tax_details = $get($orderDetails, "taxDetails", []);
             $previousOrderId = (int) $get($orderDetails, "previousOrderId", 0);
             $activeQuoteId = (int) $get($orderDetails, "activeQuoteId", 0);
@@ -228,10 +228,10 @@ class Home extends \Opencart\System\Engine\Controller {
 
             $this->load->model("checkout/order");
             if ($editOrderId > 0) {
-                $this->model_checkout_order->editPreviousOrder($editOrderId, $order_data, $invoice_extra);
+                $this->model_checkout_order->editPreviousOrder($editOrderId, $order_data, $invoice_extra, $tracking);
                 $order_id = $editOrderId;
             } else {
-                $order_id = $this->model_checkout_order->addOrder($order_data, $invoice_extra);
+                $order_id = $this->model_checkout_order->addOrder($order_data, $invoice_extra, $tracking);
             }
 
             if ($activeQuoteId > 0) {

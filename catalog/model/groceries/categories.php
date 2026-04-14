@@ -57,12 +57,19 @@ class Categories extends \Opencart\System\Engine\Model {
                 p.price,
                 p.image,
                 pd.name,
-                pp.*
+                pp.*,
+                ptp.piece_id,
+                ps.piece
                 FROM `" . DB_PREFIX . "product` p
                 JOIN `" . DB_PREFIX . "product_description` pd
                 ON p.product_id = pd.product_id
                 LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
                 ON p.product_id = pp.product_id
+                LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
+                ON p.product_id = ptp.product_id
+
+                LEFT JOIN " . DB_PREFIX . "pieces ps
+                ON ptp.piece_id = ps.piece_id
                 WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
 
         if(!empty($search)){
@@ -149,7 +156,6 @@ class Categories extends \Opencart\System\Engine\Model {
             c.gst,
             pp.pos_status,
             pp.pos_quentity,
-
             ptp.piece_id,
             ps.piece
 
@@ -174,7 +180,9 @@ class Categories extends \Opencart\System\Engine\Model {
             ON ptp.piece_id = ps.piece_id
 
             WHERE pc.category_id = '" . (int)$category_id . "'
-            AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
+            AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+
+            ORDER BY p.date_added DESC";
 
     return $this->db->query($sql)->rows;
 }
@@ -186,7 +194,7 @@ class Categories extends \Opencart\System\Engine\Model {
             ON p.product_id = pd.product_id
         WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
         AND p.featured = '1'
-        ORDER BY RAND()
+        ORDER BY p.date_added DESC
         LIMIT 9";
 
         return $this->db->query($sql)->rows;
@@ -219,11 +227,11 @@ class Categories extends \Opencart\System\Engine\Model {
         
         WHERE pc.category_id='".(int)$category_id."'
         
-        AND pd.language_id='".(int)$this->config->get('config_language_id')."'";
+        AND pd.language_id='".(int)$this->config->get('config_language_id')."'
         
+        ORDER BY p.date_added DESC";
         return $this->db->query($sql)->rows;
-        
-        }
+    }
 
 public function getProductDetails($product_id){
 
@@ -757,34 +765,22 @@ WHERE customer_id='".(int)$data['customer_id']."'
 
 }
 
-$this->db->query("INSERT INTO " . DB_PREFIX . "address SET
-
-customer_id='".(int)$data['customer_id']."',
-
-firstname='".$this->db->escape($data['firstname'])."',
-
-lastname='".$this->db->escape($data['lastname'])."',
-
-contact='".$this->db->escape($data['contact'])."',
-
-company='".$this->db->escape($data['company'])."',
-
-address_1='".$this->db->escape($data['address_1'])."',
-
-address_2='".$this->db->escape($data['address_2'])."',
-
-city='".$this->db->escape($data['city'])."',
-
-postcode='".$this->db->escape($data['postcode'])."',
-
-country_id='".(int)$data['country_id']."',
-
-zone_id='".(int)$data['zone_id']."',
-
-custom_field='',
-
-`default`='".(int)$data['default']."'
-");
+    $this->db->query("INSERT INTO " . DB_PREFIX . "address SET
+        customer_id='".(int)$data['customer_id']."',
+        firstname='".$this->db->escape($data['firstname'])."',
+        lastname='".$this->db->escape($data['lastname'])."',
+        contact='".$this->db->escape($data['contact'])."',
+        company='".$this->db->escape($data['company'])."',
+        address_1='".$this->db->escape($data['address_1'])."',
+        address_2='".$this->db->escape($data['address_2'])."',
+        city='".$this->db->escape($data['city'])."',
+        postcode='".$this->db->escape($data['postcode'])."',
+        country_id='".(int)$data['country_id']."',
+        zone_id='".(int)$data['zone_id']."',
+        custom_field='',
+        `default`='".(int)$data['default']."',
+        tracking='".$this->db->escape(isset($data['tracking']) ? $data['tracking'] : '')."'
+        ");
 
 return $this->db->getLastId();
 
@@ -964,6 +960,17 @@ public function getCoupon($customer_id){
             return $query->rows;
     }
     
+    public function getStore(){
+
+    $query = $this->db->query("
+        SELECT *
+        FROM " . DB_PREFIX . "store
+        ORDER BY store_id DESC
+        LIMIT 1
+    ");
+
+    return $query->row;
+}
     public function addAgent($data){
 
         /* CUSTOMER */
@@ -1517,15 +1524,58 @@ public function getRewardPoints($customer_id) {
 }
 
 public function addRelatedProducts($product_id, $related_ids) {
+
     if (!empty($related_ids)) {
+
         foreach ($related_ids as $related_id) {
-            $this->db->query("INSERT INTO " . DB_PREFIX . "product_related SET product_id = '" . (int)$product_id . "', related_id = '" . (int)$related_id . "'");
+
+            // ❌ prevent self relation
+            if ($product_id == $related_id) {
+                continue;
+            }
+
+            // ✅ check forward relation
+            $check1 = $this->db->query("
+                SELECT * FROM " . DB_PREFIX . "product_related 
+                WHERE product_id = '" . (int)$product_id . "' 
+                AND related_id = '" . (int)$related_id . "'
+            ");
+
+            if (!$check1->num_rows) {
+                // insert forward
+                $this->db->query("
+                    INSERT INTO " . DB_PREFIX . "product_related 
+                    SET product_id = '" . (int)$product_id . "', 
+                        related_id = '" . (int)$related_id . "'
+                ");
+            }
+
+            // ✅ check reverse relation
+            $check2 = $this->db->query("
+                SELECT * FROM " . DB_PREFIX . "product_related 
+                WHERE product_id = '" . (int)$related_id . "' 
+                AND related_id = '" . (int)$product_id . "'
+            ");
+
+            if (!$check2->num_rows) {
+                // insert reverse
+                $this->db->query("
+                    INSERT INTO " . DB_PREFIX . "product_related 
+                    SET product_id = '" . (int)$related_id . "', 
+                        related_id = '" . (int)$product_id . "'
+                ");
+            }
         }
     }
 }
 
 public function deleteRelatedProducts($product_id) {
-    $this->db->query("DELETE FROM " . DB_PREFIX . "product_related WHERE product_id = '" . (int)$product_id . "'");
+
+    $this->db->query("
+        DELETE FROM " . DB_PREFIX . "product_related 
+        WHERE product_id = '" . (int)$product_id . "' 
+        OR related_id = '" . (int)$product_id . "'
+    ");
 }
 
 public function getAllOrdersByDateRange($from_date = '', $to_date = '', $order_id = '', $mobile = '', $name = '') {
@@ -1776,5 +1826,89 @@ public function insertOrderTracking($order_id){
     ");
 
     }
+
+    public function getProductStockReport($data = []) {
+
+        $sql = "SELECT 
+                p.product_id,
+                pd.name AS product_name,
+                IFNULL(pp.pos_quentity,0) AS pos_quentity,
+                c.category_id,
+                cd.name AS category_name
+
+                FROM " . DB_PREFIX . "product p
+
+                JOIN " . DB_PREFIX . "product_description pd 
+                    ON p.product_id = pd.product_id
+
+                LEFT JOIN " . DB_PREFIX . "pts_pos_product pp 
+                    ON p.product_id = pp.product_id
+
+                LEFT JOIN " . DB_PREFIX . "product_to_category pc 
+                    ON p.product_id = pc.product_id
+
+                LEFT JOIN " . DB_PREFIX . "category c 
+                    ON pc.category_id = c.category_id
+
+                LEFT JOIN " . DB_PREFIX . "category_description cd 
+                    ON c.category_id = cd.category_id
+
+                WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+                AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
+
+        // 🔍 SEARCH
+        if (!empty($data['search'])) {
+            $sql .= " AND pd.name LIKE '%" . $this->db->escape($data['search']) . "%'";
+        }
+
+        $sql .= " GROUP BY p.product_id";
+
+        // 🔥 LOW STOCK FIRST (MAIN LOGIC)
+        $sql .= " ORDER BY 
+                    CASE 
+                        WHEN IFNULL(pp.pos_quentity,0) = 0 THEN 0
+                        WHEN IFNULL(pp.pos_quentity,0) <= 10 THEN 1
+                        ELSE 2
+                    END,
+                    IFNULL(pp.pos_quentity,0) ASC";
+
+        // 📄 PAGINATION
+        if (isset($data['start']) && isset($data['limit'])) {
+            $start = (int)$data['start'];
+            $limit = (int)$data['limit'];
+            $sql .= " LIMIT $start,$limit";
+        }
+
+        return $this->db->query($sql)->rows;
+    }
+
+    public function getCategoryWiseStockTotal() {
+
+        $sql = "SELECT 
+                c.category_id,
+                cd.name AS category_name,
+                SUM(IFNULL(pp.pos_quentity,0)) AS total_stock
+
+                FROM " . DB_PREFIX . "product p
+
+                LEFT JOIN " . DB_PREFIX . "pts_pos_product pp 
+                    ON p.product_id = pp.product_id
+
+                LEFT JOIN " . DB_PREFIX . "product_to_category pc 
+                    ON p.product_id = pc.product_id
+
+                LEFT JOIN " . DB_PREFIX . "category c 
+                    ON pc.category_id = c.category_id
+
+                LEFT JOIN " . DB_PREFIX . "category_description cd 
+                    ON c.category_id = cd.category_id
+
+                WHERE cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+
+                GROUP BY c.category_id";
+
+        return $this->db->query($sql)->rows;
+    }
+
 
 }
