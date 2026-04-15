@@ -265,6 +265,8 @@ class Categories extends \Opencart\System\Engine\Controller {
 
 public function sendWhatsAppOtp($data = []) {
 
+    file_put_contents(DIR_LOGS . 'msg91.log', "FUNCTION CALLED\n", FILE_APPEND);
+
     $phone = "91" . $data['phone']; // ✅ FIX
     $otp   = $data['otp'];
     
