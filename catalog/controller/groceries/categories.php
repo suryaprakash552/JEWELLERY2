@@ -324,12 +324,6 @@ public function sendWhatsAppOtp($data = []) {
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-    file_put_contents(
-        DIR_LOGS . 'msg91.log',
-        date('Y-m-d H:i:s') . " => " . $response . PHP_EOL,
-        FILE_APPEND
-    );
-
     curl_close($ch);
 
     return $response;

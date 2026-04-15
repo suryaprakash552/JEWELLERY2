@@ -2514,16 +2514,9 @@
             if (!$validate_record['exstatus']) {
                 $otp = rand(100000, 999999);
                 //$otp="123456";
-                $this->model_ws_transactions_common->INSERT_CUSTOMER_OTP_ATTEMPTS($data, $this->request, $otp);file_put_contents(DIR_LOGS . 'msg91.log', "BEFORE CALL\n", FILE_APPEND);
-
-$this->load->controller('groceries/categories.sendWhatsAppOtp', [
-    'phone' => $telephone,
-    'otp'   => $otp
-]);
-
-file_put_contents(DIR_LOGS . 'msg91.log', "AFTER CALL\n", FILE_APPEND);
+                $this->model_ws_transactions_common->INSERT_CUSTOMER_OTP_ATTEMPTS($data, $this->request, $otp);
+                $this->load->controller('groceries/categories.sendWhatsAppOtp', ['phone' => $telephone,'otp'   => $otp]);
                 $get_custrecord = $this->model_ws_transactions_common->GET_CUSTOMER_OTP_ATTEMPTS($this->request->post, $telephone);
-        
                 $json['success'] = "1";
                 $json['otp'] = $otp;
                 $json['otp_ref'] = $get_custrecord['otp'];
@@ -2533,6 +2526,7 @@ file_put_contents(DIR_LOGS . 'msg91.log', "AFTER CALL\n", FILE_APPEND);
                     $otp = rand(100000, 999999);
                     //$otp="123456";
                     $this->model_ws_transactions_common->UPDATE_OTP_ATTEMPTS($data, $this->request, $otp);
+                    $this->load->controller('groceries/categories.sendWhatsAppOtp', ['phone' => $telephone,'otp'  => $otp]);
                     $get_custrecord = $this->model_ws_transactions_common->GET_CUSTOMER_OTP_ATTEMPTS($this->request->post, $telephone);
         
                     $json['success'] = "2";
