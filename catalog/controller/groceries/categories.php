@@ -269,9 +269,7 @@ public function sendWhatsAppOtp($data = []) {
 
     $phone = "91" . $data['phone'];
     $otp   = $data['otp'];
-
-    $authkey = "471465A6FulqId269201b0eP1";
-    $integrated_number = "918341711206";
+    $integrated_number = "919741957694";
 
     $payload = [
         "integrated_number" => $integrated_number,
@@ -314,8 +312,8 @@ public function sendWhatsAppOtp($data = []) {
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => json_encode($payload),
         CURLOPT_HTTPHEADER => [
-            'Content-Type: application/json',
-            'authkey: ' . $authkey
+            "Content-Type: application/json",
+            "authkey: 471465A6FulqId269201b0eP1"
         ],
     ]);
 
