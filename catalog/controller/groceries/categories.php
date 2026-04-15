@@ -268,7 +268,7 @@ public function sendWhatsAppOtp($data = []) {
     $phone = "91" . $data['phone']; // ✅ FIX
     $otp   = $data['otp'];
     
-    $authkey = "YOUR_AUTH_KEY";
+    $authkey = "471465A6FulqId269201b0eP1";
     $integrated_number = "919741957694";
 
     $payload = [
@@ -314,11 +314,12 @@ public function sendWhatsAppOtp($data = []) {
 
     $response = curl_exec($curl);
 
-    if (!$response) {
-        error_log('MSG91 Error: ' . curl_error($curl));
-    } else {
-        error_log('MSG91 Response: ' . $response);
-    }
+// 👇 ADD THIS LINE
+file_put_contents(
+    DIR_LOGS . 'msg91.log',
+    date('Y-m-d H:i:s') . " => " . $response . PHP_EOL,
+    FILE_APPEND
+);
 
     curl_close($curl);
 
