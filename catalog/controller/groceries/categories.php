@@ -292,12 +292,12 @@ public function sendWhatsAppOtp($data = []) {
                         "components" => [
                             "body_1" => [
                                 "type" => "text",
-                                "value" => $otp
+                                "value" => (string)$otp
                             ],
                             "button_1" => [
                                 "subtype" => "url",
                                 "type" => "text",
-                                "value" => $otp
+                                "value" => (string)$otp
                             ]
                         ]
                     ]
