@@ -267,10 +267,10 @@ public function sendWhatsAppOtp($data = []) {
 
     file_put_contents(DIR_LOGS . 'msg91.log', "FUNCTION CALLED\n", FILE_APPEND);
 
-    $phone = "91" . $data['phone']; // ✅ FIX
+    $phone = "91" . $data['phone'];
     $otp   = $data['otp'];
-    
-    $authkey = "471465A6FulqId269201b0eP1";
+
+    $authkey = "YOUR_AUTH_KEY";
     $integrated_number = "919741957694";
 
     $payload = [
@@ -280,7 +280,7 @@ public function sendWhatsAppOtp($data = []) {
             "messaging_product" => "whatsapp",
             "type" => "template",
             "template" => [
-                "name" => "login_verfication",
+                "name" => "login_verfication", // ✅ EXACT NAME
                 "language" => [
                     "code" => "en",
                     "policy" => "deterministic"
@@ -291,6 +291,11 @@ public function sendWhatsAppOtp($data = []) {
                         "to" => [$phone],
                         "components" => [
                             "body_1" => [
+                                "type" => "text",
+                                "value" => (string)$otp
+                            ],
+                            "button_1" => [
+                                "subtype" => "url",
                                 "type" => "text",
                                 "value" => (string)$otp
                             ]
@@ -316,12 +321,11 @@ public function sendWhatsAppOtp($data = []) {
 
     $response = curl_exec($curl);
 
-// 👇 ADD THIS LINE
-file_put_contents(
-    DIR_LOGS . 'msg91.log',
-    date('Y-m-d H:i:s') . " => " . $response . PHP_EOL,
-    FILE_APPEND
-);
+    file_put_contents(
+        DIR_LOGS . 'msg91.log',
+        date('Y-m-d H:i:s') . " => " . $response . PHP_EOL,
+        FILE_APPEND
+    );
 
     curl_close($curl);
 
