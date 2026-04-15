@@ -269,16 +269,15 @@ public function sendWhatsAppOtp($data = []) {
 
     $phone = "91" . $data['phone'];
     $otp   = $data['otp'];
-    $integrated_number = "919741957694";
 
     $payload = [
-        "integrated_number" => $integrated_number,
+        "integrated_number" => "919741957694",
         "content_type" => "template",
         "payload" => [
             "messaging_product" => "whatsapp",
             "type" => "template",
             "template" => [
-                "name" => "login_verfication", // ✅ EXACT NAME
+                "name" => "login_verfication",
                 "language" => [
                     "code" => "en",
                     "policy" => "deterministic"
@@ -304,20 +303,26 @@ public function sendWhatsAppOtp($data = []) {
         ]
     ];
 
-    $curl = curl_init();
+    $ch = curl_init(
+            "https://api.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/"	
+        );
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => json_encode($payload),
+            CURLOPT_HTTPHEADER => [
+                "Content-Type: application/json",
+                "authkey: 471465A6FulqId269201b0eP1",
+            ],
+        ]);
 
-    curl_setopt_array($curl, [
-        CURLOPT_URL => 'https://api.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => json_encode($payload),
-        CURLOPT_HTTPHEADER => [
-            "Content-Type: application/json",
-            "authkey: 471465A6FulqId269201b0eP1"
-        ],
-    ]);
-
-    $response = curl_exec($curl);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
     file_put_contents(
         DIR_LOGS . 'msg91.log',
@@ -325,7 +330,7 @@ public function sendWhatsAppOtp($data = []) {
         FILE_APPEND
     );
 
-    curl_close($curl);
+    curl_close($ch);
 
     return $response;
 }
