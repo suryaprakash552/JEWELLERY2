@@ -270,7 +270,7 @@ public function sendWhatsAppOtp($data = []) {
     $phone = "91" . $data['phone'];
     $otp   = $data['otp'];
 
-    $authkey = "YOUR_AUTH_KEY";
+    $authkey = "471465A6FulqId269201b0eP1";
     $integrated_number = "918341711206";
 
     $payload = [
