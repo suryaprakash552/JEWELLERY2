@@ -265,10 +265,10 @@ class Categories extends \Opencart\System\Engine\Controller {
 
 public function sendWhatsAppOtp($data = []) {
 
-    $phone = $data['phone'];
+    $phone = "91" . $data['phone']; // ✅ FIX
     $otp   = $data['otp'];
     
-    $authkey = "471465A6FulqId269201b0eP1";
+    $authkey = "YOUR_AUTH_KEY";
     $integrated_number = "919741957694";
 
     $payload = [
@@ -278,7 +278,7 @@ public function sendWhatsAppOtp($data = []) {
             "messaging_product" => "whatsapp",
             "type" => "template",
             "template" => [
-                "name" => "login_verfication",
+                "name" => "login_verification", // ✅ FIX
                 "language" => [
                     "code" => "en",
                     "policy" => "deterministic"
@@ -291,12 +291,7 @@ public function sendWhatsAppOtp($data = []) {
                             "body_1" => [
                                 "type" => "text",
                                 "value" => (string)$otp
-                            ],
-                            "button_1" => [
-                            "subtype" => "copy_code",
-                            "type" => "text",
-                            "value" => (string)$otp
-                        ]
+                            ]
                         ]
                     ]
                 ]
@@ -318,6 +313,13 @@ public function sendWhatsAppOtp($data = []) {
     ]);
 
     $response = curl_exec($curl);
+
+    if (!$response) {
+        error_log('MSG91 Error: ' . curl_error($curl));
+    } else {
+        error_log('MSG91 Response: ' . $response);
+    }
+
     curl_close($curl);
 
     return $response;
