@@ -263,6 +263,66 @@ class Categories extends \Opencart\System\Engine\Controller {
     }
 }
 
+public function sendWhatsAppOtp($data = []) {
+
+    $phone = $data['phone'];
+    $otp   = $data['otp'];
+    
+    $authkey = "471465A6FulqId269201b0eP1";
+    $integrated_number = "919741957694";
+
+    $payload = [
+        "integrated_number" => $integrated_number,
+        "content_type" => "template",
+        "payload" => [
+            "messaging_product" => "whatsapp",
+            "type" => "template",
+            "template" => [
+                "name" => "login_verfication",
+                "language" => [
+                    "code" => "en",
+                    "policy" => "deterministic"
+                ],
+                "namespace" => "d3da0aa7_8c49_4af7_9c40_c42082efc36e",
+                "to_and_components" => [
+                    [
+                        "to" => [$phone],
+                        "components" => [
+                            "body_1" => [
+                                "type" => "text",
+                                "value" => (string)$otp
+                            ],
+                            "button_1" => [
+                            "subtype" => "copy_code",
+                            "type" => "text",
+                            "value" => (string)$otp
+                        ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
+    ];
+
+    $curl = curl_init();
+
+    curl_setopt_array($curl, [
+        CURLOPT_URL => 'https://api.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'authkey: ' . $authkey
+        ],
+    ]);
+
+    $response = curl_exec($curl);
+    curl_close($curl);
+
+    return $response;
+}
+
     public function getInitialData(): void {
 
     $this->response->addHeader('Content-Type: application/json');
