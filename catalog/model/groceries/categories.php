@@ -192,6 +192,11 @@ class Categories extends \Opencart\System\Engine\Model {
         FROM `" . DB_PREFIX . "product` p
         JOIN `" . DB_PREFIX . "product_description` pd
             ON p.product_id = pd.product_id
+        LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
+            ON p.product_id = ptp.product_id
+
+            LEFT JOIN " . DB_PREFIX . "pieces ps
+            ON ptp.piece_id = ps.piece_id
         WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
         AND p.featured = '1'
         ORDER BY p.date_added DESC
@@ -1403,6 +1408,7 @@ public function addBanner($data){
             name = '" . $this->db->escape($data['name']) . "',
             from_date = '" . $this->db->escape($data['from_date']) . "',
             to_date = '" . $this->db->escape($data['to_date']) . "',
+            type = '1',
             status = '" . (int)$data['status'] . "',
             created_at = NOW(),
             updated_at = NOW()");
@@ -1418,6 +1424,7 @@ public function addBanner($data){
             name = '" . $this->db->escape($data['name']) . "',
             from_date = '" . $this->db->escape($data['from_date']) . "',
             to_date = '" . $this->db->escape($data['to_date']) . "',
+            type = '1',
             status = '" . (int)$data['status'] . "',
             updated_at = NOW()
             WHERE banner_id = '" . (int)$banner_id . "'");
@@ -1450,7 +1457,8 @@ public function addBanner($data){
 
         $query = $this->db->query("SELECT *
         FROM " . DB_PREFIX . "banner
-        WHERE banner_id = '" . (int)$banner_id . "'");
+        WHERE banner_id = '" . (int)$banner_id . "'
+        AND type = '1'");
 
         return $query->row;
     }
@@ -1479,6 +1487,7 @@ public function addBanner($data){
             LEFT JOIN " . DB_PREFIX . "banner_image bi 
                 ON b.banner_id = bi.banner_id
             WHERE b.status = 1
+            AND b.type = 1
             AND b.from_date IS NOT NULL
             AND b.to_date IS NOT NULL
             AND CURDATE() BETWEEN b.from_date AND b.to_date
@@ -1500,6 +1509,7 @@ public function getAllBanners(){
             FROM " . DB_PREFIX . "banner b
             LEFT JOIN " . DB_PREFIX . "banner_image bi 
                 ON b.banner_id = bi.banner_id
+            WHERE b.type = 1
             ORDER BY bi.sort_order ASC";
 
     $query = $this->db->query($sql);
@@ -1508,6 +1518,261 @@ public function getAllBanners(){
 }
 
 public function updateBannerImage($data): void {
+    $this->db->query("
+        UPDATE " . DB_PREFIX . "banner_image 
+        SET title = '" . $this->db->escape($data['title']) . "',
+            link  = '" . $this->db->escape($data['link'])  . "',
+            image = '" . $this->db->escape($data['image']) . "',
+            sort_order = '" . (int)$data['sort_order'] . "'
+        WHERE banner_id = '" . (int)$data['banner_id'] . "'
+    ");
+}
+
+public function addRunningBanner($data){
+
+        $this->db->query("INSERT INTO " . DB_PREFIX . "banner SET
+            name = '" . $this->db->escape($data['name']) . "',
+            from_date = '" . $this->db->escape($data['from_date']) . "',
+            to_date = '" . $this->db->escape($data['to_date']) . "',
+            type = '2',
+            status = '" . (int)$data['status'] . "',
+            created_at = NOW(),
+            updated_at = NOW()");
+
+        return $this->db->getLastId();
+    }
+
+
+    // EDIT BANNER
+    public function editRunningBanner($banner_id,$data){
+
+        $this->db->query("UPDATE " . DB_PREFIX . "banner SET
+            name = '" . $this->db->escape($data['name']) . "',
+            from_date = '" . $this->db->escape($data['from_date']) . "',
+            to_date = '" . $this->db->escape($data['to_date']) . "',
+            type = '2',
+            status = '" . (int)$data['status'] . "',
+            updated_at = NOW()
+            WHERE banner_id = '" . (int)$banner_id . "'");
+    }
+
+
+    // ADD BANNER IMAGE
+    public function addRunningBannerImage($data){
+
+        $this->db->query("INSERT INTO " . DB_PREFIX . "banner_image SET
+            banner_id = '" . (int)$data['banner_id'] . "',
+            language_id = '1',
+            title = '" . $this->db->escape($data['title']) . "',
+            link = '" . $this->db->escape($data['link']) . "',
+            image = '" . $this->db->escape($data['image']) . "',
+            sort_order = '" . (int)$data['sort_order'] . "'");
+    }
+
+
+    // DELETE BANNER IMAGES
+    public function deleteRunningBannerImages($banner_id){
+
+        $this->db->query("DELETE FROM " . DB_PREFIX . "banner_image
+        WHERE banner_id = '" . (int)$banner_id . "'");
+    }
+
+
+    // GET BANNER
+    public function getRunningBanner($banner_id){
+
+        $query = $this->db->query("SELECT *
+        FROM " . DB_PREFIX . "banner
+        WHERE banner_id = '" . (int)$banner_id . "'
+        AND type = '2'");
+
+        return $query->row;
+    }
+
+
+    // GET BANNER IMAGES
+    public function getRunningBannerImages($banner_id){
+
+        $query = $this->db->query("SELECT *
+        FROM " . DB_PREFIX . "banner_image
+        WHERE banner_id = '" . (int)$banner_id . "'
+        ORDER BY sort_order ASC");
+
+        return $query->rows;
+    }
+
+    public function getActiveRunningBanners(){
+
+    $sql = "SELECT 
+                b.*,
+                bi.title,
+                bi.link,
+                bi.image,
+                bi.sort_order
+            FROM " . DB_PREFIX . "banner b
+            LEFT JOIN " . DB_PREFIX . "banner_image bi 
+                ON b.banner_id = bi.banner_id
+            WHERE b.status = 1
+            AND b.type = 2
+            AND b.from_date IS NOT NULL
+            AND b.to_date IS NOT NULL
+            AND CURDATE() BETWEEN b.from_date AND b.to_date
+            ORDER BY bi.sort_order ASC";
+
+    $query = $this->db->query($sql);
+
+
+    return $query->rows;
+}
+
+public function getAllRunningBanners(){
+
+    $sql = "SELECT 
+                b.*,
+                bi.title,
+                bi.link,
+                bi.image,
+                bi.sort_order
+            FROM " . DB_PREFIX . "banner b
+            LEFT JOIN " . DB_PREFIX . "banner_image bi 
+                ON b.banner_id = bi.banner_id
+            WHERE b.type = 2
+            ORDER BY bi.sort_order ASC";
+
+    $query = $this->db->query($sql);
+
+    return $query->rows;
+}
+
+public function updateRunningBannerImage($data): void {
+    $this->db->query("
+        UPDATE " . DB_PREFIX . "banner_image 
+        SET title = '" . $this->db->escape($data['title']) . "',
+            link  = '" . $this->db->escape($data['link'])  . "',
+            image = '" . $this->db->escape($data['image']) . "',
+            sort_order = '" . (int)$data['sort_order'] . "'
+        WHERE banner_id = '" . (int)$data['banner_id'] . "'
+    ");
+}
+
+
+public function addBottomBanner($data){
+
+        $this->db->query("INSERT INTO " . DB_PREFIX . "banner SET
+            name = '" . $this->db->escape($data['name']) . "',
+            from_date = '" . $this->db->escape($data['from_date']) . "',
+            to_date = '" . $this->db->escape($data['to_date']) . "',
+            type = '3',
+            status = '" . (int)$data['status'] . "',
+            created_at = NOW(),
+            updated_at = NOW()");
+
+        return $this->db->getLastId();
+    }
+
+
+    // EDIT BANNER
+    public function editBottomBanner($banner_id,$data){
+
+        $this->db->query("UPDATE " . DB_PREFIX . "banner SET
+            name = '" . $this->db->escape($data['name']) . "',
+            from_date = '" . $this->db->escape($data['from_date']) . "',
+            to_date = '" . $this->db->escape($data['to_date']) . "',
+            type = '3',
+            status = '" . (int)$data['status'] . "',
+            updated_at = NOW()
+            WHERE banner_id = '" . (int)$banner_id . "'");
+    }
+
+
+    // ADD BANNER IMAGE
+    public function addBottomBannerImage($data){
+
+        $this->db->query("INSERT INTO " . DB_PREFIX . "banner_image SET
+            banner_id = '" . (int)$data['banner_id'] . "',
+            language_id = '1',
+            title = '" . $this->db->escape($data['title']) . "',
+            link = '" . $this->db->escape($data['link']) . "',
+            image = '" . $this->db->escape($data['image']) . "',
+            sort_order = '" . (int)$data['sort_order'] . "'");
+    }
+
+
+    // DELETE BANNER IMAGES
+    public function deleteBottomBannerImages($banner_id){
+
+        $this->db->query("DELETE FROM " . DB_PREFIX . "banner_image
+        WHERE banner_id = '" . (int)$banner_id . "'");
+    }
+
+
+    // GET BANNER
+    public function getBottomBanner($banner_id){
+
+        $query = $this->db->query("SELECT *
+        FROM " . DB_PREFIX . "banner
+        WHERE banner_id = '" . (int)$banner_id . "'
+        AND type = '3'");
+
+        return $query->row;
+    }
+
+
+    // GET BANNER IMAGES
+    public function getBottomBannerImages($banner_id){
+
+        $query = $this->db->query("SELECT *
+        FROM " . DB_PREFIX . "banner_image
+        WHERE banner_id = '" . (int)$banner_id . "'
+        ORDER BY sort_order ASC");
+
+        return $query->rows;
+    }
+
+    public function getActiveBottomBanners(){
+
+    $sql = "SELECT 
+                b.*,
+                bi.title,
+                bi.link,
+                bi.image,
+                bi.sort_order
+            FROM " . DB_PREFIX . "banner b
+            LEFT JOIN " . DB_PREFIX . "banner_image bi 
+                ON b.banner_id = bi.banner_id
+            WHERE b.status = 1
+            AND b.type = 3
+            AND b.from_date IS NOT NULL
+            AND b.to_date IS NOT NULL
+            AND CURDATE() BETWEEN b.from_date AND b.to_date
+            ORDER BY bi.sort_order ASC";
+
+    $query = $this->db->query($sql);
+
+
+    return $query->rows;
+}
+
+public function getAllBottomBanners(){
+
+    $sql = "SELECT 
+                b.*,
+                bi.title,
+                bi.link,
+                bi.image,
+                bi.sort_order
+            FROM " . DB_PREFIX . "banner b
+            LEFT JOIN " . DB_PREFIX . "banner_image bi 
+                ON b.banner_id = bi.banner_id
+            WHERE b.type = 3
+            ORDER BY bi.sort_order ASC";
+
+    $query = $this->db->query($sql);
+
+    return $query->rows;
+}
+
+public function updateBottomBannerImage($data): void {
     $this->db->query("
         UPDATE " . DB_PREFIX . "banner_image 
         SET title = '" . $this->db->escape($data['title']) . "',

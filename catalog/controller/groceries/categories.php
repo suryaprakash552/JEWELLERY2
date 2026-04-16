@@ -3102,6 +3102,364 @@ public function getAllBanners(): void {
     }
 }
 
+public function addRunningBanner(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    try{
+
+        $post = $this->request->post;
+
+        $raw = file_get_contents("php://input");
+
+        if($raw){
+            $json = json_decode($raw,true);
+            if(json_last_error() === JSON_ERROR_NONE){
+                $post = array_merge($post,$json);
+            }
+        }
+
+        $name = trim($post['name'] ?? '');
+
+        if(!$name){
+            throw new \Exception("Banner name required");
+        }
+
+        $this->load->model('groceries/categories');
+
+        $banner_id = $this->model_groceries_categories->addRunningBanner([
+            "name"=>$name,
+            "from_date"=>$post['from_date'] ?? null,
+            "to_date"=>$post['to_date'] ?? null,
+            "status"=>1
+        ]);
+
+        if(!empty($post['images'])){
+
+            foreach($post['images'] as $img){
+
+                $path = $this->saveBannerImage($img['image'],$img['title']);
+
+                $this->model_groceries_categories->addRunningBannerImage([
+                    "banner_id"=>$banner_id,
+                    "title"=>$img['title'] ?? '',
+                    "link"=>$img['link'] ?? '',
+                    "image"=>$path,
+                    "sort_order"=>$img['sort_order'] ?? 0
+                ]);
+            }
+        }
+
+        $this->response->setOutput(json_encode([
+            "status"=>"success",
+            "banner_id"=>$banner_id
+        ]));
+
+    }catch(\Throwable $e){
+
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>$e->getMessage()
+        ]));
+    }
+}
+public function editRunningBanner(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    try{
+
+        $post = $this->request->post;
+
+        $raw = file_get_contents("php://input");
+
+        if($raw){
+            $json = json_decode($raw,true);
+            if(json_last_error() === JSON_ERROR_NONE){
+                $post = array_merge($post,$json);
+            }
+        }
+
+        $banner_id = (int)($post['banner_id'] ?? 0);
+
+        if(!$banner_id){
+            throw new \Exception("Banner ID required");
+        }
+
+        $this->load->model('groceries/categories');
+
+        // update banner table only
+        $this->model_groceries_categories->editRunningBanner($banner_id,[
+            "name"=>$post['name'] ?? '',
+            "from_date"=>$post['from_date'] ?? null,
+            "to_date"=>$post['to_date'] ?? null,
+            "status"=>$post['status'] ?? 1
+        ]);
+
+        // add new images only if provided (do not delete old ones)
+        if(!empty($post['images'])){
+            foreach($post['images'] as $img){
+                if(!empty($img['existing_image'])){
+                    $this->model_groceries_categories->updateRunningBannerImage([
+                        "banner_id"=>$banner_id,
+                        "title"=>$img['title'] ?? '',
+                        "link"=>$img['link'] ?? '',
+                        "image"=>$img['existing_image'],
+                        "sort_order"=>$img['sort_order'] ?? 0
+                    ]);
+                } elseif(!empty($img['image'])){
+                    $path = $this->saveBannerImage($img['image'],$img['title']);
+                    $this->model_groceries_categories->addRunningBannerImage([
+                        "banner_id"=>$banner_id,
+                        "title"=>$img['title'] ?? '',
+                        "link"=>$img['link'] ?? '',
+                        "image"=>$path,
+                        "sort_order"=>$img['sort_order'] ?? 0
+                    ]);
+                }
+            }
+        }
+
+        $this->response->setOutput(json_encode([
+            "status"=>"success",
+            "message"=>"Banner updated"
+        ]));
+
+    }catch(\Throwable $e){
+
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>$e->getMessage()
+        ]));
+    }
+}
+public function getRunningBanners(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    try{
+
+        $this->load->model('groceries/categories');
+
+        $banners = $this->model_groceries_categories->getActiveRunningBanners();
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "data"   => $banners
+        ]));
+
+    }catch(\Throwable $e){
+
+        $this->response->setOutput(json_encode([
+            "status"  => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
+
+public function getAllRunningBanners(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    try{
+
+        $this->load->model('groceries/categories');
+
+        $banners = $this->model_groceries_categories->getAllRunningBanners();
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "data"   => $banners
+        ]));
+
+    }catch(\Throwable $e){
+
+        $this->response->setOutput(json_encode([
+            "status"  => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
+
+public function addBottomBanner(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    try{
+
+        $post = $this->request->post;
+
+        $raw = file_get_contents("php://input");
+
+        if($raw){
+            $json = json_decode($raw,true);
+            if(json_last_error() === JSON_ERROR_NONE){
+                $post = array_merge($post,$json);
+            }
+        }
+
+        $name = trim($post['name'] ?? '');
+
+        if(!$name){
+            throw new \Exception("Banner name required");
+        }
+
+        $this->load->model('groceries/categories');
+
+        $banner_id = $this->model_groceries_categories->addBottomBanner([
+            "name"=>$name,
+            "from_date"=>$post['from_date'] ?? null,
+            "to_date"=>$post['to_date'] ?? null,
+            "status"=>1
+        ]);
+
+        if(!empty($post['images'])){
+
+            foreach($post['images'] as $img){
+
+                $path = $this->saveBannerImage($img['image'],$img['title']);
+
+                $this->model_groceries_categories->addBottomBannerImage([
+                    "banner_id"=>$banner_id,
+                    "title"=>$img['title'] ?? '',
+                    "link"=>$img['link'] ?? '',
+                    "image"=>$path,
+                    "sort_order"=>$img['sort_order'] ?? 0
+                ]);
+            }
+        }
+
+        $this->response->setOutput(json_encode([
+            "status"=>"success",
+            "banner_id"=>$banner_id
+        ]));
+
+    }catch(\Throwable $e){
+
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>$e->getMessage()
+        ]));
+    }
+}
+public function editBottomBanner(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    try{
+
+        $post = $this->request->post;
+
+        $raw = file_get_contents("php://input");
+
+        if($raw){
+            $json = json_decode($raw,true);
+            if(json_last_error() === JSON_ERROR_NONE){
+                $post = array_merge($post,$json);
+            }
+        }
+
+        $banner_id = (int)($post['banner_id'] ?? 0);
+
+        if(!$banner_id){
+            throw new \Exception("Banner ID required");
+        }
+
+        $this->load->model('groceries/categories');
+
+        // update banner table only
+        $this->model_groceries_categories->editBottomBanner($banner_id,[
+            "name"=>$post['name'] ?? '',
+            "from_date"=>$post['from_date'] ?? null,
+            "to_date"=>$post['to_date'] ?? null,
+            "status"=>$post['status'] ?? 1
+        ]);
+
+        // add new images only if provided (do not delete old ones)
+        if(!empty($post['images'])){
+            foreach($post['images'] as $img){
+                if(!empty($img['existing_image'])){
+                    $this->model_groceries_categories->updateBottomBannerImage([
+                        "banner_id"=>$banner_id,
+                        "title"=>$img['title'] ?? '',
+                        "link"=>$img['link'] ?? '',
+                        "image"=>$img['existing_image'],
+                        "sort_order"=>$img['sort_order'] ?? 0
+                    ]);
+                } elseif(!empty($img['image'])){
+                    $path = $this->saveBannerImage($img['image'],$img['title']);
+                    $this->model_groceries_categories->addBottomBannerImage([
+                        "banner_id"=>$banner_id,
+                        "title"=>$img['title'] ?? '',
+                        "link"=>$img['link'] ?? '',
+                        "image"=>$path,
+                        "sort_order"=>$img['sort_order'] ?? 0
+                    ]);
+                }
+            }
+        }
+
+        $this->response->setOutput(json_encode([
+            "status"=>"success",
+            "message"=>"Banner updated"
+        ]));
+
+    }catch(\Throwable $e){
+
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>$e->getMessage()
+        ]));
+    }
+}
+public function getBottomBanners(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    try{
+
+        $this->load->model('groceries/categories');
+
+        $banners = $this->model_groceries_categories->getActiveBottomBanners();
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "data"   => $banners
+        ]));
+
+    }catch(\Throwable $e){
+
+        $this->response->setOutput(json_encode([
+            "status"  => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
+
+public function getAllBottomBanners(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    try{
+
+        $this->load->model('groceries/categories');
+
+        $banners = $this->model_groceries_categories->getAllBottomBanners();
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "data"   => $banners
+        ]));
+
+    }catch(\Throwable $e){
+
+        $this->response->setOutput(json_encode([
+            "status"  => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
+
 public function getReward(): void {
 
     $this->response->addHeader('Content-Type: application/json');
