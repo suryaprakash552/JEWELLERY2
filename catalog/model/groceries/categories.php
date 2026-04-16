@@ -229,6 +229,12 @@ class Categories extends \Opencart\System\Engine\Model {
         
         JOIN `" . DB_PREFIX . "product_description` pd
         ON p.product_id=pd.product_id
+
+        LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
+            ON p.product_id = ptp.product_id
+
+            LEFT JOIN " . DB_PREFIX . "pieces ps
+            ON ptp.piece_id = ps.piece_id
         
         WHERE pc.category_id='".(int)$category_id."'
         
@@ -243,6 +249,7 @@ public function getProductDetails($product_id){
     $sql = "SELECT 
             p.*,
             pp.*,
+            ps.*,
             pd.name,
             pd.description
             
@@ -253,6 +260,11 @@ public function getProductDetails($product_id){
             
             LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
             ON p.product_id = pp.product_id
+            LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
+            ON p.product_id = ptp.product_id
+
+            LEFT JOIN " . DB_PREFIX . "pieces ps
+            ON ptp.piece_id = ps.piece_id
             
             WHERE p.product_id = '" . (int)$product_id . "'
             
@@ -268,7 +280,8 @@ public function getRelatedProducts($product_id){
             p.price,
             p.image,
             pd.name,
-            pp.*
+            pp.*,
+            ps.*
 
             FROM `" . DB_PREFIX . "product_related` pr
 
@@ -279,6 +292,11 @@ public function getRelatedProducts($product_id){
             ON p.product_id = pd.product_id
             LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
             ON p.product_id = pp.product_id
+            LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
+            ON p.product_id = ptp.product_id
+
+            LEFT JOIN " . DB_PREFIX . "pieces ps
+            ON ptp.piece_id = ps.piece_id
 
             WHERE pr.product_id = '" . (int)$product_id . "'
 
