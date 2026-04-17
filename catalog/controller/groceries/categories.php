@@ -697,6 +697,43 @@ public function addOrder(): void {
 
 }
 
+public function getDeliveryFee(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    try {
+
+        $post = $this->request->post;
+
+        $raw = file_get_contents("php://input");
+
+        if ($raw) {
+            $json = json_decode($raw, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $post = array_merge($post, $json);
+            }
+        }
+
+        $amount = (float)($post['amount'] ?? 0);
+
+        $delivery_fee = ($amount >= 1000) ? 0 : 50;
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "amount" => $amount,
+            "delivery_fee" => $delivery_fee,
+            "final_total" => $amount + $delivery_fee
+        ]));
+
+    } catch (\Throwable $e) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
+
     protected function validateImg($imageString)
         {
             //error_reporting(0);
