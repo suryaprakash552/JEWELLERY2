@@ -194,6 +194,8 @@ class Categories extends \Opencart\System\Engine\Model {
             ON p.product_id = pd.product_id
         LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
             ON p.product_id = ptp.product_id
+            LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
+            ON p.product_id = pp.product_id
 
             LEFT JOIN " . DB_PREFIX . "pieces ps
             ON ptp.piece_id = ps.piece_id
@@ -235,7 +237,8 @@ class Categories extends \Opencart\System\Engine\Model {
 
             LEFT JOIN " . DB_PREFIX . "pieces ps
             ON ptp.piece_id = ps.piece_id
-        
+        LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
+            ON p.product_id = pp.product_id
         WHERE pc.category_id='".(int)$category_id."'
         
         AND pd.language_id='".(int)$this->config->get('config_language_id')."'
