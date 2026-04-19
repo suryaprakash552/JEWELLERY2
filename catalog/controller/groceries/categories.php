@@ -1028,6 +1028,65 @@ public function getDeliveryFee(): void {
             }
             
         }
+
+        public function deleteProduct(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $customer_id = $this->validateToken();
+
+    if (!$customer_id) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+        return;
+    }
+
+    try {
+
+        $post = $this->request->post;
+
+        // support raw JSON
+        $raw = file_get_contents("php://input");
+        if ($raw) {
+            $json = json_decode($raw, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $post = array_merge($post, $json);
+            }
+        }
+
+        $product_id = (int)($post['product_id'] ?? 0);
+
+        if ($product_id <= 0) {
+            throw new \Exception("Product ID required");
+        }
+
+        $this->load->model('product/addproducts');
+
+        $existing = $this->model_product_addproducts->getProduct($product_id);
+
+        if (!$existing) {
+            throw new \Exception("Invalid Product ID");
+        }
+
+        // delete product
+        $this->model_product_addproducts->delete($product_id);
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "message" => "Product deleted successfully",
+            "product_id" => $product_id
+        ]));
+
+    } catch (\Throwable $e) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
     
     public function addCategory(): void {
 

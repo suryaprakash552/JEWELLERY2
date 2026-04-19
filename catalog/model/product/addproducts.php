@@ -158,6 +158,31 @@ class Addproducts extends \Opencart\System\Engine\Model {
     return substr(str_replace('.', '', microtime(true)), -8);
 }
 
+
+public function delete(int $product_id): void {
+
+    // main product
+    $this->db->query("DELETE FROM " . DB_PREFIX . "product WHERE product_id = '" . (int)$product_id . "'");
+
+    // descriptions
+    $this->db->query("DELETE FROM " . DB_PREFIX . "product_description WHERE product_id = '" . (int)$product_id . "'");
+
+    // category mapping
+    $this->db->query("DELETE FROM " . DB_PREFIX . "product_to_category WHERE product_id = '" . (int)$product_id . "'");
+
+    // store mapping
+    $this->db->query("DELETE FROM " . DB_PREFIX . "product_to_store WHERE product_id = '" . (int)$product_id . "'");
+
+    // layout mapping
+    $this->db->query("DELETE FROM " . DB_PREFIX . "product_to_layout WHERE product_id = '" . (int)$product_id . "'");
+
+    // POS table
+    $this->db->query("DELETE FROM " . DB_PREFIX . "pts_pos_product WHERE product_id = '" . (int)$product_id . "'");
+
+    // piece mapping
+    $this->db->query("DELETE FROM " . DB_PREFIX . "piece_to_product WHERE product_id = '" . (int)$product_id . "'");
+
+}
 public function generateBoxBarcode(): int {
 
     $unique15 = substr(
