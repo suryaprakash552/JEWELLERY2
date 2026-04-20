@@ -3602,7 +3602,7 @@ public function getAllProducts(): void {
 
         $this->load->model('groceries/categories');
 
-        $products = $this->model_groceries_categories->getAllProducts(0,10,$search);
+        $products = $this->model_groceries_categories->getAllProducts(0,30,$search);
 
         $related_ids = [];
         if ($product_id > 0) {

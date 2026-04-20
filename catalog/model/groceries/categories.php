@@ -50,12 +50,13 @@ class Categories extends \Opencart\System\Engine\Model {
     }
 
 
-    public function getAllProducts($start = 0, $limit = 10, $search = '') {
+    public function getAllProducts($start = 0, $limit = 30, $search = '') {
 
         $sql = "SELECT 
                 p.product_id,
                 p.price,
                 p.image,
+                p.special_price,
                 pd.name,
                 pp.*,
                 ptp.piece_id,
