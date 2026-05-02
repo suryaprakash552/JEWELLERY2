@@ -58,6 +58,7 @@ class Categories extends \Opencart\System\Engine\Model {
                 p.image,
                 p.special_price,
                 pd.name,
+                cd.name AS category_name,
                 pp.*,
                 ptp.piece_id,
                 ps.piece
@@ -68,6 +69,9 @@ class Categories extends \Opencart\System\Engine\Model {
                 ON p.product_id = pp.product_id
                 LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
                 ON p.product_id = ptp.product_id
+                LEFT JOIN " . DB_PREFIX . "product_to_category pc ON p.product_id = pc.product_id
+                LEFT JOIN " . DB_PREFIX . "category c ON pc.category_id = c.category_id
+                LEFT JOIN " . DB_PREFIX . "category_description cd ON c.category_id = cd.category_id
 
                 LEFT JOIN " . DB_PREFIX . "pieces ps
                 ON ptp.piece_id = ps.piece_id
