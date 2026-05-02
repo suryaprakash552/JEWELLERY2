@@ -399,7 +399,6 @@ public function logoutCustomer($token) {
 
 public function addCategory($data): int {
 
-/* CATEGORY TABLE */
 
 $this->db->query("INSERT INTO `" . DB_PREFIX . "category` SET
 
@@ -466,6 +465,19 @@ level='0'
 return $category_id;
 
 }
+
+public function categoryExists(string $name): bool {
+
+    $query = $this->db->query("
+        SELECT category_id 
+        FROM `" . DB_PREFIX . "category_description`
+        WHERE LOWER(name) = LOWER('" . $this->db->escape(trim($name)) . "')
+        AND language_id = '" . (int)$this->config->get('config_language_id') . "'
+        LIMIT 1
+    ");
+
+    return $query->num_rows > 0;
+}
 public function getCategories(): array {
 
     $sql = "SELECT 
@@ -494,6 +506,74 @@ public function getCategories(): array {
 
     return $query->rows;
 
+}
+
+public function editCategory($category_id, $data) {
+
+    $query = $this->db->query("
+        SELECT category_id 
+        FROM " . DB_PREFIX . "category 
+        WHERE category_id = '" . (int)$category_id . "'
+    ");
+
+    if (!$query->num_rows) {
+        return false;
+    }
+
+    $sql = "UPDATE " . DB_PREFIX . "category SET
+        parent_id = '" . (int)$data['parent_id'] . "',
+        offer = '" . (int)$data['offer'] . "',
+        offer_from = " . (!empty($data['offer_from']) ? "'" . $this->db->escape($data['offer_from']) . "'" : "NULL") . ",
+        offer_to = " . (!empty($data['offer_to']) ? "'" . $this->db->escape($data['offer_to']) . "'" : "NULL") . ",
+        offer_percentage = '" . (float)$data['offer_percentage'] . "',
+        gst = '" . (float)$data['gst'] . "',
+        sort_order = '" . (int)$data['sort_order'] . "',
+        status = '" . (int)$data['status'] . "'";
+
+    if (!empty($data['image'])) {
+        $sql .= ", image = '" . $this->db->escape($data['image']) . "'";
+    }
+
+    $sql .= " WHERE category_id = '" . (int)$category_id . "'";
+
+    $this->db->query($sql);
+
+    // UPDATE NAME
+    $this->db->query("
+        UPDATE " . DB_PREFIX . "category_description SET
+        name = '" . $this->db->escape($data['name']) . "'
+        WHERE category_id = '" . (int)$category_id . "'
+        AND language_id = '" . (int)$this->config->get('config_language_id') . "'
+    ");
+
+    return true;
+}
+
+public function deleteCategory($category_id) {
+
+    $query = $this->db->query("
+        SELECT category_id 
+        FROM " . DB_PREFIX . "category 
+        WHERE category_id = '" . (int)$category_id . "'
+    ");
+
+    if (!$query->num_rows) {
+        return false;
+    }
+
+    // DELETE FROM MAIN TABLE
+    $this->db->query("DELETE FROM " . DB_PREFIX . "category WHERE category_id = '" . (int)$category_id . "'");
+
+    // DELETE DESCRIPTION
+    $this->db->query("DELETE FROM " . DB_PREFIX . "category_description WHERE category_id = '" . (int)$category_id . "'");
+
+    // DELETE PATH
+    $this->db->query("DELETE FROM " . DB_PREFIX . "category_path WHERE category_id = '" . (int)$category_id . "'");
+ 
+    // DELETE STORE
+    $this->db->query("DELETE FROM " . DB_PREFIX . "category_to_store WHERE category_id = '" . (int)$category_id . "'");
+
+    return true;
 }
 
 
@@ -777,6 +857,18 @@ public function addPiece($piece) {
     ");
 
     return $query->rows;
+}
+
+public function pieceExists($piece): bool {
+
+    $query = $this->db->query("
+        SELECT piece_id 
+        FROM " . DB_PREFIX . "pieces
+        WHERE LOWER(piece) = LOWER('" . $this->db->escape(trim($piece)) . "')
+        LIMIT 1
+    ");
+
+    return $query->num_rows > 0;
 }
 
 public function addAddress($data){

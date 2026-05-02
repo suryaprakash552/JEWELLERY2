@@ -1130,6 +1130,12 @@ public function getDeliveryFee(): void {
         throw new \Exception("Category name required");
         }
 
+        $this->load->model('groceries/categories');
+
+        if ($this->model_groceries_categories->categoryExists($name)) {
+            throw new \Exception("Category name already exists");
+        }
+
         if(!$image_base64){
         throw new \Exception("Category image required");
         }
@@ -1208,44 +1214,192 @@ public function getCategories(): void {
 
 }
 
-public function addPiece(): void {
+public function editCategory(): void {
 
-        $this->response->addHeader('Content-Type: application/json');
-        
-        if(!$this->validateToken()){
+    $this->response->addHeader('Content-Type: application/json');
+
+    $customer_id = $this->validateToken();
+
+    if (!$customer_id) {
         $this->response->setOutput(json_encode([
-    
-            "status"=>"error",
-            "message"=>"Invalid Token"
-            
-            ]));
-            
-            return;
-            
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+        return;
+    }
+
+    try {
+
+        $post = $this->request->post;
+
+        $raw = file_get_contents("php://input");
+        if ($raw) {
+            $json = json_decode($raw, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $post = array_merge($post, $json);
             }
-
-        $json = [];
-
-        // POST DATA
-        $piece = $this->request->post['piece'] ?? '';
-
-        if (!$piece) {
-            $json['error'] = 'Piece is required';
         }
 
-        if (!$json) {
+        $category_id = (int)($post['category_id'] ?? 0);
+        $name = trim($post['name'] ?? '');
 
-            $this->load->model('groceries/categories');
+        if ($category_id <= 0) {
+            throw new \Exception("Category ID required");
+        }
+
+        if (!$name) {
+            throw new \Exception("Category name required");
+        }
+
+        $this->load->model('groceries/categories');
+
+        // OPTIONAL IMAGE UPDATE
+        if (!empty($post['image'])) {
+            $post['image'] = $this->saveBase64Image($post['image']);
+        }
+
+        $data = [
+            "name" => $name,
+            "image" => $post['image'] ?? '',
+            "parent_id" => (int)($post['parent_id'] ?? 0),
+            "offer" => !empty($post['offer']) ? 1 : 0,
+            "offer_from" => $post['offer_from'] ?? null,
+            "offer_to" => $post['offer_to'] ?? null,
+            "offer_percentage" => (float)($post['offer_percentage'] ?? 0),
+            "gst" => (float)($post['gst'] ?? 0),
+            "sort_order" => (int)($post['sort_order'] ?? 0),
+            "status" => (int)($post['status'] ?? 1)
+        ];
+
+        $updated = $this->model_groceries_categories->editCategory($category_id, $data);
+
+        if (!$updated) {
+            throw new \Exception("Category not found");
+        }
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "message" => "Category updated successfully"
+        ]));
+
+    } catch (\Throwable $e) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
+
+
+public function deleteCategory(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $customer_id = $this->validateToken();
+
+    if (!$customer_id) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+        return;
+    }
+
+    try {
+
+        $post = $this->request->post;
+
+        $raw = file_get_contents("php://input");
+        if ($raw) {
+            $json = json_decode($raw, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $post = array_merge($post, $json);
+            }
+        }
+
+        $category_id = (int)($post['category_id'] ?? 0);
+
+        if ($category_id <= 0) {
+            throw new \Exception("Category ID required");
+        }
+
+        $this->load->model('groceries/categories');
+
+        $deleted = $this->model_groceries_categories->deleteCategory($category_id);
+
+        if (!$deleted) {
+            throw new \Exception("Category not found");
+        }
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "message" => "Category deleted successfully"
+        ]));
+
+    } catch (\Throwable $e) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
+
+public function addPiece(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+    
+    if(!$this->validateToken()){
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>"Invalid Token"
+        ]));
+        return;
+    }
+
+    $json = [];
+
+    // SUPPORT RAW JSON ALSO
+    $post = $this->request->post;
+    $raw = file_get_contents("php://input");
+
+    if ($raw) {
+        $input = json_decode($raw, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $post = array_merge($post, $input);
+        }
+    }
+
+    $piece = strtoupper(trim($post['piece'] ?? ''));
+
+    if (!$piece) {
+        $json['status'] = "error";
+        $json['message'] = "Piece is required";
+    }
+
+    if (!$json) {
+
+        $this->load->model('groceries/categories');
+
+        // 🔴 DUPLICATE CHECK
+        if ($this->model_groceries_categories->pieceExists($piece)) {
+
+            $json['status'] = "error";
+            $json['message'] = "Piece already exists";
+
+        } else {
 
             $piece_id = $this->model_groceries_categories->addPiece($piece);
 
-            $json['success'] = true;
-            $json['message'] = 'Piece Added Successfully';
+            $json['status'] = "success";
+            $json['message'] = "Piece Added Successfully";
             $json['piece_id'] = $piece_id;
         }
-
-        $this->response->setOutput(json_encode($json));
     }
+
+    $this->response->setOutput(json_encode($json));
+}
     
     public function getPieces(): void {
 
