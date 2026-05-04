@@ -410,6 +410,7 @@ public function logoutCustomer($token) {
 
 public function addCategory($data): int {
 
+/* CATEGORY TABLE */
 
 $this->db->query("INSERT INTO `" . DB_PREFIX . "category` SET
 
@@ -462,16 +463,24 @@ category_id='".(int)$category_id."',
 store_id='0'
 ");
 
-/* PATH */
+$results = $this->getPaths((int)$data['parent_id']);
 
-$this->db->query("INSERT INTO `" . DB_PREFIX . "category_path` SET
+$level = 0;
 
-category_id='".(int)$category_id."',
+// insert parent hierarchy
+foreach ($results as $result) {
+    $this->db->query("INSERT INTO " . DB_PREFIX . "category_path SET
+        category_id = '" . (int)$category_id . "',
+        path_id = '" . (int)$result['path_id'] . "',
+        level = '" . (int)$level . "'");
+    $level++;
+}
 
-path_id='".(int)$category_id."',
-
-level='0'
-");
+// insert self
+$this->db->query("INSERT INTO " . DB_PREFIX . "category_path SET
+    category_id = '" . (int)$category_id . "',
+    path_id = '" . (int)$category_id . "',
+    level = '" . (int)$level . "'");
 
 return $category_id;
 
@@ -549,6 +558,26 @@ public function editCategory($category_id, $data) {
 
     $this->db->query($sql);
 
+    $this->db->query("DELETE FROM " . DB_PREFIX . "category_path WHERE category_id = '" . (int)$category_id . "'");
+
+// rebuild
+$results = $this->getPaths((int)$data['parent_id']);
+
+$level = 0;
+
+foreach ($results as $result) {
+    $this->db->query("INSERT INTO " . DB_PREFIX . "category_path SET
+        category_id = '" . (int)$category_id . "',
+        path_id = '" . (int)$result['path_id'] . "',
+        level = '" . (int)$level . "'");
+    $level++;
+}
+
+$this->db->query("INSERT INTO " . DB_PREFIX . "category_path SET
+    category_id = '" . (int)$category_id . "',
+    path_id = '" . (int)$category_id . "',
+    level = '" . (int)$level . "'");
+
     // UPDATE NAME
     $this->db->query("
         UPDATE " . DB_PREFIX . "category_description SET
@@ -559,6 +588,12 @@ public function editCategory($category_id, $data) {
 
     return true;
 }
+
+public function getPaths(int $category_id): array {
+		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "category_path` WHERE `category_id` = '" . (int)$category_id . "' ORDER BY `level` ASC");
+
+		return $query->rows;
+	}
 
 public function deleteCategory($category_id) {
 
