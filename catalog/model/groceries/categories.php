@@ -56,6 +56,7 @@ class Categories extends \Opencart\System\Engine\Model {
                 p.product_id,
                 p.price,
                 p.image,
+                p.featured,
                 p.special_price,
                 pd.name,
                 cd.name AS category_name,
@@ -155,12 +156,15 @@ class Categories extends \Opencart\System\Engine\Model {
             p.product_id,
             p.price,
             p.special_price,
+            p.featured,
             p.image,
             pd.name,
             c.category_id,
+            cd.name AS category_name,
             c.gst,
             pp.pos_status,
             pp.pos_quentity,
+
             ptp.piece_id,
             ps.piece
 
@@ -175,6 +179,9 @@ class Categories extends \Opencart\System\Engine\Model {
             JOIN " . DB_PREFIX . "category c
             ON pc.category_id = c.category_id
 
+            JOIN " . DB_PREFIX . "category_description cd
+            ON c.category_id = cd.category_id
+
             LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
             ON p.product_id = pp.product_id
 
@@ -187,8 +194,8 @@ class Categories extends \Opencart\System\Engine\Model {
             WHERE pc.category_id = '" . (int)$category_id . "'
             AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
 
-            ORDER BY p.date_added DESC";
-
+            ORDER BY p.product_id DESC";
+            
     return $this->db->query($sql)->rows;
 }
     
