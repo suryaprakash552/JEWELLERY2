@@ -48,7 +48,25 @@ class Categories extends \Opencart\System\Engine\Model {
 
         return $this->db->query($sql)->rows;
     }
+public function getProductPieces($product_id): array {
 
+    $sql = "SELECT
+            ptp.piece_id,
+            ps.piece,
+            ptp.price,
+            ptp.special_price
+
+            FROM " . DB_PREFIX . "piece_to_product ptp
+
+            LEFT JOIN " . DB_PREFIX . "pieces ps
+            ON ptp.piece_id = ps.piece_id
+
+            WHERE ptp.product_id = '" . (int)$product_id . "'
+
+            ORDER BY ptp.id ASC";
+
+    return $this->db->query($sql)->rows;
+}
 
     public function getAllProducts($start = 0, $limit = 30, $search = '') {
 
@@ -60,22 +78,17 @@ class Categories extends \Opencart\System\Engine\Model {
                 p.special_price,
                 pd.name,
                 cd.name AS category_name,
-                pp.*,
-                ptp.piece_id,
-                ps.piece
+                pp.*
                 FROM `" . DB_PREFIX . "product` p
                 JOIN `" . DB_PREFIX . "product_description` pd
                 ON p.product_id = pd.product_id
                 LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
                 ON p.product_id = pp.product_id
-                LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
-                ON p.product_id = ptp.product_id
+                
                 LEFT JOIN " . DB_PREFIX . "product_to_category pc ON p.product_id = pc.product_id
                 LEFT JOIN " . DB_PREFIX . "category c ON pc.category_id = c.category_id
                 LEFT JOIN " . DB_PREFIX . "category_description cd ON c.category_id = cd.category_id
 
-                LEFT JOIN " . DB_PREFIX . "pieces ps
-                ON ptp.piece_id = ps.piece_id
                 WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
 
         if(!empty($search)){
@@ -88,7 +101,14 @@ class Categories extends \Opencart\System\Engine\Model {
         $sql .= " LIMIT " . (int)$start . ", " . (int)$limit;
         }
 
-        return $this->db->query($sql)->rows;
+        $products = $this->db->query($sql)->rows;
+
+        foreach ($products as &$product) {
+
+            $product['pieces'] = $this->getProductPieces($product['product_id']);
+        }
+
+        return $products;
 
         }
 
@@ -163,10 +183,7 @@ class Categories extends \Opencart\System\Engine\Model {
             cd.name AS category_name,
             c.gst,
             pp.pos_status,
-            pp.pos_quentity,
-
-            ptp.piece_id,
-            ps.piece
+            pp.pos_quentity
 
             FROM " . DB_PREFIX . "product_to_category pc
 
@@ -185,18 +202,21 @@ class Categories extends \Opencart\System\Engine\Model {
             LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
             ON p.product_id = pp.product_id
 
-            LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
-            ON p.product_id = ptp.product_id
-
-            LEFT JOIN " . DB_PREFIX . "pieces ps
-            ON ptp.piece_id = ps.piece_id
+        
 
             WHERE pc.category_id = '" . (int)$category_id . "'
             AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
 
             ORDER BY p.product_id DESC";
             
-    return $this->db->query($sql)->rows;
+    $products = $this->db->query($sql)->rows;
+
+foreach ($products as &$product) {
+
+    $product['pieces'] = $this->getProductPieces($product['product_id']);
+}
+
+return $products;
 }
     
     public function getRandomProducts() {
@@ -204,19 +224,23 @@ class Categories extends \Opencart\System\Engine\Model {
         FROM `" . DB_PREFIX . "product` p
         JOIN `" . DB_PREFIX . "product_description` pd
             ON p.product_id = pd.product_id
-        LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
-            ON p.product_id = ptp.product_id
+        
             LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
             ON p.product_id = pp.product_id
 
-            LEFT JOIN " . DB_PREFIX . "pieces ps
-            ON ptp.piece_id = ps.piece_id
         WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
         AND p.featured = '1'
         ORDER BY p.date_added DESC
         LIMIT 9";
 
-        return $this->db->query($sql)->rows;
+        $products = $this->db->query($sql)->rows;
+
+foreach ($products as &$product) {
+
+    $product['pieces'] = $this->getProductPieces($product['product_id']);
+}
+
+return $products;
     }
         
         public function getOfferCategories() {
@@ -244,11 +268,6 @@ class Categories extends \Opencart\System\Engine\Model {
         JOIN `" . DB_PREFIX . "product_description` pd
         ON p.product_id=pd.product_id
 
-        LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
-            ON p.product_id = ptp.product_id
-
-            LEFT JOIN " . DB_PREFIX . "pieces ps
-            ON ptp.piece_id = ps.piece_id
         LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
             ON p.product_id = pp.product_id
         WHERE pc.category_id='".(int)$category_id."'
@@ -256,7 +275,14 @@ class Categories extends \Opencart\System\Engine\Model {
         AND pd.language_id='".(int)$this->config->get('config_language_id')."'
         
         ORDER BY p.date_added DESC";
-        return $this->db->query($sql)->rows;
+        $products = $this->db->query($sql)->rows;
+
+foreach ($products as &$product) {
+
+    $product['pieces'] = $this->getProductPieces($product['product_id']);
+}
+
+return $products;
     }
 
 public function getProductDetails($product_id){
@@ -275,17 +301,20 @@ public function getProductDetails($product_id){
             
             LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
             ON p.product_id = pp.product_id
-            LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
-            ON p.product_id = ptp.product_id
-
-            LEFT JOIN " . DB_PREFIX . "pieces ps
-            ON ptp.piece_id = ps.piece_id
+            
             
             WHERE p.product_id = '" . (int)$product_id . "'
             
             AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
 
-    return $this->db->query($sql)->row;
+    $products = $this->db->query($sql)->rows;
+
+foreach ($products as &$product) {
+
+    $product['pieces'] = $this->getProductPieces($product['product_id']);
+}
+
+return $products;
 }
 
 public function getRelatedProducts($product_id){
@@ -307,17 +336,20 @@ public function getRelatedProducts($product_id){
             ON p.product_id = pd.product_id
             LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
             ON p.product_id = pp.product_id
-            LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
-            ON p.product_id = ptp.product_id
-
-            LEFT JOIN " . DB_PREFIX . "pieces ps
-            ON ptp.piece_id = ps.piece_id
+            
 
             WHERE pr.product_id = '" . (int)$product_id . "'
 
             AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
 
-    return $this->db->query($sql)->rows;
+    $products = $this->db->query($sql)->rows;
+
+foreach ($products as &$product) {
+
+    $product['pieces'] = $this->getProductPieces($product['product_id']);
+}
+
+return $products;
 }
 
 public function loginCustomerOtp($telephone) {

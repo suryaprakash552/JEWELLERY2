@@ -39,13 +39,17 @@ class Addproducts extends \Opencart\System\Engine\Model {
 
         $product_id = $this->db->getLastId();
         
-        if (!empty($data['piece_id'])) {
+        if (!empty($data['pieces'])) {
 
-        $this->db->query("INSERT INTO " . DB_PREFIX . "piece_to_product SET
-                                                                    product_id = '" . (int)$product_id . "',
-                                                                    piece_id = '" . (int)$data['piece_id'] . "'
-                                                                    ");
-        
+            foreach ($data['pieces'] as $piece) {
+
+                $this->db->query("INSERT INTO " . DB_PREFIX . "piece_to_product SET
+                    product_id = '" . (int)$product_id . "',
+                    piece_id = '" . (int)$piece['piece_id'] . "',
+                    price = '" . (float)$piece['price'] . "',
+                    special_price = '" . (float)$piece['special_price'] . "'
+                ");
+            }
         }
         
         // Attach product to default store
@@ -124,15 +128,21 @@ class Addproducts extends \Opencart\System\Engine\Model {
                 category_id='" . (int)$data['category_id'] . "'");
                 
                 
-                $this->db->query(" DELETE FROM " . DB_PREFIX . "piece_to_product WHERE product_id = '" . (int)$product_id . "'");
-                    
-                    if (!empty($data['piece_id'])) {
-                    
-                    $this->db->query(" INSERT INTO " . DB_PREFIX . "piece_to_product SET
-                                                                                    product_id = '" . (int)$product_id . "',
-                                                                                    piece_id = '" . (int)$data['piece_id'] . "'");
-                    
-                    }
+                $this->db->query("DELETE FROM " . DB_PREFIX . "piece_to_product 
+WHERE product_id = '" . (int)$product_id . "'");
+
+if (!empty($data['pieces'])) {
+
+    foreach ($data['pieces'] as $piece) {
+
+        $this->db->query("INSERT INTO " . DB_PREFIX . "piece_to_product SET
+            product_id = '" . (int)$product_id . "',
+            piece_id = '" . (int)$piece['piece_id'] . "',
+            price = '" . (float)$piece['price'] . "',
+            special_price = '" . (float)$piece['special_price'] . "'
+        ");
+    }
+}
         
     
 }

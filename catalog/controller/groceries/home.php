@@ -114,8 +114,8 @@ class Home extends \Opencart\System\Engine\Controller {
             }
 
 
-            $invoice_prefix = "";
-            $invoice_no = "";
+            $invoice_prefix = "DBM";
+            $invoice_no = date('YmdHis');
 
             if (!empty($full_invoice_number)) {
                 $parts = explode("-", $full_invoice_number, 2);
@@ -126,6 +126,7 @@ class Home extends \Opencart\System\Engine\Controller {
             $paymentThrough = $get($orderDetails, "PaymentThrough", "");
             $cash_amount = $money($get($orderDetails, "CashAmount", 0));
             $upi_amount = $money($get($orderDetails, "UPIAmount", 0));
+            $takeaway_amount = $money($get($orderDetails, "TakeawayAmount", 0));
             $advance_used = $money($get($orderDetails, "AdvanceUsed", 0));
             $total_received = $money(
                 $get($orderDetails, "TotalReceivedAmount", 0)
@@ -194,6 +195,7 @@ class Home extends \Opencart\System\Engine\Controller {
                 "customer_group_id" => $agentId,
                 "cash_amount" => $cash_amount,
                 "upi_amount" => $upi_amount,
+                "takeaway_amount" => $takeaway_amount,
                 "coupon" => $coupon_final,
                 "credit_points" => $reward_points,
                 "discount" => $discount,

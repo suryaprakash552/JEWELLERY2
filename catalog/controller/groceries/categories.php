@@ -618,6 +618,8 @@ public function addOrder(): void {
         'cash_amount'=>(float)($orderDetails['CashAmount'] ?? 0),
         
         'upi_amount'=>(float)($orderDetails['UPIAmount'] ?? 0),
+
+        'takeaway_amount'=>(float)($orderDetails['TakeawayAmount'] ?? 0),
         
         'coupon'=>$orderDetails['coupon'] ?? '',
         
@@ -909,7 +911,7 @@ public function getDeliveryFee(): void {
             
             'featured' => (int)($post['featured'] ?? 0),
             
-            'piece_id' => (int)($post['piece_id'] ?? 0),
+            'pieces' => $post['pieces'] ?? [],
             
             'pos_status'=>1,
             
