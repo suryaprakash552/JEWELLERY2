@@ -324,8 +324,7 @@ public function getRelatedProducts($product_id){
             p.price,
             p.image,
             pd.name,
-            pp.*,
-            ps.*
+            pp.*
 
             FROM `" . DB_PREFIX . "product_related` pr
 
