@@ -912,6 +912,8 @@ public function getDeliveryFee(): void {
             'featured' => (int)($post['featured'] ?? 0),
             
             'pieces' => $post['pieces'] ?? [],
+
+            'piece_default' => (int)($post['piece_default'] ?? 0),
             
             'pos_status'=>1,
             
@@ -1830,7 +1832,7 @@ public function addPiece(): void {
 
         $this->load->model("checkout/order");
 
-        $details = $this->model_checkout_order->getFullOrderDetails($order_id);
+        $details = $this->model_groceries_categories->getFullOrderDetails($order_id);
 
         if (!$details) {
             return $this->response->setOutput(

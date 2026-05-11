@@ -47,7 +47,8 @@ class Addproducts extends \Opencart\System\Engine\Model {
                     product_id = '" . (int)$product_id . "',
                     piece_id = '" . (int)$piece['piece_id'] . "',
                     price = '" . (float)$piece['price'] . "',
-                    special_price = '" . (float)$piece['special_price'] . "'
+                    special_price = '" . (float)$piece['special_price'] . "',
+                    piece_default = '" . (int)$piece['piece_default'] . "'
                 ");
             }
         }
@@ -139,7 +140,8 @@ if (!empty($data['pieces'])) {
             product_id = '" . (int)$product_id . "',
             piece_id = '" . (int)$piece['piece_id'] . "',
             price = '" . (float)$piece['price'] . "',
-            special_price = '" . (float)$piece['special_price'] . "'
+            special_price = '" . (float)$piece['special_price'] . "',
+            piece_default ='" . (int)$piece['piece_default'] . "'
         ");
     }
 }

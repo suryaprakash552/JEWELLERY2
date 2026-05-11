@@ -54,7 +54,8 @@ public function getProductPieces($product_id): array {
             ptp.piece_id,
             ps.piece,
             ptp.price,
-            ptp.special_price
+            ptp.special_price,
+            ptp.piece_default
 
             FROM " . DB_PREFIX . "piece_to_product ptp
 
@@ -290,7 +291,6 @@ public function getProductDetails($product_id){
     $sql = "SELECT 
             p.*,
             pp.*,
-            ps.*,
             pd.name,
             pd.description
             
@@ -674,10 +674,17 @@ public function getFullOrderDetails(int $order_id) {
 
     // Products
     $products = $this->db->query("
-        SELECT *
-        FROM `" . DB_PREFIX . "order_product`
-        WHERE order_id = '" . (int)$order_id . "'
-    ")->rows;
+    SELECT 
+        op.*,
+        p.image AS product_image
+
+    FROM `" . DB_PREFIX . "order_product` op
+
+    LEFT JOIN `" . DB_PREFIX . "product` p
+    ON p.product_id = op.product_id
+
+    WHERE op.order_id = '" . (int)$order_id . "'
+")->rows;
 
     // Totals
     $totals = $this->db->query("
