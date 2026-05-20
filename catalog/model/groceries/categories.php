@@ -55,7 +55,10 @@ public function getProductPieces($product_id): array {
             ps.piece,
             ptp.price,
             ptp.special_price,
-            ptp.piece_default
+            ptp.piece_default,
+            ptp.is_combo,
+            ptp.min_quantity,
+            ptp.pos_quantity
 
             FROM " . DB_PREFIX . "piece_to_product ptp
 

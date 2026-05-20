@@ -48,7 +48,10 @@ class Addproducts extends \Opencart\System\Engine\Model {
                     piece_id = '" . (int)$piece['piece_id'] . "',
                     price = '" . (float)$piece['price'] . "',
                     special_price = '" . (float)$piece['special_price'] . "',
-                    piece_default = '" . (int)$piece['piece_default'] . "'
+                    piece_default = '" . (int)$piece['piece_default'] . "',
+                    is_combo = '" . $this->db->escape($piece['is_combo']) . "',
+                    min_quantity = '" . (int)$piece['min_quantity'] . "',
+                    pos_quantity = '" . (int)$piece['pos_quantity'] . "'
                 ");
             }
         }
@@ -129,8 +132,7 @@ class Addproducts extends \Opencart\System\Engine\Model {
                 category_id='" . (int)$data['category_id'] . "'");
                 
                 
-                $this->db->query("DELETE FROM " . DB_PREFIX . "piece_to_product 
-WHERE product_id = '" . (int)$product_id . "'");
+                $this->db->query("DELETE FROM " . DB_PREFIX . "piece_to_product WHERE product_id = '" . (int)$product_id . "'");
 
 if (!empty($data['pieces'])) {
 
@@ -141,7 +143,10 @@ if (!empty($data['pieces'])) {
             piece_id = '" . (int)$piece['piece_id'] . "',
             price = '" . (float)$piece['price'] . "',
             special_price = '" . (float)$piece['special_price'] . "',
-            piece_default ='" . (int)$piece['piece_default'] . "'
+            piece_default = '" . (int)$piece['piece_default'] . "',
+            is_combo = '" . $this->db->escape($piece['is_combo']) . "',
+            min_quantity = '" . (int)$piece['min_quantity'] . "',
+            pos_quantity = '" . (int)$piece['pos_quantity'] . "'
         ");
     }
 }

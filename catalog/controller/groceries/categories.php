@@ -913,6 +913,12 @@ public function getDeliveryFee(): void {
             
             'pieces' => $post['pieces'] ?? [],
 
+            'is_combo' => $post['is_combo'] ?? 'No',
+
+            'min_quantity' => $post['min_quantity'] ?? 1,
+
+            'pos_quantity' => $post['pos_quantity'] ?? 0,
+
             'piece_default' => (int)($post['piece_default'] ?? 0),
             
             'pos_status'=>1,
