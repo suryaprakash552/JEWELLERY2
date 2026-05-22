@@ -17,6 +17,7 @@ class Addproducts extends \Opencart\System\Engine\Model {
                                                                 rack_code='" . $this->db->escape($data['rack_code']) . "',
                                                                 price='" . (float)$data['price'] . "',
                                                                 additional_price='" . (float)$data['additional_price'] . "',
+                                                                is_combo = '" . $this->db->escape($data['is_combo']) . "',
                                                                 wholesale_price='" . (float)$data['wholesale_price'] . "',
                                                                 special_price='" . (float)$data['special_price'] . "',
                                                                 quantity='" . (int)$data['quantity'] . "',
@@ -49,7 +50,6 @@ class Addproducts extends \Opencart\System\Engine\Model {
                     price = '" . (float)$piece['price'] . "',
                     special_price = '" . (float)$piece['special_price'] . "',
                     piece_default = '" . (int)$piece['piece_default'] . "',
-                    is_combo = '" . $this->db->escape($piece['is_combo']) . "',
                     min_quantity = '" . (int)$piece['min_quantity'] . "',
                     pos_quantity = '" . (int)$piece['pos_quantity'] . "'
                 ");
@@ -93,6 +93,7 @@ class Addproducts extends \Opencart\System\Engine\Model {
                                                                                                 rack_code='" . $this->db->escape($data['rack_code']) . "',
                                                                                                 price='" . (float)$data['price'] . "',
                                                                                                 additional_price='" . (float)$data['additional_price'] . "',
+                                                                                                is_combo = '" . $this->db->escape($data['is_combo']) . "',
                                                                                                 wholesale_price='" . (float)$data['wholesale_price'] . "',
                                                                                                 special_price='" . (float)$data['special_price'] . "',
                                                                                                 quantity='" . (int)$data['quantity'] . "',
@@ -144,7 +145,6 @@ if (!empty($data['pieces'])) {
             price = '" . (float)$piece['price'] . "',
             special_price = '" . (float)$piece['special_price'] . "',
             piece_default = '" . (int)$piece['piece_default'] . "',
-            is_combo = '" . $this->db->escape($piece['is_combo']) . "',
             min_quantity = '" . (int)$piece['min_quantity'] . "',
             pos_quantity = '" . (int)$piece['pos_quantity'] . "'
         ");

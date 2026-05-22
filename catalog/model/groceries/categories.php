@@ -79,6 +79,7 @@ public function getProductPieces($product_id): array {
                 p.price,
                 p.image,
                 p.featured,
+                p.is_combo,
                 p.special_price,
                 pd.name,
                 cd.name AS category_name,
@@ -180,6 +181,7 @@ public function getProductPieces($product_id): array {
             p.product_id,
             p.price,
             p.special_price,
+            p.is_combo,
             p.featured,
             p.image,
             pd.name,
@@ -326,6 +328,7 @@ public function getRelatedProducts($product_id){
             p.product_id,
             p.price,
             p.image,
+            p.is_combo,
             pd.name,
             pp.*
 
