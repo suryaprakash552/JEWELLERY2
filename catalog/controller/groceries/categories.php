@@ -350,7 +350,7 @@ public function sendWhatsAppOtp($data = []) {
     
     $random_products=$this->model_groceries_categories->getRandomProducts();
     
-    
+    $combo_products=$this->model_groceries_categories->getComboProducts();
     $main_categories =$this->model_groceries_categories->getMainCategories();
 
     
@@ -377,6 +377,7 @@ public function sendWhatsAppOtp($data = []) {
                 "status"=>"success",
                 
                 "random_products"=>$random_products,
+                "combo_products"=>$combo_products,
                 
                 "categories"=>$main_categories,
                 
@@ -4014,6 +4015,683 @@ public function getAllProducts(): void {
             ]
         ]));
     }
+
+    private function saveAgentTransactionImage(string $imageString): string {
+
+    $dir = DIR_IMAGE . 'catalog/agent_transactions/';
+
+    if (!is_dir($dir)) {
+
+        mkdir($dir, 0777, true);
+    }
+
+    // UNIQUE FILE NAME
+    $file = 'agent_' . date('YmdHis') . '_' . mt_rand(1000,9999) . '.jpg';
+
+    $filepath = $dir . $file;
+
+    $image = imagecreatefromstring(
+        base64_decode($imageString)
+    );
+
+    if (!$image) {
+
+        throw new \Exception('Image Decode Failed');
+    }
+
+    imagejpeg($image, $filepath, 90);
+
+    imagedestroy($image);
+
+    return 'catalog/agent_transactions/' . $file;
+}
+
+public function syncTodaySales(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    // LOGIN AGENT
+    $login_agent_id = $this->validateToken();
+
+    if (!$login_agent_id) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+
+        return;
+    }
+
+    try {
+
+        /*
+        CASE 1:
+        Logged-in agent syncs own sales
+        => no agent_id sent
+
+        CASE 2:
+        Admin/another agent searches mobile
+        => sends searched agent_id
+        */
+
+        $agent_id = (int)(
+            $this->request->post['agent_id']
+            ?? $this->request->get['agent_id']
+            ?? 0
+        );
+
+        if (!$agent_id) {
+            $agent_id = $login_agent_id;
+        }
+
+        $date = trim(
+            $this->request->post['date']
+            ?? $this->request->get['date']
+            ?? ''
+        );
+
+        $this->load->model('groceries/categories');
+
+        // SINGLE DATE
+        if (!empty($date)) {
+
+            $sales = $this->model_groceries_categories
+                ->getSalesByDate($agent_id, $date);
+
+        } else {
+
+            // ALL DATES
+            $sales = $this->model_groceries_categories
+                ->getAllSalesGroupedByDate($agent_id);
+        }
+
+        if (empty($sales)) {
+
+            throw new \Exception("No sales found");
+        }
+
+        $inserted = [];
+        $skipped = [];
+
+        foreach ($sales as $sale) {
+
+            // CHECK DUPLICATE
+            $exists = $this->model_groceries_categories
+                ->checkAgentTransactionExists(
+                    $agent_id,
+                    $sale['sale_date']
+                );
+
+            // ALREADY EXISTS
+            if ($exists) {
+
+                $skipped[] = [
+                    'date' => $sale['sale_date'],
+                    'message' => 'Already Synced'
+                ];
+
+                continue;
+            }
+
+            // INSERT
+            $image = $this->request->post['image']
+    ?? $this->request->get['image']
+    ?? null;
+
+            $transaction_id = $this->model_groceries_categories
+                ->addAgentTransaction([
+                    'agent_id' => $agent_id,
+                    'date' => $sale['sale_date'],
+                    'amount' => $sale['total_amount'],
+                    'image' => $image
+                ]);
+
+            $inserted[] = [
+                'transaction_id' => $transaction_id,
+                'date' => $sale['sale_date'],
+                'amount' => $sale['total_amount']
+            ];
+        }
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "agent_id" => $agent_id,
+            "inserted" => $inserted,
+            "skipped" => $skipped
+        ]));
+
+    } catch (\Throwable $e) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
+
+public function getSyncTransactions(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+
+        return;
+    }
+
+
+    $agent_id = (int)(
+        $this->request->get['agent_id']
+        ?? $this->request->post['agent_id']
+        ?? 0
+    );
+
+    // SELF AGENT
+    if (!$agent_id) {
+        $agent_id = $user['id'];
+    }
+
+    $days = (int)($this->request->get['days'] ?? 7);
+
+    $from_date = $this->request->get['from_date'] ?? '';
+    $to_date   = $this->request->get['to_date'] ?? '';
+
+    // DEFAULT LAST DAYS
+    if (empty($from_date) || empty($to_date)) {
+
+        $to_date = date('Y-m-d');
+
+        $from_date = date(
+            'Y-m-d',
+            strtotime('-' . ($days - 1) . ' days')
+        );
+    }
+
+    $this->load->model('groceries/categories');
+
+    $transactions = $this->model_groceries_categories
+        ->getGroupedSyncTransactions(
+            $agent_id,
+            $from_date,
+            $to_date
+        );
+
+    $this->response->setOutput(json_encode([
+        "status" => "success",
+        "agent_id" => $agent_id,
+        "from_date" => $from_date,
+        "to_date" => $to_date,
+        "data" => $transactions
+    ]));
+}
+
+public function searchCustomerByMobile(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+
+        return;
+    }
+
+    // ONLY ADMIN CAN ACCESS
+    if ($user['type'] != 'admin') {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Only admin can access this Feature"
+        ]));
+
+        return;
+    }
+
+    $mobile = trim(
+        $this->request->get['mobile']
+        ?? $this->request->post['mobile']
+        ?? ''
+    );
+
+    if (!$mobile) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Mobile required"
+        ]));
+
+        return;
+    }
+
+    $this->load->model('groceries/categories');
+
+    $customer = $this->model_groceries_categories
+        ->getCustomerByMobile($mobile);
+
+    if (!$customer) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Customer not found"
+        ]));
+
+        return;
+    }
+
+    $this->response->setOutput(json_encode([
+        "status" => "success",
+        "customer" => $customer
+    ]));
+}
+
+public function addManualTransaction(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+
+        return;
+    }
+
+    try {
+
+        /*
+        ADMIN:
+        can send agent_id
+
+        STAFF:
+        always uses own id
+        */
+
+        if ($user['type'] == 'admin') {
+
+            $agent_id = (int)(
+                $this->request->post['agent_id']
+                ?? $this->request->get['agent_id']
+                ?? 0
+            );
+
+            if (!$agent_id) {
+
+                throw new \Exception("Agent ID required");
+            }
+
+        } else {
+
+            // STAFF SELF ONLY
+            $agent_id = $user['id'];
+        }
+
+        // AMOUNT
+        $amount = (float)(
+            $this->request->post['amount']
+            ?? 0
+        );
+
+        // DATE
+        $date = trim(
+            $this->request->post['date']
+            ?? date('Y-m-d')
+        );
+
+       $image = '';
+
+        if (!empty($this->request->post['image'])) {
+
+            $image = $this->saveAgentTransactionImage(
+                $this->request->post['image']
+            );
+        }
+
+        if (empty($image)) {
+
+            throw new \Exception("Image is required");
+        }
+        
+
+        if ($amount <= 0) {
+
+            throw new \Exception("Invalid amount");
+        }
+
+        $this->load->model('groceries/categories');
+
+        // CHECK EXISTING SAME DATE
+        $existing = $this->model_groceries_categories
+            ->getManualTransactionByDate(
+                $agent_id,
+                $date
+            );
+
+        // UPDATE EXISTING
+        if ($existing) {
+
+            $this->model_groceries_categories
+                ->updateManualTransaction([
+                    'id' => $existing['customer_transaction_id'],
+                    'amount' => $amount,
+                    'image' => $image
+                ]);
+
+            $this->response->setOutput(json_encode([
+                "status" => "success",
+                "message" => "Amount updated successfully",
+                "transaction_id" => $existing['customer_transaction_id']
+            ]));
+
+            return;
+        }
+
+        // INSERT NEW
+
+
+        $transaction_id = $this->model_groceries_categories
+            ->addManualCustomerTransaction([
+                'agent_id' => $agent_id,
+                'amount' => $amount,
+                'date_added' => $date,
+                'image' => $image
+            ]);
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "message" => "Transaction added",
+            "transaction_id" => $transaction_id,
+        
+        ]));
+
+    } catch (\Throwable $e) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
+
+public function editManualTransaction(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+
+        return;
+    }
+
+    try {
+
+        $id = (int)(
+            $this->request->post['id']
+            ?? 0
+        );
+
+        $amount = (float)(
+            $this->request->post['amount']
+            ?? 0
+        );
+
+        $date = trim(
+            $this->request->post['date']
+            ?? ''
+        );
+
+        if (!$id || $amount <= 0 || !$date) {
+
+            throw new \Exception("Invalid data");
+        }
+
+        $image = '';
+
+        if (!empty($this->request->post['image'])) {
+
+            $image = $this->saveAgentTransactionImage(
+                $this->request->post['image']
+            );
+        }
+
+        $this->load->model('groceries/categories');
+
+        $transaction = $this->model_groceries_categories
+            ->getAgentTransaction($id);
+
+        if (!$transaction) {
+
+            throw new \Exception("Transaction not found");
+        }
+
+        /*
+        STAFF:
+        only pending editable
+        */
+
+        if (
+            $user['type'] != 'admin'
+            && $transaction['status'] == 'approved'
+        ) {
+
+            throw new \Exception(
+                "Approved transaction cannot be edited"
+            );
+        }
+
+     
+
+        if (
+            $user['type'] != 'admin'
+            && $transaction['agent_id'] != $user['id']
+        ) {
+
+            throw new \Exception("Unauthorized");
+        }
+
+        $this->model_groceries_categories
+            ->editAgentTransaction([
+                'id' => $id,
+                'amount' => $amount,
+                'date' => $date,
+                'image' => $image
+            ]);
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "message" => "Transaction updated"
+        ]));
+
+    } catch (\Throwable $e) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
+
+public function deleteManualTransaction(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+
+        return;
+    }
+
+    try {
+
+        $id = (int)(
+            $this->request->post['id']
+            ?? 0
+        );
+
+        if (!$id) {
+
+            throw new \Exception("Transaction ID required");
+        }
+
+        $this->load->model('groceries/categories');
+
+        $transaction = $this->model_groceries_categories
+            ->getAgentTransaction($id);
+
+        if (!$transaction) {
+
+            throw new \Exception("Transaction not found");
+        }
+
+        /*
+        STAFF:
+        cannot delete approved
+        */
+
+        if (
+            $user['type'] != 'admin'
+            && $transaction['status'] == 'approved'
+        ) {
+
+            throw new \Exception(
+                "Approved transaction cannot be deleted"
+            );
+        }
+
+        /*
+        STAFF OWN ONLY
+        */
+
+        if (
+            $user['type'] != 'admin'
+            && $transaction['agent_id'] != $user['id']
+        ) {
+
+            throw new \Exception("Unauthorized");
+        }
+
+        $this->model_groceries_categories
+            ->deleteAgentTransaction($id);
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "message" => "Transaction deleted"
+        ]));
+
+    } catch (\Throwable $e) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
+
+public function approveManualTransaction(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+
+        return;
+    }
+
+    try {
+
+        // ✅ ONLY ADMIN
+        if ($user['type'] != 'admin') {
+
+            throw new \Exception(
+                "Only admin can approve transactions"
+            );
+        }
+
+        $id = (int)(
+            $this->request->post['id']
+            ?? $this->request->get['id']
+            ?? 0
+        );
+
+        if (!$id) {
+
+            throw new \Exception(
+                "Transaction ID required"
+            );
+        }
+
+        $this->load->model('groceries/categories');
+
+        // CHECK TRANSACTION
+        $transaction = $this->model_groceries_categories
+            ->getAgentTransaction($id);
+
+        if (!$transaction) {
+
+            throw new \Exception(
+                "Transaction not found"
+            );
+        }
+
+        // ALREADY APPROVED
+        if ($transaction['status'] == 'approved') {
+
+            throw new \Exception(
+                "Transaction already approved"
+            );
+        }
+
+        // APPROVE
+        $this->model_groceries_categories
+            ->approveAgentTransaction($id);
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "message" => "Transaction approved successfully",
+            "transaction_id" => $id
+        ]));
+
+    } catch (\Throwable $e) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
     
 }
 

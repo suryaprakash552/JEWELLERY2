@@ -278,6 +278,10 @@ foreach ($posQtyMap as $product_id => $qty) {
                                                     `product_id` = '" . (int)($product['product_id'] ?? 0) . "',
                                                     `name`       = '" . $this->db->escape($product['name'] ?? '') . "',
                                                     `model`      = '',
+                                                    `piece_id`   = '" . (int)($product['piece_id'] ?? 0) . "',
+                                                    `is_combo`   = '" . $this->db->escape($product['is_combo'] ?? 'No') . "',
+                                                    `min_quantity` = '" . (int)($product['min_quantity'] ?? 0) . "',
+                                                    `selected_quantity` = '" . (int)($product['selected_quantity'] ?? 0) . "',
                                                     `quantity`   = '" . (int)($product['quantity'] ?? 1) . "',
                                                     `price`      = '" . (float)($product['price'] ?? 0) . "',
                                                     `total`      = '" . (float)($product['total'] ?? 0) . "',
@@ -286,6 +290,27 @@ foreach ($posQtyMap as $product_id => $qty) {
                                                     `excluded`   = '" . (int)$excluded . "'";
                                                                 
             $this->db->query($sql);
+
+            $is_combo = $product['is_combo'] ?? 'No';
+
+            if ($is_combo == 'No') {
+
+                $product_id = (int)($product['product_id'] ?? 0);
+
+                $piece_id = (int)($product['piece_id'] ?? 0);
+
+                $qty = (int)($product['quantity'] ?? 0);
+
+                if ($product_id > 0 && $piece_id > 0 && $qty > 0) {
+
+                    $this->db->query("
+                        UPDATE `" . DB_PREFIX . "piece_to_product`
+                        SET pos_quantity = GREATEST(pos_quantity - '" . (int)$qty . "', 0)
+                        WHERE product_id = '" . (int)$product_id . "'
+                        AND piece_id = '" . (int)$piece_id . "'
+                    ");
+                }
+            }
         }
     }
 

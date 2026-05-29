@@ -51,6 +51,7 @@ class Categories extends \Opencart\System\Engine\Model {
 public function getProductPieces($product_id): array {
 
     $sql = "SELECT
+            ptp.id,
             ptp.piece_id,
             ps.piece,
             ptp.price,
@@ -236,6 +237,30 @@ return $products;
 
         WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
         AND p.featured = '1'
+        ORDER BY p.date_added DESC
+        LIMIT 9";
+
+        $products = $this->db->query($sql)->rows;
+
+foreach ($products as &$product) {
+
+    $product['pieces'] = $this->getProductPieces($product['product_id']);
+}
+
+return $products;
+    }
+
+    public function getComboProducts() {
+        $sql = "SELECT *
+        FROM `" . DB_PREFIX . "product` p
+        JOIN `" . DB_PREFIX . "product_description` pd
+            ON p.product_id = pd.product_id
+        
+            LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
+            ON p.product_id = pp.product_id
+
+        WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+        AND p.is_combo = 'Yes'
         ORDER BY p.date_added DESC
         LIMIT 9";
 
@@ -2378,6 +2403,184 @@ public function insertOrderTracking($order_id){
 
         return $this->db->query($sql)->rows;
     }
+
+
+public function checkAgentTransactionExists(
+    $agent_id,
+    $date
+) {
+
+    $query = $this->db->query("
+        SELECT id
+        FROM agent_transactions
+        WHERE agent_id = '" . (int)$agent_id . "'
+        AND date = '" . $this->db->escape($date) . "'
+        LIMIT 1
+    ");
+
+    return $query->num_rows;
+}
+
+public function addAgentTransaction($data) {
+
+    $image = !empty($data['image'])
+        ? "'" . $this->db->escape($data['image']) . "'"
+        : "NULL";
+
+    $this->db->query("
+        INSERT INTO agent_transactions
+        SET
+            agent_id = '" . (int)$data['agent_id'] . "',
+            date = '" . $this->db->escape($data['date']) . "',
+            amount = '" . (float)$data['amount'] . "',
+            image = " . $image . ",
+            status = 'pending'
+    ");
+
+    return $this->db->getLastId();
+}
+
+public function getCustomerByMobile($mobile) {
+
+    $query = $this->db->query("
+        SELECT customer_id, firstname, lastname, telephone
+        FROM `" . DB_PREFIX . "customer`
+        WHERE telephone = '" . $this->db->escape($mobile) . "'
+        LIMIT 1
+    ");
+
+    return $query->row;
+}
+
+public function getManualTransactionByDate(
+    $agent_id,
+    $date
+) {
+
+    $query = $this->db->query("
+        SELECT id
+        FROM agent_transactions
+        WHERE agent_id = '" . (int)$agent_id . "'
+        AND date = '" . $this->db->escape($date) . "'
+        LIMIT 1
+    ");
+
+    return $query->row;
+}
+
+public function addManualCustomerTransaction($data) {
+
+    $this->db->query("
+        INSERT INTO agent_transactions
+        SET
+            agent_id = '" . (int)$data['agent_id'] . "',
+            date = '" . $this->db->escape($data['date_added']) . "',
+            amount = '" . (float)$data['amount'] . "',
+            image = '" . $this->db->escape($data['image']) . "',
+            status = 'pending'
+    ");
+
+    return $this->db->getLastId();
+}
+
+public function updateManualTransaction($data) {
+
+    $this->db->query("
+        UPDATE agent_transactions
+        SET
+            amount = amount + '" . (float)$data['amount'] . "',
+            image = '" . $this->db->escape($data['image']) . "'
+        WHERE id = '" . (int)$data['id'] . "'
+    ");
+}
+
+public function getGroupedSyncTransactions(
+    $agent_id,
+    $from_date,
+    $to_date
+) {
+
+    $sql = "SELECT
+
+            id,
+
+            date as sync_date,
+
+            SUM(amount) as total_amount,
+
+            COUNT(*) as total_transactions,
+
+            MAX(status) as status,
+
+            MAX(image) as image
+
+            FROM agent_transactions
+
+            WHERE agent_id = '" . (int)$agent_id . "'
+
+            AND date >= '" . $this->db->escape($from_date) . "'
+
+            AND date <= '" . $this->db->escape($to_date) . "'
+
+            GROUP BY date
+
+            ORDER BY date DESC";
+
+    return $this->db->query($sql)->rows;
+}
+
+public function getAgentTransaction($id) {
+
+    $query = $this->db->query("
+        SELECT *
+        FROM agent_transactions
+        WHERE id = '" . (int)$id . "'
+        LIMIT 1
+    ");
+
+    return $query->row;
+}
+
+public function editAgentTransaction($data) {
+
+    $sql = "
+        UPDATE agent_transactions
+        SET
+            amount = '" . (float)$data['amount'] . "',
+            date = '" . $this->db->escape($data['date']) . "'
+    ";
+
+    if (!empty($data['image'])) {
+
+        $sql .= ",
+            image = '" . $this->db->escape($data['image']) . "'
+        ";
+    }
+
+    $sql .= "
+        WHERE id = '" . (int)$data['id'] . "'
+    ";
+
+    $this->db->query($sql);
+}
+
+public function deleteAgentTransaction($id) {
+
+    $this->db->query("
+        DELETE FROM agent_transactions
+        WHERE id = '" . (int)$id . "'
+    ");
+}
+
+public function approveAgentTransaction($id) {
+
+    $this->db->query("
+        UPDATE agent_transactions
+        SET status = 'approved'
+        WHERE id = '" . (int)$id . "'
+    ");
+}
+
 
 
 }
