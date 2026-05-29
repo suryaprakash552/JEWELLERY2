@@ -5,37 +5,61 @@ class Categories extends \Opencart\System\Engine\Controller {
     
     public function login(): void {
 
-        $this->response->addHeader('Content-Type: application/json');
+    $this->response->addHeader('Content-Type: application/json');
 
-        $email    = $this->request->post['email'] ?? '';
-        $password = $this->request->post['password'] ?? '';
+    $email    = trim($this->request->post['email'] ?? '');
+    $password = trim($this->request->post['password'] ?? '');
 
-        if (!$email || !$password) {
-            $this->response->setOutput(json_encode([
-                "status" => "error",
-                "message" => "Email and Password required"
-            ]));
-            return;
-        }
+    if (!$email || !$password) {
 
-        $this->load->model('groceries/categories');
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Email and Password required"
+        ]));
 
-        $customer = $this->model_groceries_categories->loginCustomer($email, $password);
+        return;
+    }
 
-        if (!$customer) {
-            $this->response->setOutput(json_encode([
-                "status" => "error",
-                "message" => "Invalid credentials"
-            ]));
-            return;
-        }
+    $this->load->model('groceries/categories');
+
+    // CUSTOMER LOGIN
+    $customer = $this->model_groceries_categories
+        ->loginCustomer($email, $password);
+
+    if ($customer) {
 
         $this->response->setOutput(json_encode([
             "status" => "success",
+            "login_type" => "agent",
             "token"  => $customer['token'],
             "customer_id" => $customer['customer_id']
         ]));
+
+        return;
     }
+
+    // ADMIN LOGIN
+    $admin = $this->model_groceries_categories
+        ->loginAdmin($email, $password);
+
+    if ($admin) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "login_type" => "admin",
+            "token"  => $admin['token'],
+            "user_id" => $admin['user_id']
+        ]));
+
+        return;
+    }
+
+    // INVALID
+    $this->response->setOutput(json_encode([
+        "status" => "error",
+        "message" => "Invalid credentials"
+    ]));
+}
     
     public function send_otp(){
 

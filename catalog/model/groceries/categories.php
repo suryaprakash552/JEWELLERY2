@@ -5,7 +5,13 @@ class Categories extends \Opencart\System\Engine\Model {
 
     public function loginCustomer($email, $password) {
 
-        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "customer` WHERE email = '" . $this->db->escape($email) . "' AND status = 1 LIMIT 1");
+        $query = $this->db->query("
+            SELECT *
+            FROM `" . DB_PREFIX . "customer`
+            WHERE email = '" . $this->db->escape($email) . "'
+            AND status = 1
+            LIMIT 1
+        ");
 
         if (!$query->num_rows) {
             return false;
@@ -19,7 +25,11 @@ class Categories extends \Opencart\System\Engine\Model {
 
         $token = bin2hex(random_bytes(32));
 
-        $this->db->query("UPDATE `" . DB_PREFIX . "customer` SET token = '" . $this->db->escape($token) . "' WHERE customer_id = '" . (int)$customer['customer_id'] . "'");
+        $this->db->query("
+            UPDATE `" . DB_PREFIX . "customer`
+            SET token = '" . $this->db->escape($token) . "'
+            WHERE customer_id = '" . (int)$customer['customer_id'] . "'
+        ");
 
         return [
             "customer_id" => $customer['customer_id'],
@@ -27,12 +37,83 @@ class Categories extends \Opencart\System\Engine\Model {
         ];
     }
 
+    public function loginAdmin($email, $password) {
+
+    $query = $this->db->query("
+        SELECT *
+        FROM `" . DB_PREFIX . "user`
+        WHERE email = '" . $this->db->escape($email) . "'
+        AND status = 1
+        LIMIT 1
+    ");
+
+    if (!$query->num_rows) {
+        return false;
+    }
+
+    $user = $query->row;
+
+    // PASSWORD VERIFY
+    if (!password_verify($password, $user['password'])) {
+        return false;
+    }
+
+    $token = bin2hex(random_bytes(32));
+
+    // INSERT LOGIN INFO
+    $this->db->query("
+        INSERT INTO `" . DB_PREFIX . "user_logininfo`
+        SET
+            logininfo_id = '" . (int)$user['user_id'] . "',
+            token = '" . $this->db->escape($token) . "',
+            total = '1',
+            ip = '" . $this->db->escape($this->request->server['REMOTE_ADDR'] ?? '') . "',
+            user_agent = '" . $this->db->escape($this->request->server['HTTP_USER_AGENT'] ?? '') . "',
+            status = '1',
+            date_added = NOW(),
+            date_expire = NOW()
+    ");
+
+    return [
+        "user_id" => $user['user_id'],
+        "token" => $token
+    ];
+}
+
     public function validateToken($token) {
 
-    $query = $this->db->query("SELECT customer_id FROM `" . DB_PREFIX . "customer` WHERE token = '" . $this->db->escape($token) . "' AND status = 1 LIMIT 1");
+    // CUSTOMER TOKEN
+    $customer = $this->db->query("
+        SELECT customer_id
+        FROM `" . DB_PREFIX . "customer`
+        WHERE token = '" . $this->db->escape($token) . "'
+        AND status = 1
+        LIMIT 1
+    ");
 
-    if ($query->num_rows) {
-        return $query->row['customer_id'];
+    if ($customer->num_rows) {
+
+        return [
+            'type' => 'customer',
+            'id' => $customer->row['customer_id']
+        ];
+    }
+
+    // ADMIN TOKEN
+    $admin = $this->db->query("
+        SELECT logininfo_id
+        FROM `" . DB_PREFIX . "user_logininfo`
+        WHERE token = '" . $this->db->escape($token) . "'
+        AND status = 1
+        LIMIT 1
+    ");
+
+    if ($admin->num_rows) {
+
+        return [
+            'type' => 'admin',
+            'id' => $admin->row['logininfo_id']
+        ];
     }
 
     return false;
