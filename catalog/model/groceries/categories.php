@@ -1465,11 +1465,11 @@ public function getCoupon($customer_id){
             
             }
             
-        public function getAgents($store_id,$customer_id = 0){
+        public function getAgents($store_id,$agentId = 0){
 
 /* SINGLE AGENT */
 
-if($customer_id){
+if($agentId){
 
 $query = $this->db->query("SELECT
 c.customer_id,
@@ -1481,29 +1481,73 @@ c.store_id,
 s.name AS store_name,
 s.logo AS store_logo,
 a.agent_status
+
 FROM " . DB_PREFIX . "customer c
+
 LEFT JOIN " . DB_PREFIX . "store s
 ON c.store_id = s.store_id
+
 LEFT JOIN " . DB_PREFIX . "pts_pos_agent a
 ON c.customer_id = a.customer_id
+
 WHERE c.customer_group_id='2'
 AND c.store_id='".(int)$store_id."'
-AND c.customer_id='".(int)$customer_id."'");
+AND c.customer_id='".(int)$agentId."'");
 
 $agent = $query->row;
 
+
+/* IF CUSTOMER NOT FOUND THEN CHECK ADMIN */
+
+if (!$agent) {
+
+$query = $this->db->query("SELECT
+
+u.user_id AS customer_id,
+u.firstname,
+u.lastname,
+u.email,
+'' AS telephone,
+u.store_id,
+s.name AS store_name,
+s.logo AS store_logo,
+1 AS agent_status
+
+FROM `" . DB_PREFIX . "user` u
+
+LEFT JOIN `" . DB_PREFIX . "store` s
+ON u.store_id = s.store_id
+
+WHERE u.user_id = '".(int)$agentId."'
+AND u.store_id = '".(int)$store_id."'
+
+LIMIT 1");
+
+$agent = $query->row;
+
+}
+
+
 /* GET KYC */
 
-$kyc = $this->db->query("SELECT idtype,idno,image
+if($agent){
+
+$kyc = $this->db->query("SELECT
+idtype,
+idno,
+image
+
 FROM " . DB_PREFIX . "kyc_images
-WHERE customerid='".(int)$customer_id."'");
+
+WHERE customerid='".(int)$agentId."'");
 
 $agent['kyc'] = $kyc->rows;
+
+}
 
 return $agent;
 
 }
-
 
 /* ALL AGENTS */
 

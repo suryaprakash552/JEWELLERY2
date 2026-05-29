@@ -2788,7 +2788,6 @@ $this->response->setOutput(json_encode([
         }
         
         $store_id = (int)($this->request->get['store_id'] ?? 0);
-        $customer_id = (int)($this->request->get['customer_id'] ?? 0);
         
         if(!$store_id){
         
@@ -2803,7 +2802,7 @@ $this->response->setOutput(json_encode([
         
         $this->load->model('groceries/categories');
         
-        $data = $this->model_groceries_categories->getAgents($store_id,$customer_id);
+        $data = $this->model_groceries_categories->getAgents($store_id,$agentId);
         
         $this->response->setOutput(json_encode([
         "status"=>"success",
