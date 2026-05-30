@@ -1233,6 +1233,110 @@ public function getCoupon($customer_id){
 
     return $query->rows;
  }
+
+ public function getLatestProducts($start = 0, $limit = 10){
+
+    $sql = "SELECT 
+            p.product_id,
+            pd.name,
+            p.price,
+            p.special_price,
+            p.image,
+            pp.pos_quentity
+
+        FROM " . DB_PREFIX . "product p
+
+        JOIN " . DB_PREFIX . "product_description pd
+        ON p.product_id = pd.product_id
+
+        LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
+        ON p.product_id = pp.product_id
+
+        WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+
+        ORDER BY p.product_id DESC
+        LIMIT " . (int)$start . "," . (int)$limit;
+
+    return $this->db->query($sql)->rows;
+}
+
+public function searchCategories($search){
+
+    $search = $this->db->escape($search);
+
+    $sql = "SELECT 
+            c.category_id,
+            cd.name
+
+        FROM " . DB_PREFIX . "category c
+
+        JOIN " . DB_PREFIX . "category_description cd
+        ON c.category_id = cd.category_id
+
+        WHERE cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+        AND (
+            cd.name LIKE '" . $search . "%'   -- starts with (HIGH priority)
+            OR cd.name LIKE '% " . $search . "%' -- word match
+            OR cd.name LIKE '%" . $search . "%'  -- anywhere
+        )
+
+        ORDER BY 
+            cd.name LIKE '" . $search . "%' DESC,
+            cd.name LIKE '% " . $search . "%' DESC
+
+        LIMIT 10";
+
+    return $this->db->query($sql)->rows;
+}
+
+public function searchProducts($search){
+
+    $search = $this->db->escape($search);
+
+    $sql = "SELECT 
+            p.product_id,
+            pd.name,
+            p.price,
+            p.special_price,
+            p.image,
+            pp.pos_quentity
+
+        FROM " . DB_PREFIX . "product p
+
+        JOIN " . DB_PREFIX . "product_description pd
+        ON p.product_id = pd.product_id
+
+        LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
+        ON p.product_id = pp.product_id
+
+        WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+        AND (
+            pd.name LIKE '" . $search . "%'
+            OR pd.name LIKE '% " . $search . "%'
+            OR pd.name LIKE '%" . $search . "%'
+        )
+
+        ORDER BY 
+            pd.name LIKE '" . $search . "%' DESC,
+            pd.name LIKE '% " . $search . "%' DESC
+
+        LIMIT 20";
+
+    return $this->db->query($sql)->rows;
+}
+
+public function getProductsCountByCategory($category_id){
+
+    $sql = "SELECT COUNT(*) as total
+            FROM " . DB_PREFIX . "product_to_category pc
+            JOIN " . DB_PREFIX . "product_description pd
+            ON pc.product_id = pd.product_id
+
+            WHERE pc.category_id = '" . (int)$category_id . "'
+            AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
+
+    return (int)$this->db->query($sql)->row['total'];
+}
  
  public function addStore($data){
 

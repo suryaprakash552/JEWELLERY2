@@ -2336,6 +2336,127 @@ public function applycoupon()
 
         return $this->response->setOutput(json_encode($json));
     }
+
+
+    public function getLatestProducts(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    if (!$this->validateToken()) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+        return;
+    }
+
+    $this->load->model('groceries/categories');
+
+    $products = $this->model_groceries_categories->getLatestProducts(0, 10);
+
+    $this->response->setOutput(json_encode([
+        "status" => "success",
+        "products" => $products
+    ]));
+}
+
+public function searchCategories(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    if (!$this->validateToken()) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+        return;
+    }
+
+    $search = $this->request->get['search'] ?? '';
+
+    $this->load->model('groceries/categories');
+
+    $categories = $this->model_groceries_categories->searchCategories($search);
+
+    $this->response->setOutput(json_encode([
+        "status" => "success",
+        "categories" => $categories
+    ]));
+}
+
+public function getProductsByCategory(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    if (!$this->validateToken()) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+        return;
+    }
+
+    $category_id = (int)($this->request->get['category_id'] ?? 0);
+
+    // 👉 Pagination inputs
+    $page  = (int)($this->request->get['page'] ?? 1);
+    $limit = (int)($this->request->get['limit'] ?? 10);
+
+    if ($page < 1) $page = 1;
+    if ($limit < 1) $limit = 10;
+
+    $start = ($page - 1) * $limit;
+
+    $this->load->model('groceries/categories');
+
+    $products = $this->model_groceries_categories
+        ->getProductsOnly($category_id, $start, $limit);
+
+    // 👉 total count (for frontend pagination)
+    $total = $this->model_groceries_categories
+        ->getProductsCountByCategory($category_id);
+
+    $this->response->setOutput(json_encode([
+        "status" => "success",
+        "page" => $page,
+        "limit" => $limit,
+        "total" => $total,
+        "total_pages" => ceil($total / $limit),
+        "products" => $products
+    ]));
+}
+
+public function searchProducts(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    if (!$this->validateToken()) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+        return;
+    }
+
+    $search = $this->request->get['search'] ?? '';
+
+    if (strlen($search) < 1) {
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "products" => []
+        ]));
+        return;
+    }
+
+    $this->load->model('groceries/categories');
+
+    $products = $this->model_groceries_categories->searchProducts($search);
+
+    $this->response->setOutput(json_encode([
+        "status" => "success",
+        "products" => $products
+    ]));
+}
     
     private function saveBase64Image1(string $imageString, string $store_name): string {
 
