@@ -2772,44 +2772,38 @@ $this->response->setOutput(json_encode([
         
     public function getAgents(): void {
 
-        $this->response->addHeader('Content-Type: application/json');
-        
-        $agentId = $this->validateToken();
-        
-        if(!$agentId){
-        
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user) {
+
         $this->response->setOutput(json_encode([
-        "status"=>"error",
-        "message"=>"Invalid Token"
+            "status" => "error",
+            "message" => "Invalid Token"
         ]));
-        
+
         return;
-        
-        }
-        
-        $store_id = (int)($this->request->get['store_id'] ?? 0);
-        
-        if(!$store_id){
-        
-        $this->response->setOutput(json_encode([
-        "status"=>"error",
-        "message"=>"Store ID required"
-        ]));
-        
-        return;
-        
-        }
-        
-        $this->load->model('groceries/categories');
-        
-        $data = $this->model_groceries_categories->getAgents($store_id,$agentId);
-        
-        $this->response->setOutput(json_encode([
-        "status"=>"success",
-        "data"=>$data
-        ]));
-        
     }
+
+    $this->load->model('groceries/categories');
+
+    if ($user['type'] == 'admin') {
+
+        $data = $this->model_groceries_categories
+            ->getAdminDetails($user['id']);
+
+    } else {
+
+        $data = $this->model_groceries_categories
+            ->getAgentDetails($user['id']);
+    }
+
+    $this->response->setOutput(json_encode([
+        "status" => "success",
+        "data"   => $data
+    ]));
+}
     
     public function addCustomer(): void {
 

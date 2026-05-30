@@ -1596,92 +1596,82 @@ return [
 
 }
 
-public function addCustomer($data){
+public function getAdminDetails($user_id){
 
-/* CUSTOMER */
+    $query = $this->db->query("
+        SELECT
+            u.user_id AS customer_id,
+            u.firstname,
+            u.lastname,
+            u.email,
+            '' AS telephone,
+            u.store_id,
+            s.name AS store_name,
+            s.logo AS store_logo,
+            '1' AS agent_status
 
-$this->db->query("INSERT INTO `" . DB_PREFIX . "customer` SET
-store_id = '0',
-language_id = '1',
-customer_group_id = '1',
-firstname = '" . $this->db->escape($data['firstname']) . "',
-lastname = '" . $this->db->escape($data['lastname']) . "',
-email = '" . $this->db->escape($data['email']) . "',
-telephone = '" . $this->db->escape($data['telephone']) . "',
-password = '" . $this->db->escape(password_hash($data['password'], PASSWORD_DEFAULT)) . "',
-status = '1',
-date_added = NOW()");
+        FROM `" . DB_PREFIX . "user` u
 
-$customer_id = $this->db->getLastId();
+        LEFT JOIN `" . DB_PREFIX . "store` s
+        ON s.store_id = u.store_id
 
+        WHERE u.user_id = '" . (int)$user_id . "'
 
-/* PAN KYC */
+        LIMIT 1
+    ");
 
-if (!empty($data['kycpanidno']) && !empty($data['kycpanimage'])) {
+    $admin = $query->row;
 
-$this->db->query("INSERT INTO `" . DB_PREFIX . "kyc_images` SET
-customerid = '" . (int)$customer_id . "',
-idno = '" . $this->db->escape($data['kycpanidno']) . "',
-image = '" . $this->db->escape($data['kycpanimage']) . "',
-idtype = '1'");
+    $admin['kyc'] = [];
 
+    return $admin;
 }
 
+public function getAgentDetails($customer_id){
 
-/* AADHAR KYC */
+    $query = $this->db->query("
+        SELECT
+            c.customer_id,
+            c.firstname,
+            c.lastname,
+            c.email,
+            c.telephone,
+            c.store_id,
+            s.name AS store_name,
+            s.logo AS store_logo,
+            a.agent_status
 
-if (!empty($data['kycaadharidno']) && !empty($data['kycaadharimage'])) {
+        FROM `" . DB_PREFIX . "customer` c
 
-$this->db->query("INSERT INTO `" . DB_PREFIX . "kyc_images` SET
-customerid = '" . (int)$customer_id . "',
-idno = '" . $this->db->escape($data['kycaadharidno']) . "',
-image = '" . $this->db->escape($data['kycaadharimage']) . "',
-idtype = '2'");
+        LEFT JOIN `" . DB_PREFIX . "store` s
+        ON s.store_id = c.store_id
 
-}
+        LEFT JOIN `" . DB_PREFIX . "pts_pos_agent` a
+        ON a.customer_id = c.customer_id
 
+        WHERE c.customer_id = '" . (int)$customer_id . "'
 
-/* PROFILE IMAGE */
+        LIMIT 1
+    ");
 
-if (!empty($data['kycprofileimage'])) {
+    if (!$query->num_rows) {
+        return [];
+    }
 
-$this->db->query("INSERT INTO `" . DB_PREFIX . "kyc_images` SET
-customerid = '" . (int)$customer_id . "',
-idno = '',
-image = '" . $this->db->escape($data['kycprofileimage']) . "',
-idtype = '3'");
+    $agent = $query->row;
 
-}
+    $kyc = $this->db->query("
+        SELECT
+            idtype,
+            idno,
+            image
+        FROM `" . DB_PREFIX . "kyc_images`
+        WHERE customerid = '" . (int)$customer_id . "'
+    ");
 
+    $agent['kyc'] = $kyc->rows;
 
-/* SHOP IMAGE */
-
-if (!empty($data['kycshopimage'])) {
-
-$this->db->query("INSERT INTO `" . DB_PREFIX . "kyc_images` SET
-customerid = '" . (int)$customer_id . "',
-idno = '',
-image = '" . $this->db->escape($data['kycshopimage']) . "',
-idtype = '4'");
-
-}
-
-
-/* WALLET */
-
-$this->db->query("INSERT INTO `" . DB_PREFIX . "manage_wallet` SET
-user_id = NULL,
-customerid = '" . (int)$customer_id . "',
-amount = '0',
-aeps_amount = '0',
-pre_amount = '0',
-apiwallet = '0',
-plan_limit = '0',
-sms_limit = '0',
-pg_amount = '0'");
-
-return $customer_id;
-
+    return $agent;
 }
 
 public function getCustomerByIdAndPhone($agentId, $telephone) {
