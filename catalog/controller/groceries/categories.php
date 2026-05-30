@@ -1502,9 +1502,9 @@ public function addPiece(): void {
         $this->load->model('groceries/categories');
         
         
-        $orders = $this->model_groceries_categories->getOrdersByDateRange($agentId,$from_date,$to_date,$order_id,$mobile,$name);
+        $orders = $this->model_groceries_categories->getOrdersByDateRange($agentId['id'],$from_date,$to_date,$order_id,$mobile,$name);
         
-        $totals = $this->model_groceries_categories->getOrderTotalsByDateRange($from_date,$to_date,$agentId);
+        $totals = $this->model_groceries_categories->getOrderTotalsByDateRange($from_date,$to_date,$agentId['id']);
 
         $this->response->setOutput(json_encode([
         
@@ -1560,9 +1560,9 @@ public function addPiece(): void {
         $this->load->model('checkout/order');
         
         
-        $orders = $this->model_checkout_order->getOrdersByDateRange($agentId,$from_date,$to_date,$order_id,$mobile,$name);
+        $orders = $this->model_checkout_order->getOrdersByDateRange($agentId['id'],$from_date,$to_date,$order_id,$mobile,$name);
         
-        $totals = $this->model_checkout_order->getOrderTotalsByDateRange($from_date,$to_date,$agentId);
+        $totals = $this->model_checkout_order->getOrderTotalsByDateRange($from_date,$to_date,$agentId['id']);
 
         $this->response->setOutput(json_encode([
         
@@ -1961,7 +1961,7 @@ public function addPiece(): void {
         }
 
         $address_id = $this->model_groceries_categories->addAddress([
-                                                                    "customer_id"=>$customer_id,
+                                                                    "customer_id"=>$customer_id['id'],
                                                                     "firstname"=>$firstname,
                                                                     "lastname"=>$lastname,
                                                                     "contact"=>$contact,
@@ -2005,7 +2005,7 @@ public function addPiece(): void {
         
         $this->load->model('groceries/categories');
         
-        $addresses = $this->model_groceries_categories->getAddress($customer_id,$telephone,$address_id);
+        $addresses = $this->model_groceries_categories->getAddress($customer_id['id'],$telephone,$address_id);
         
         if(!$addresses){
         
@@ -2098,7 +2098,7 @@ return;
 }
 
 $updated = $this->model_groceries_categories->editAddress(
-$customer_id,
+$customer_id['id'],
 $address_id,
 [
 "firstname"=>$firstname,
@@ -2182,7 +2182,7 @@ return;
 
 $this->load->model('groceries/categories');
 
-$deleted = $this->model_groceries_categories->deleteAddress($customer_id,$address_id);
+$deleted = $this->model_groceries_categories->deleteAddress($customer_id['id'],$address_id);
 
 if(!$deleted){
 
@@ -2260,7 +2260,7 @@ return;
 }
         $this->load->model('groceries/categories');
 
-        $coupon = $this->model_groceries_categories->getCoupon($customer_id);
+        $coupon = $this->model_groceries_categories->getCoupon($customer_id['id']);
         
         $this->response->setOutput(json_encode([
 "status"=>"success",
@@ -2931,7 +2931,7 @@ $this->response->setOutput(json_encode([
 
                 $this->load->model('groceries/categories');
 
-                $profile = $this->model_groceries_categories->getCustomerProfile($agentId);
+                $profile = $this->model_groceries_categories->getCustomerProfile($agentId['id']);
 
                 if(!$profile){
                     throw new \Exception("Profile not found");
@@ -2990,7 +2990,7 @@ $this->response->setOutput(json_encode([
  
             // 🔥 VERIFY TELEPHONE BELONGS TO TOKEN USER
             $customer = $this->model_groceries_categories
-                ->getCustomerByIdAndPhone($agentId, $telephone);
+                ->getCustomerByIdAndPhone($agentId['id'], $telephone);
  
             if (!$customer) {
                 throw new \Exception("Telephone does not match user");
@@ -3032,7 +3032,7 @@ $this->response->setOutput(json_encode([
  
             // -------- SAVE IMAGE --------
             if ($image_path) {
-                $this->model_groceries_categories->insertKycImage($agentId, $image_path);
+                $this->model_groceries_categories->insertKycImage($agentId['id'], $image_path);
             }
  
             $this->response->setOutput(json_encode([
@@ -3089,7 +3089,7 @@ $this->response->setOutput(json_encode([
 
         // ✅ Check user belongs to token
         $customer = $this->model_groceries_categories
-            ->getCustomerByIdAndPhone($agentId, $telephone);
+            ->getCustomerByIdAndPhone($agentId['id'], $telephone);
 
         if (!$customer) {
             throw new \Exception("Telephone does not match user");
@@ -3101,7 +3101,7 @@ $this->response->setOutput(json_encode([
         $email     = $post['email'] ?? $customer['email'];
 
         $this->model_groceries_categories->updateCustomerProfile(
-            $agentId,
+            $agentId['id'],
             $firstname,
             $lastname,
             $email
@@ -3130,7 +3130,7 @@ $this->response->setOutput(json_encode([
         }
 
         if ($image_path) {
-            $this->model_groceries_categories->insertKycImage($agentId, $image_path);
+            $this->model_groceries_categories->insertKycImage($agentId['id'], $image_path);
         }
 
         // ---------- RESPONSE ----------
@@ -3757,7 +3757,7 @@ public function getReward(): void {
 
     $this->load->model('groceries/categories');
 
-    $total_points = $this->model_groceries_categories->getRewardPoints($customer_id);
+    $total_points = $this->model_groceries_categories->getRewardPoints($customer_id['id']);
 
     $this->response->setOutput(json_encode([
         "status"=>"success",

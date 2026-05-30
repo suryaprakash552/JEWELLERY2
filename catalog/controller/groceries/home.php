@@ -147,7 +147,7 @@ class Home extends \Opencart\System\Engine\Controller {
             $order_data["invoice_no"] = $invoice_no;
 
             $order_data["customer_id"] = (int) $customer_id;
-            $order_data["customer_group_id"] = $agentId;
+            $order_data["customer_group_id"] = $agentId['id'];
             $order_data["sellerId"] = (int) $get($orderDetails, "SellerId", 0);
             $order_data["quote_id"] = $activeQuoteId;
             $order_data["pre_order_id"] = $previousOrderId;
@@ -196,7 +196,7 @@ class Home extends \Opencart\System\Engine\Controller {
 
             $order_data["comment"] = $note;
             $invoice_extra = [
-                "customer_group_id" => $agentId,
+                "customer_group_id" => $agentId['id'],
                 "cash_amount" => $cash_amount,
                 "upi_amount" => $upi_amount,
                 "takeaway_amount" => $takeaway_amount,
@@ -406,7 +406,7 @@ if ($customer_id > 0) {
             $this->load->model("account/customer");
 
             $credit = [
-                "customerid" => $agentId,
+                "customerid" => $agentId['id'],
                 "order_id" => $order_id,
                 "amount" => $subtotal,
                 "description" => $mobile,
