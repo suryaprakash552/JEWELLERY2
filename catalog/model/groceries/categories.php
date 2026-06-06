@@ -134,6 +134,7 @@ public function getProductPieces($product_id): array {
     $sql = "SELECT
             ptp.id,
             ptp.piece_id,
+            ptp.image,
             ps.piece,
             ptp.price,
             ptp.special_price,

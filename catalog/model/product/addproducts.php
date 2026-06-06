@@ -48,6 +48,7 @@ class Addproducts extends \Opencart\System\Engine\Model {
                     product_id = '" . (int)$product_id . "',
                     piece_id = '" . (int)$piece['piece_id'] . "',
                     price = '" . (float)$piece['price'] . "',
+                    image = '" . $this->db->escape($piece['image'] ?? '') . "',
                     special_price = '" . (float)$piece['special_price'] . "',
                     piece_default = '" . (int)$piece['piece_default'] . "',
                     min_quantity = '" . (int)$piece['min_quantity'] . "',
@@ -142,6 +143,7 @@ if (!empty($data['pieces'])) {
         $this->db->query("INSERT INTO " . DB_PREFIX . "piece_to_product SET
             product_id = '" . (int)$product_id . "',
             piece_id = '" . (int)$piece['piece_id'] . "',
+            image = '" . $this->db->escape($piece['image'] ?? '') . "',
             price = '" . (float)$piece['price'] . "',
             special_price = '" . (float)$piece['special_price'] . "',
             piece_default = '" . (int)$piece['piece_default'] . "',

@@ -572,7 +572,7 @@ public function addOrder(): void {
     
     $order_data=[
         
-        'invoice_prefix'=>'APP-',
+        'invoice_prefix'=>'SMR-',
         
         'invoice_no'=>time(),
         
@@ -951,6 +951,18 @@ public function getDeliveryFee(): void {
             'pos_quentity'=>0
             
             ];
+
+            if (!empty($post['pieces'])) {
+
+                foreach ($post['pieces'] as $k => $piece) {
+
+                    if (!empty($piece['image'])) {
+
+                        $post['pieces'][$k]['image'] =
+                            $this->saveBase64Image($piece['image']);
+                    }
+                }
+            }
             
             
             $base = (float)$post['price'];
