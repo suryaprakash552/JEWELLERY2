@@ -616,21 +616,20 @@ public function addOrder(): void {
     
     $order_data['products'][]=[
     
-        'product_id'=>(int)($p['product_id'] ?? 0),
-        
-        'name'=>$p['name'] ?? '',
-        
-        'model'=>'',
-        
-        'option'=>[],
-        
-        'quantity'=>(int)($p['quantity'] ?? 1),
-        
-        'price'=>(float)($p['price'] ?? 0),
-        
-        'total'=>(float)($p['total'] ?? 0),
-        
-        'excluded'=>!empty($p['excluded'])?1:0
+                    "product_id" => (int) ($p["product_id"] ?? 0),
+                    "name" => $p["name"] ?? "",
+                    "model" => "",
+                    "option" => [],
+                    "piece_id" => (int)($p["piece_id"] ?? 0),
+                    "is_combo" => $p["is_combo"] ?? "No",
+                    "min_quantity" => (int)($p["min_quantity"] ?? 0),
+                    "selected_quantity" => (int)($p["selected_quantity"] ?? 0),
+                    "quantity" => (int) ($p["quantity"] ?? 1),
+                    "price" => (float) ($p["price"] ?? 0),
+                    "total" => (float) ($p["total"] ?? 0),
+                    "gst" => (float) ($p["gst_percent"] ?? 0),
+                    "tax" => (float) ($p["row_gst"] ?? 0),
+                    "excluded"   => !empty($p["excluded"]) ? 1 : 0
     
     ];
     
@@ -952,17 +951,26 @@ public function getDeliveryFee(): void {
             
             ];
 
-            if (!empty($post['pieces'])) {
+           if (!empty($post['pieces'])) {
+            foreach ($post['pieces'] as $k => $piece) {
+                if (!empty($piece['image_base64'])) {
 
-                foreach ($post['pieces'] as $k => $piece) {
+                    $post['pieces'][$k]['image'] =
+                        $this->saveBase64Image($piece['image_base64']);
 
-                    if (!empty($piece['image'])) {
+                    unset($post['pieces'][$k]['image_base64']);
 
-                        $post['pieces'][$k]['image'] =
-                            $this->saveBase64Image($piece['image']);
-                    }
+                } elseif (!empty($piece['image'])) {
+
+                    $post['pieces'][$k]['image'] = $piece['image'];
+
+                } else {
+
+                    $post['pieces'][$k]['image'] = '';
+
                 }
             }
+        }
             
             
             $base = (float)$post['price'];
