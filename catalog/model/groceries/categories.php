@@ -1569,6 +1569,33 @@ public function getProductsCountByCategory($category_id){
             return true;
             
             }
+
+            public function editAdmin($user_id,$data){
+
+            $this->db->query("UPDATE `" . DB_PREFIX . "user` SET
+            firstname = '".$this->db->escape($data['firstname'])."',
+            lastname = '".$this->db->escape($data['lastname'])."',
+            email = '".$this->db->escape($data['email'])."',
+            store_id = '".(int)$data['store_id']."'
+            WHERE user_id = '".(int)$user_id."'");
+
+            if(!empty($data['password'])){
+
+            $this->db->query("UPDATE `" . DB_PREFIX . "user` SET
+            password = '".$this->db->escape(password_hash($data['password'], PASSWORD_DEFAULT))."'
+            WHERE user_id = '".(int)$user_id."'");
+
+            }
+            if(!empty($data['kycprofileimage'])){
+
+            $this->db->query("UPDATE `" . DB_PREFIX . "user` SET
+            profile_image = '".$this->db->escape($data['kycprofileimage'])."'
+            WHERE user_id = '".(int)$user_id."'");
+
+            }
+
+            return true;
+            }
             
         public function getAgents($store_id,$agentId = 0){
 
@@ -1711,6 +1738,7 @@ public function getAdminDetails($user_id){
             u.email,
             '' AS telephone,
             u.store_id,
+            u.profile_image AS kycprofileimage,
             s.name AS store_name,
             s.logo AS store_logo,
             '1' AS agent_status
@@ -1728,6 +1756,16 @@ public function getAdminDetails($user_id){
     $admin = $query->row;
 
     $admin['kyc'] = [];
+
+    if(!empty($admin['kycprofileimage'])){
+
+        $admin['kyc'][] = [
+            'idtype' => '3',
+            'idno'   => '',
+            'image'  => $admin['kycprofileimage']
+        ];
+
+    }
 
     return $admin;
 }

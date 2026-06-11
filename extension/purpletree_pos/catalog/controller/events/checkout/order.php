@@ -19,28 +19,31 @@ class Order extends \Opencart\System\Engine\Controller {
     // Fetch products
     $order_products = $this->model_checkout_order->getProducts($order_id);
 
-    // If no products, stop safely
     if (empty($order_products)) {
-        return;   
+        return;
     }
 
-    // Always use first product ONLY if exists
-    $order_product = $order_products[0];
+    // Sum quantities product-wise
+    $product_qty = [];
 
-    if (!isset($order_product['order_product_id'])) {
-        return; // missing expected structure
+    foreach ($order_products as $product) {
+
+        $product_id = (int)$product['product_id'];
+
+        $product_qty[$product_id] =
+            ($product_qty[$product_id] ?? 0) + (int)$product['quantity'];
     }
 
-    $order_product_id = (int)$order_product['order_product_id'];
+    // Update stock once per product
+    foreach ($product_qty as $product_id => $qty) {
 
-    // Fetch POS product mapping
-    $pos_product_order = $this->getPosOrderProducts($order_product_id);
-
-    if (!empty($pos_product_order)) {
         $this->db->query("
-            UPDATE " . DB_PREFIX . "pts_pos_product 
-            SET pos_quentity = (pos_quentity - " . (int)$pos_product_order['quantity'] . ") 
-            WHERE product_id = '" . (int)$pos_product_order['product_id'] . "'
+            UPDATE `" . DB_PREFIX . "pts_pos_product`
+            SET pos_quentity = GREATEST(
+                pos_quentity - " . (int)$qty . ",
+                0
+            )
+            WHERE product_id = '" . (int)$product_id . "'
         ");
     }
 }

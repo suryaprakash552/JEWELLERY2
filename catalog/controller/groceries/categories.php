@@ -2882,18 +2882,31 @@ $this->response->setOutput(json_encode([
         
         /* LOAD MODEL */
         
+        $type = $post['type'] ?? 'agent';
+
         $this->load->model('groceries/categories');
-        
-        $this->model_groceries_categories->editAgent($customer_id,$post);
-        
-        
-        /* RESPONSE */
+
+        if($type == 'admin'){
+
+        $this->model_groceries_categories->editAdmin(
+            $customer_id,
+            $post
+        );
+
+        }else{
+
+        $this->model_groceries_categories->editAgent(
+            $customer_id,
+            $post
+        );
+
+        }
         
         $this->response->setOutput(json_encode([
         
         "status"=>"success",
         
-        "message"=>"Agent updated successfully"
+        "message"=>"updated successfully"
         
         ]));
         
