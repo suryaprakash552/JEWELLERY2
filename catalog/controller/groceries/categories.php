@@ -286,72 +286,72 @@ class Categories extends \Opencart\System\Engine\Controller {
         ]));
     }
 }
+    public function sendWhatsAppOtp($data = []){
 
-public function sendWhatsAppOtp($data = []) {
+        file_put_contents(DIR_LOGS . 'whatsapp.log', "FUNCTION CALLED\n", FILE_APPEND);
 
-    file_put_contents(DIR_LOGS . 'msg91.log', "FUNCTION CALLED\n", FILE_APPEND);
+        $phone = "91" . $data['phone'];
+        $otp   = (string)$data['otp'];
 
-    $phone = "91" . $data['phone'];
-    $otp   = $data['otp'];
-
-    $payload = [
-        "integrated_number" => "919741957694",
-        "content_type" => "template",
-        "payload" => [
-            "messaging_product" => "whatsapp",
-            "type" => "template",
-            "template" => [
-                "name" => "login_verfication",
-                "language" => [
-                    "code" => "en",
-                    "policy" => "deterministic"
-                ],
-                "namespace" => "d3da0aa7_8c49_4af7_9c40_c42082efc36e",
-                "to_and_components" => [
+        $payload = [
+    "messaging_product" => "whatsapp",
+    "to" => $phone,
+    "type" => "template",
+    "template" => [
+        "name" => "auth_login_verification",
+        "language" => [
+            "code" => "en"
+        ],
+        "components" => [
+            [
+                "type" => "body",
+                "parameters" => [
                     [
-                        "to" => [$phone],
-                        "components" => [
-                            "body_1" => [
-                                "type" => "text",
-                                "value" => (string)$otp
-                            ],
-                            "button_1" => [
-                                "subtype" => "url",
-                                "type" => "text",
-                                "value" => (string)$otp
-                            ]
-                        ]
+                        "type" => "text",
+                        "text" => $otp
+                    ]
+                ]
+            ],
+            [
+                "type" => "button",
+                "sub_type" => "url",
+                "index" => "0",
+                "parameters" => [
+                    [
+                        "type" => "text",
+                        "text" => $otp
                     ]
                 ]
             ]
         ]
-    ];
+    ]
+];
 
-    $ch = curl_init(
-            "https://api.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/"	
-        );
+        $ch = curl_init("https://graph.facebook.com/v25.0/1136319812900258/messages");
+
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => json_encode($payload),
             CURLOPT_HTTPHEADER => [
-                "Content-Type: application/json",
-                "authkey: 471465A6FulqId269201b0eP1",
-            ],
+                "Authorization: Bearer EAAJ2OLT3ofgBRjA9C51mCUjXvbUmF9ZC2Y93T8snItzeUzTcZCqC8vQv8fR0GnC6LJrfzZAYnhCk6svl6C9GTpQ6I0SqQgXd7ZAtefdUUHem173HINWDg0V0011DIvq2rZCCNsFWWoY5XFEtZAPeTlEh4rS8FSfg64kFR0RGliCo91aItAvcT5WrDcK2PwIQZDZD",
+                "Content-Type: application/json"
+            ]
         ]);
 
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-    curl_close($ch);
+        file_put_contents(
+            DIR_LOGS . 'whatsapp.log',
+            "HTTP CODE: " . $httpCode . "\nRESPONSE: " . $response . "\n",
+            FILE_APPEND
+        );
 
-    return $response;
-}
+        curl_close($ch);
+
+        return $response;
+    }
 
     public function getInitialData(): void {
 
