@@ -155,7 +155,7 @@ public function getProductPieces($product_id): array {
     return $this->db->query($sql)->rows;
 }
 
-    public function getAllProducts($start = 0, $limit = 30, $search = '') {
+    public function getAllProducts($search = '') {
 
         $sql = "SELECT 
                 p.product_id,
@@ -184,10 +184,6 @@ public function getProductPieces($product_id): array {
         }
 
         $sql .= " ORDER BY p.product_id DESC";
-
-        if(empty($search)){
-        $sql .= " LIMIT " . (int)$start . ", " . (int)$limit;
-        }
 
         $products = $this->db->query($sql)->rows;
 
