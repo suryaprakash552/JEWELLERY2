@@ -10225,21 +10225,20 @@ html += '          <span class="me-4"><strong style="color: #FFD700;">Invoice:</
          //     html += '    </div>';
          
              
-             html += '    </div>';
-             html += '    </div>';
+             html += '        </div>'; // Close col-md-8 order-md-1 (opened at line 10059)
+             html += '      </div>';   // Close row row-tight (opened at line 10005)
+             html += '    </div>';     // Close mt-2 wrapper (opened at line 10004)
              html += '  </div>'; // End modal-body
               
+             html += '  <hr style="color:black; margin-top: 0px; margin-bottom: 1px;">';  
+             html += '  <div id="lastOrderDisplay" style="text-align: right; margin-right: 5px; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #333; display: none; display: inline; color:red;"></div>';
+             // --- Footer Buttons (Rendered inside modal-content with proper alignment) ---
+             html += '  <div class="d-flex justify-content-end" style="margin-bottom: 15px; margin-top: 15px; padding-right: 25px; gap: 15px;">';
+             html += '      <button class="btn" id="saveOrderBtn" style="background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%); color: #FFFFFF; font-size: 15px; font-weight: 600; padding: 12px 32px; border: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(66, 153, 225, 0.4); transition: all 0.3s ease;" onmouseover="this.style.transform=\'translateY(-2px)\'; this.style.boxShadow=\'0 7px 14px rgba(66, 153, 225, 0.5)\'; this.style.filter=\'brightness(110%)\';" onmouseout="this.style.transform=\'translateY(0)\'; this.style.boxShadow=\'0 4px 6px rgba(66, 153, 225, 0.4)\'; this.style.filter=\'brightness(100%)\';">Save Order</button>';
+             html += '      <button class="btn" id="payNowBtn" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: #FFFFFF; font-size: 15px; font-weight: 600; padding: 12px 32px; border: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(72, 187, 120, 0.4); transition: all 0.3s ease;" onmouseover="this.style.transform=\'translateY(-2px)\'; this.style.boxShadow=\'0 7px 14px rgba(72, 187, 120, 0.5)\'; this.style.filter=\'brightness(110%)\';" onmouseout="this.style.transform=\'translateY(0)\'; this.style.boxShadow=\'0 4px 6px rgba(72, 187, 120, 0.4)\'; this.style.filter=\'brightness(100%)\';">Pay Now</button>';
+             html += '      <button class="btn" id="cancelPaymentBtn" data-bs-dismiss="modal" style="background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%); color: #2d3748; font-size: 15px; font-weight: 600; padding: 12px 32px; border: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(160, 174, 192, 0.4); transition: all 0.3s ease;" onmouseover="this.style.transform=\'translateY(-2px)\'; this.style.boxShadow=\'0 7px 14px rgba(160, 174, 192, 0.5)\'; this.style.filter=\'brightness(110%)\';" onmouseout="this.style.transform=\'translateY(0)\'; this.style.boxShadow=\'0 4px 6px rgba(160, 174, 192, 0.4)\'; this.style.filter=\'brightness(100%)\';">Cancel</button>';
+             html += '  </div>';
              html += '</div>'; // End modal-content
-                 html += '  <hr style="color:black; margin-top: 0px; margin-bottom: 1px;">';  
-            html += '    <div id="lastOrderDisplay" style="text-align: right; margin-right: 5px; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #333; display: none; display: inline; color:red;"></div>';
-             // --- Footer Buttons ---
-             html += '    <div class="d-flex justify-content-end" style="margin-bottom: -13px; margin-top: -20px;">';
-             
-                          html += '        <button class="btn me-3" id="saveOrderBtn" style="background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%); color: #FFFFFF; font-size: 15px; font-weight: 600; padding: 12px 32px; border: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(66, 153, 225, 0.4); transition: all 0.3s ease;" onmouseover="this.style.transform=\'translateY(-2px)\'; this.style.boxShadow=\'0 7px 14px rgba(66, 153, 225, 0.5)\'; this.style.filter=\'brightness(110%)\';" onmouseout="this.style.transform=\'translateY(0)\'; this.style.boxShadow=\'0 4px 6px rgba(66, 153, 225, 0.4)\'; this.style.filter=\'brightness(100%)\';">Save Order</button>';
-             html += '        <button class="btn me-3" id="payNowBtn" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: #FFFFFF; font-size: 15px; font-weight: 600; padding: 12px 32px; border: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(72, 187, 120, 0.4); transition: all 0.3s ease;" onmouseover="this.style.transform=\'translateY(-2px)\'; this.style.boxShadow=\'0 7px 14px rgba(72, 187, 120, 0.5)\'; this.style.filter=\'brightness(110%)\';" onmouseout="this.style.transform=\'translateY(0)\'; this.style.boxShadow=\'0 4px 6px rgba(72, 187, 120, 0.4)\'; this.style.filter=\'brightness(100%)\';">Pay Now</button>';
-             html += '        <button class="btn" id="cancelPaymentBtn" data-bs-dismiss="modal" style="background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%); color: #2d3748; font-size: 15px; font-weight: 600; padding: 12px 32px; border: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(160, 174, 192, 0.4); transition: all 0.3s ease;" onmouseover="this.style.transform=\'translateY(-2px)\'; this.style.boxShadow=\'0 7px 14px rgba(160, 174, 192, 0.5)\'; this.style.filter=\'brightness(110%)\';" onmouseout="this.style.transform=\'translateY(0)\'; this.style.boxShadow=\'0 4px 6px rgba(160, 174, 192, 0.4)\'; this.style.filter=\'brightness(100%)\';">Cancel</button>';
-            //  html += '         <button class="btn btn-sm" id="printCartBtn" style="background-color: #C9A24D; color: #fff; font-size: 12px; padding: 8px 16px; border: none; margin-left: 7px;" onclick="submitPrintDetails()">Print</button>';
-             html += '      </div>';
              html += '</div>'; // End modal-dialog
          
              // Execute
@@ -18427,18 +18426,18 @@ if (data.upc && data.upc !== '') {
                  
                  if (skuCode.length >= 6) {
                      // Try exact SKU match first
-                     const product = findProductBySKU(skuCode);
-                     
-                     if (product) {
-                         //console.log('Product found by SKU');
-                         console.log("handleSearchKeypress");
-                         addProductToCart(product);
-                         inputElement.value = '';
-                     } else {
-                         // If no exact match, perform regular search
-                         //console.log('No exact SKU match, performing search');
-                         performSearch();
-                     }
+                     findProductBySKU(skuCode).then(function(product) {
+                         if (product) {
+                             //console.log('Product found by SKU');
+                             console.log("handleSearchKeypress");
+                             addProductToCart(product);
+                             inputElement.value = '';
+                         } else {
+                             // If no exact match, perform regular search
+                             //console.log('No exact SKU match, performing search');
+                             performSearch();
+                         }
+                     });
                  } else if (skuCode.length > 0) {
                      // Short input - do regular search
                      performSearch();

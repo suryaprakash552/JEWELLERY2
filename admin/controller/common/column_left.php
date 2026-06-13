@@ -40,13 +40,13 @@ class ColumnLeft extends \Opencart\System\Engine\Controller {
 				];
 			}
 
-			if ($this->user->hasPermission('access', 'catalog/product')) {
-				$catalog[] = [
-					'name'     => $this->language->get('text_product'),
-					'href'     => $this->url->link('catalog/product', 'user_token=' . $this->session->data['user_token']),
-					'children' => []
-				];
-			}
+// 			if ($this->user->hasPermission('access', 'catalog/product')) {
+// 				$catalog[] = [
+// 					'name'     => $this->language->get('text_product'),
+// 					'href'     => $this->url->link('catalog/product', 'user_token=' . $this->session->data['user_token']),
+// 					'children' => []
+// 				];
+// 			}
 
 // 			if ($this->user->hasPermission('access', 'catalog/subscription_plan')) {
 // 				$catalog[] = [
@@ -254,7 +254,7 @@ if ($this->user->hasPermission('access', 'marketing/coupon')) {
 			if ($customer) {
 				$data['menus'][] = array(
 					'id'       => 'menu-customer',
-					'icon'	   => 'fa-user',
+					'icon'	   => 'fa-solid fa-user',
 					'name'	   => $this->language->get('text_customer'),
 					'href'     => '',
 					'children' => $customer
@@ -461,6 +461,19 @@ if ($this->user->hasPermission('access', 'marketing/coupon')) {
 				$sale[] = [
 					'name'     => $this->language->get('text_order'),
 					'href'     => $this->url->link('sale/order', 'user_token=' . $this->session->data['user_token']),
+					'children' => []
+				];
+			}
+
+			if ($this->user->hasPermission('access', 'sale/delivery_boy')) {
+				$sale[] = [
+					'name'     => 'Delivery Boys',
+					'href'     => $this->url->link('sale/delivery_boy', 'user_token=' . $this->session->data['user_token']),
+					'children' => []
+				];
+				$sale[] = [
+					'name'     => 'Delivery Reports',
+					'href'     => $this->url->link('sale/delivery_boy.report', 'user_token=' . $this->session->data['user_token']),
 					'children' => []
 				];
 			}
@@ -793,8 +806,7 @@ if ($this->user->hasPermission('access', 'marketing/coupon')) {
 					'children' => $user
 				];
 			}
-			
-            
+
 //             $me_purchase_order = array();
 // 			if ($this->user->hasPermission('access', 'extension/me_purchase_order')) {
 // 				$me_purchase_order[] = array(
@@ -1536,13 +1548,15 @@ if ($this->user->hasPermission('access', 'gst/retail_order')) {
     ];
 }
 
-			$data['menus'][] = [
-    'id'       => 'menu-gst',
-    'icon'     => 'fas fa-percent',
-    'name'     => 'GST',
-    'href'     => '',
-    'children' => $gst
-];
+			if ($gst) {
+				$data['menus'][] = [
+					'id'       => 'menu-gst',
+					'icon'     => 'fas fa-percent',
+					'name'     => 'GST',
+					'href'     => '',
+					'children' => $gst
+				];
+			}
 
 			return $this->load->view('common/column_left', $data);
 		} else {

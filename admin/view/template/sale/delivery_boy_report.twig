@@ -1,0 +1,200 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header" style="padding-top: 24px; padding-bottom: 24px; margin-bottom: 0;">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 600; line-height: 28px; color: var(--bs-heading-color) !important; font-family: 'Outfit', 'Inter', sans-serif;">Delivery Reports</h2>
+      <ol class="breadcrumb" style="margin: 0; padding: 0; --bs-breadcrumb-divider: '>';">
+        {% for breadcrumb in breadcrumbs %}
+          {% if loop.last %}
+            <li class="breadcrumb-item active" style="color: var(--bs-heading-color) !important;">{{ breadcrumb.text }}</li>
+          {% else %}
+            <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}" style="color: #64748b !important; text-decoration: none;">{{ breadcrumb.text }}</a></li>
+          {% endif %}
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  
+  <div class="container-fluid">
+    <!-- Reports Table Card -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span style="color: var(--bs-heading-color) !important; font-weight: 600; font-family: 'Outfit', 'Inter', sans-serif; font-size: 15px; display: inline-flex; align-items: center;">
+          <i class="fa-solid fa-list" style="margin-right: 8px;"></i> Delivery Reports
+        </span>
+        <div class="d-flex gap-2 align-items-center">
+          <button type="button" data-bs-toggle="modal" data-bs-target="#modal-filter-delivery" class="btn btn-custom-filter-white">
+            <i class="fa-solid fa-sliders"></i> Filter
+          </button>
+          <button type="button" id="button-export" class="btn btn-custom-export">
+            <i class="fa-solid fa-download"></i> Export
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover align-middle">
+            <thead>
+              <tr>
+                <th class="text-center" style="width: 60px;">S.No.</th>
+                <th class="text-center">Delivery Boy Name</th>
+                <th class="text-center">Phone / Telephone</th>
+                <th class="text-center">Status</th>
+                <th class="text-center">Date Added</th>
+                <th class="text-center">Total Orders</th>
+                <th class="text-center">In Progress</th>
+                <th class="text-center">Completed</th>
+                <th class="text-center">Cancelled</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if delivery_boys %}
+                {% for boy in delivery_boys %}
+                  <tr>
+                    <td class="text-center">{{ loop.index }}</td>
+                    <td class="text-center" style="font-weight: 500;">{{ boy.name }}</td>
+                    <td class="text-center">{{ boy.telephone }}</td>
+                    <td class="text-center">
+                      {% if boy.status == text_enabled or boy.status == 'Enabled' %}
+                        <span class="badge bg-success">Enabled</span>
+                      {% else %}
+                        <span class="badge bg-danger">Disabled</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-center">{{ boy.date_added }}</td>
+                    <td class="text-center" style="font-weight: bold;">{{ boy.total ? boy.total : 0 }}</td>
+                    <td class="text-center text-primary">{{ boy.in_progress ? boy.in_progress : 0 }}</td>
+                    <td class="text-center text-success">{{ boy.completed ? boy.completed : 0 }}</td>
+                    <td class="text-center text-danger">{{ boy.cancelled ? boy.cancelled : 0 }}</td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td class="text-center" colspan="9">No results found!</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+        <div class="row" style="margin-top: 15px;">
+          <div class="col-sm-6 text-start">{{ results }}</div>
+          <div class="col-sm-6 text-end">{{ pagination }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Modal -->
+<div class="modal fade" id="modal-filter-delivery" tabindex="-1" aria-labelledby="modal-filter-delivery-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-filter-delivery-label"><i class="fa-solid fa-filter"></i> Filter Delivery Reports</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-filter">
+          <div class="mb-3">
+            <label for="input-name" class="form-label">Search Delivery Boy Name</label>
+            <input type="text" name="filter_name" value="{{ filter_name }}" placeholder="Search by name..." id="input-name" class="form-control" autocomplete="off" />
+          </div>
+          <div class="mb-3">
+            <label for="input-date-start" class="form-label">Start Date</label>
+            <input type="date" name="filter_date_start" value="{{ filter_date_start }}" id="input-date-start" class="form-control" />
+          </div>
+          <div class="mb-3">
+            <label for="input-date-end" class="form-label">End Date</label>
+            <input type="date" name="filter_date_end" value="{{ filter_date_end }}" id="input-date-end" class="form-control" />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="button-clear" class="btn btn-outline-secondary"><i class="fa-solid fa-filter-circle-xmark"></i> Reset</button>
+        <button type="button" id="button-filter" data-bs-dismiss="modal" class="btn btn-custom-filter-white"><i class="fa-solid fa-sliders"></i> Filter</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript"><!--
+$(document).ready(function() {
+    var startVal = $('#input-date-start').val();
+    if (startVal) {
+        $('#input-date-end').attr('min', startVal);
+    }
+    var endVal = $('#input-date-end').val();
+    if (endVal) {
+        $('#input-date-start').attr('max', endVal);
+    }
+});
+
+$('#input-date-start').on('change', function() {
+    var val = $(this).val();
+    $('#input-date-end').attr('min', val);
+    
+    // If End Date is now before Start Date, clear it or set it to Start Date
+    var endVal = $('#input-date-end').val();
+    if (endVal && endVal < val) {
+        $('#input-date-end').val(val);
+    }
+});
+
+$('#input-date-end').on('change', function() {
+    var val = $(this).val();
+    $('#input-date-start').attr('max', val);
+    
+    // If Start Date is now after End Date, clear it or set it to End Date
+    var startVal = $('#input-date-start').val();
+    if (startVal && startVal > val) {
+        $('#input-date-start').val(val);
+    }
+});
+
+$('#button-filter').on('click', function() {
+    var url = 'index.php?route=sale/delivery_boy.report&user_token={{ user_token }}';
+
+    var filter_name = $('#input-name').val();
+    if (filter_name) {
+        url += '&filter_name=' + encodeURIComponent(filter_name);
+    }
+
+    var filter_date_start = $('#input-date-start').val();
+    if (filter_date_start) {
+        url += '&filter_date_start=' + encodeURIComponent(filter_date_start);
+    }
+
+    var filter_date_end = $('#input-date-end').val();
+    if (filter_date_end) {
+        url += '&filter_date_end=' + encodeURIComponent(filter_date_end);
+    }
+
+    location = url;
+});
+
+$('#button-export').on('click', function() {
+    var url = 'index.php?route=sale/delivery_boy.export&user_token={{ user_token }}';
+
+    var filter_name = $('#input-name').val();
+    if (filter_name) {
+        url += '&filter_name=' + encodeURIComponent(filter_name);
+    }
+
+    var filter_date_start = $('#input-date-start').val();
+    if (filter_date_start) {
+        url += '&filter_date_start=' + encodeURIComponent(filter_date_start);
+    }
+
+    var filter_date_end = $('#input-date-end').val();
+    if (filter_date_end) {
+        url += '&filter_date_end=' + encodeURIComponent(filter_date_end);
+    }
+
+    location = url;
+});
+
+$('#button-clear').on('click', function() {
+    location = 'index.php?route=sale/delivery_boy.report&user_token={{ user_token }}';
+});
+//--></script>
+{{ footer }}

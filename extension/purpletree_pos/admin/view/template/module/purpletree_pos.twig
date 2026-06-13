@@ -1,18 +1,18 @@
 {{ header }}
 {{ column_left }}
 <div id="content">
-	<div class="page-header">
-		<div class="container-fluid">
-			<div class="pull-right float-end">
-				<button type="submit" form="form-pos" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
-				<a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default btn-light"><i class="fa fa-reply"></i></a>
-			</div>
-			<h1>{{ heading_title }}</h1>
-			 <ol class="breadcrumb">
-        {% for breadcrumb in breadcrumbs %}
-          <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
-        {% endfor %}
-      </ol>
+	<div class="page-header" style="padding-top: 24px; padding-bottom: 24px; margin-bottom: 0;">
+		<div class="container-fluid d-flex justify-content-between align-items-center">
+			<h2 style="margin: 0; font-size: 20px; font-weight: 600; line-height: 28px; color: var(--bs-heading-color) !important; font-family: 'Outfit', 'Inter', sans-serif;">{{ heading_title }}</h2>
+			<ul class="breadcrumb" style="margin: 0; padding: 0; --bs-breadcrumb-divider: '>';">
+				{% for breadcrumb in breadcrumbs %}
+				  {% if loop.last %}
+				    <li class="breadcrumb-item active" style="color: var(--bs-heading-color) !important;">{{ breadcrumb.text }}</li>
+				  {% else %}
+				    <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}" style="color: #64748b !important; text-decoration: none;">{{ breadcrumb.text }}</a></li>
+				  {% endif %}
+				{% endfor %}
+			</ul>
 		</div>
 	</div>
 	<div class="container-fluid">
@@ -25,8 +25,11 @@
 		</div>
 		{% endif%}
 		<div class="panel panel-default card">
-			<div class="panel-heading">
-				<h3 class="panel-title card-header"><i class="fa fa-pencil fas fa-edit"></i> {{ text_edit }}</h3>
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<span style="color: var(--bs-heading-color) !important; font-weight: 600; font-family: 'Outfit', 'Inter', sans-serif; font-size: 15px; display: inline-flex; align-items: center;"><i class="fa-solid fa-pencil" style="margin-right: 8px;"></i> {{ text_edit }}</span>
+				<div class="d-flex gap-2 align-items-center">
+					<button type="submit" form="form-pos" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary btn-custom-add"><i class="fa-solid fa-floppy-disk" style="margin-right: 4px;"></i> {{ button_save }}</button>
+				</div>
 			</div>
 			<div class="panel-body card-body">
 				<form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-pos" class="form-horizontal">					

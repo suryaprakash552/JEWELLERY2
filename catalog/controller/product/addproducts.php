@@ -30,6 +30,7 @@ class Addproducts extends \Opencart\System\Engine\Controller {
         'product_id'          => 0,
         'product_description' => [],
         'product_category'    => [],
+        'piece_id'            => [],  // Can be array or single value
         'sku'                 => '',
         'upc'                 => '',
         'box_id'              => '',

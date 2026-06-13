@@ -26,6 +26,10 @@ class Posproduct extends \Opencart\System\Engine\Model {
                 $sql .= " AND (p.box_id LIKE '%" . $box . "%'OR p.product_id = '" . (int)$box . "')";
             }
 
+			if (!empty($data['filter_sku'])) {
+				$sql .= " AND p.sku LIKE '%" . $this->db->escape(trim($data['filter_sku'])) . "%'";
+			}
+
 if (!empty($data['filter_barcode'])) {
     $barcode = $this->db->escape(trim($data['filter_barcode']));
     $sql .= " AND (p.sku LIKE '%{$barcode}%' OR p.upc LIKE '%{$barcode}%')";
@@ -58,7 +62,9 @@ if (!empty($data['filter_barcode'])) {
 			'p.quantity',
 			'p.status',
 			'p.sort_order',
-			'p.box_id'
+			'p.box_id',
+			'p.rack_code',
+			'ppp.pos_quentity'
 			);
 			
 				if (isset($data['sort']) && $data['sort'] === 'p.box_id') {
@@ -126,6 +132,10 @@ elseif (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
             
                 $sql .= " AND (p.box_id LIKE '%" . $box . "%'OR p.product_id = '" . (int)$box . "')";
             }
+
+			if (!empty($data['filter_sku'])) {
+				$sql .= " AND p.sku LIKE '%" . $this->db->escape(trim($data['filter_sku'])) . "%'";
+			}
 
 if (!empty($data['filter_barcode'])) {
     $barcode = $this->db->escape(trim($data['filter_barcode']));

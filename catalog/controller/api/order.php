@@ -702,6 +702,10 @@ class Order extends \Opencart\System\Engine\Controller {
 		}
 
 		if (!$output) {
+			if (isset($this->request->post['delivery_boy_id'])) {
+				$this->db->query("UPDATE `" . DB_PREFIX . "order` SET `delivery_boy_id` = '" . (int)$this->request->post['delivery_boy_id'] . "' WHERE `order_id` = '" . (int)$post_info['order_id'] . "'");
+			}
+
 			$this->model_checkout_order->addHistory((int)$post_info['order_id'], (int)$post_info['order_status_id'], (string)$post_info['comment'], (bool)$post_info['notify'], (bool)$post_info['override']);
 
 			$output['success'] = $this->language->get('text_success');

@@ -39,17 +39,16 @@ class Addproducts extends \Opencart\System\Engine\Model {
 
         $product_id = $this->db->getLastId();
         
-        if (!empty($data['pieces'])) {
-
-            foreach ($data['pieces'] as $piece) {
-
-                $this->db->query("INSERT INTO " . DB_PREFIX . "piece_to_product SET
-                    product_id = '" . (int)$product_id . "',
-                    piece_id = '" . (int)$piece['piece_id'] . "',
-                    price = '" . (float)$piece['price'] . "',
-                    special_price = '" . (float)$piece['special_price'] . "',
-                    piece_default = '" . (int)$piece['piece_default'] . "'
-                ");
+        // Handle multiple piece IDs (array or single value)
+        if (!empty($data['piece_id'])) {
+            $piece_ids = is_array($data['piece_id']) ? $data['piece_id'] : [$data['piece_id']];
+            
+            foreach ($piece_ids as $piece_id) {
+                if (!empty($piece_id)) {
+                    $this->db->query("INSERT INTO " . DB_PREFIX . "piece_to_product SET
+                        product_id = '" . (int)$product_id . "',
+                        piece_id = '" . (int)$piece_id . "'");
+                }
             }
         }
         
@@ -129,22 +128,20 @@ class Addproducts extends \Opencart\System\Engine\Model {
                 category_id='" . (int)$data['category_id'] . "'");
                 
                 
-                $this->db->query("DELETE FROM " . DB_PREFIX . "piece_to_product 
-WHERE product_id = '" . (int)$product_id . "'");
-
-if (!empty($data['pieces'])) {
-
-    foreach ($data['pieces'] as $piece) {
-
-        $this->db->query("INSERT INTO " . DB_PREFIX . "piece_to_product SET
-            product_id = '" . (int)$product_id . "',
-            piece_id = '" . (int)$piece['piece_id'] . "',
-            price = '" . (float)$piece['price'] . "',
-            special_price = '" . (float)$piece['special_price'] . "',
-            piece_default ='" . (int)$piece['piece_default'] . "'
-        ");
-    }
-}
+                $this->db->query(" DELETE FROM " . DB_PREFIX . "piece_to_product WHERE product_id = '" . (int)$product_id . "'");
+                    
+                    // Handle multiple piece IDs (array or single value)
+                    if (!empty($data['piece_id'])) {
+                        $piece_ids = is_array($data['piece_id']) ? $data['piece_id'] : [$data['piece_id']];
+                        
+                        foreach ($piece_ids as $piece_id) {
+                            if (!empty($piece_id)) {
+                                $this->db->query(" INSERT INTO " . DB_PREFIX . "piece_to_product SET
+                                    product_id = '" . (int)$product_id . "',
+                                    piece_id = '" . (int)$piece_id . "'");
+                            }
+                        }
+                    }
         
     
 }

@@ -1174,6 +1174,15 @@ class Order extends \Opencart\System\Engine\Controller {
 		$data['column_left'] = $this->load->controller('common/column_left');
 		$data['footer'] = $this->load->controller('common/footer');
 
+		$this->load->model('sale/delivery_boy');
+		$data['delivery_boys'] = $this->model_sale_delivery_boy->getDeliveryBoys([]);
+
+		if (!empty($order_info)) {
+			$data['delivery_boy_id'] = $order_info['delivery_boy_id'];
+		} else {
+			$data['delivery_boy_id'] = 0;
+		}
+
 		$this->response->setOutput($this->load->view('sale/order_info', $data));
 	}
 
@@ -1325,6 +1334,118 @@ class Order extends \Opencart\System\Engine\Controller {
 
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput($output);
+	}
+
+	/**
+	 * Cancel Product
+	 *
+	 * @return void
+	 */
+	public function cancelProduct(): void {
+		$json = [];
+
+		if (isset($this->request->post['order_id'])) {
+			$order_id = (int)$this->request->post['order_id'];
+		} else {
+			$order_id = 0;
+		}
+
+		if (isset($this->request->post['order_product_id'])) {
+			$order_product_id = (int)$this->request->post['order_product_id'];
+		} else {
+			$order_product_id = 0;
+		}
+
+		if (!$this->user->hasPermission('modify', 'sale/order')) {
+			$json['error'] = 'You do not have permission to modify orders!';
+		}
+
+		if (!$json && $order_id && $order_product_id) {
+			$this->load->model('sale/order');
+
+			// Get order product total, tax, etc.
+			$product_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order_product` WHERE `order_id` = '" . (int)$order_id . "' AND `order_product_id` = '" . (int)$order_product_id . "'");
+			
+			if ($product_query->num_rows) {
+				// Delete product
+				$this->db->query("DELETE FROM `" . DB_PREFIX . "order_product` WHERE `order_id` = '" . (int)$order_id . "' AND `order_product_id` = '" . (int)$order_product_id . "'");
+				
+				// Delete options
+				$this->db->query("DELETE FROM `" . DB_PREFIX . "order_option` WHERE `order_id` = '" . (int)$order_id . "' AND `order_product_id` = '" . (int)$order_product_id . "'");
+
+				// Recalculate remaining products
+				$totals_query = $this->db->query("SELECT SUM(total) as new_sub_total, SUM(quantity) as new_qty_count, COUNT(*) as new_items_count, SUM(tax) as new_total_tax FROM `" . DB_PREFIX . "order_product` WHERE `order_id` = '" . (int)$order_id . "'");
+				
+				$new_sub_total = (float)($totals_query->row['new_sub_total'] ?? 0);
+				$new_qty_count = (int)($totals_query->row['new_qty_count'] ?? 0);
+				$new_items_count = (int)($totals_query->row['new_items_count'] ?? 0);
+				$new_total_tax = (float)($totals_query->row['new_total_tax'] ?? 0);
+
+				// Fetch existing invoice info to adjust discount
+				$invoice_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order_invoice` WHERE `order_id` = '" . (int)$order_id . "'");
+				if ($invoice_query->num_rows) {
+					$old_sub_total = (float)$invoice_query->row['sub_total'];
+					$old_discount = (float)$invoice_query->row['discount'];
+					
+					if ($old_sub_total > 0) {
+						$new_discount = round(($old_discount / $old_sub_total) * $new_sub_total, 2);
+					} else {
+						$new_discount = 0.00;
+					}
+
+					$new_total_received = $new_sub_total + $new_total_tax - $new_discount;
+					if ($new_total_received < 0) {
+						$new_total_received = 0.00;
+					}
+
+					// Update payment fields depending on amount_through
+					$amount_through = $invoice_query->row['amount_through'];
+					$cash_amount = 0.00;
+					$upi_amount = 0.00;
+
+					if (strtoupper($amount_through) == 'CASH') {
+						$cash_amount = $new_total_received;
+					} elseif (strtoupper($amount_through) == 'UPI') {
+						$upi_amount = $new_total_received;
+					} else {
+						// Split/Other: update cash_amount for simplicity
+						$cash_amount = $new_total_received;
+					}
+
+					$this->db->query("UPDATE `" . DB_PREFIX . "order_invoice` SET 
+						`sub_total` = '" . (float)$new_sub_total . "', 
+						`total_tax` = '" . (float)$new_total_tax . "', 
+						`discount` = '" . (float)$new_discount . "', 
+						`number_of_items` = '" . (int)$new_items_count . "', 
+						`quantity_of_items` = '" . (int)$new_qty_count . "', 
+						`total_received` = '" . (float)$new_total_received . "', 
+						`cash_amount` = '" . (float)$cash_amount . "', 
+						`upi_amount` = '" . (float)$upi_amount . "' 
+						WHERE `order_id` = '" . (int)$order_id . "'");
+					
+					// Update order main total
+					$this->db->query("UPDATE `" . DB_PREFIX . "order` SET `total` = '" . (float)$new_total_received . "' WHERE `order_id` = '" . (int)$order_id . "'");
+				} else {
+					// Fallback: update main order total only
+					$new_total = $new_sub_total + $new_total_tax;
+					$this->db->query("UPDATE `" . DB_PREFIX . "order` SET `total` = '" . (float)$new_total . "' WHERE `order_id` = '" . (int)$order_id . "'");
+				}
+
+				// Add history log of the product cancellation
+				$product_name = $product_query->row['name'];
+				$comment = "Product Canceled: " . $product_name;
+				
+				// Standard API addHistory call
+				$this->db->query("INSERT INTO `" . DB_PREFIX . "order_history` SET `order_id` = '" . (int)$order_id . "', `order_status_id` = (SELECT `order_status_id` FROM `" . DB_PREFIX . "order` WHERE `order_id` = '" . (int)$order_id . "'), `notify` = '0', `comment` = '" . $this->db->escape($comment) . "', `date_added` = NOW()");
+
+				$json['success'] = 'Product successfully canceled from order.';
+			} else {
+				$json['error'] = 'Product not found in this order!';
+			}
+		}
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
 	}
 
 	/**

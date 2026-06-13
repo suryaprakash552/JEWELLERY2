@@ -178,7 +178,7 @@ class Order extends \Opencart\System\Engine\Model {
 	 * $results = $this->model_sale_order->getOrders($filter_data);
 	 */
 	public function getOrders(array $data = []): array {
-		$sql = "SELECT `o`.`order_id`, CONCAT(`o`.`firstname`, ' ', `o`.`lastname`) AS `customer`, (SELECT `os`.`name` FROM `" . DB_PREFIX . "order_status` `os` WHERE `os`.`order_status_id` = `o`.`order_status_id` AND `os`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') AS `order_status`, `o`.`store_name`, `o`.`custom_field`, `o`.`payment_method`, `o`.`payment_custom_field`, `o`.`shipping_method`, `o`.`shipping_custom_field`,`o`.`telephone`, `o`.`total`, `o`.`currency_code`, `o`.`currency_value`, `o`.`date_added`, `o`.`date_modified` FROM `" . DB_PREFIX . "order` `o`";
+		$sql = "SELECT `o`.`order_id`, CONCAT(`o`.`firstname`, ' ', `o`.`lastname`) AS `customer`, (SELECT `os`.`name` FROM `" . DB_PREFIX . "order_status` `os` WHERE `os`.`order_status_id` = `o`.`order_status_id` AND `os`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') AS `order_status`, `o`.`store_name`, `o`.`custom_field`, `o`.`payment_method`, `o`.`payment_custom_field`, `o`.`shipping_method`, `o`.`shipping_custom_field`,`o`.`telephone`, `o`.`total`, `o`.`currency_code`, `o`.`currency_value`, `o`.`date_added`, `o`.`date_modified`, (SELECT COUNT(*) FROM `" . DB_PREFIX . "order_product` WHERE `order_id` = `o`.`order_id`) AS `items_count`, (SELECT GROUP_CONCAT(`name` SEPARATOR ', ') FROM `" . DB_PREFIX . "order_product` WHERE `order_id` = `o`.`order_id`) AS `items_names`, (SELECT SUM(`quantity`) FROM `" . DB_PREFIX . "order_product` WHERE `order_id` = `o`.`order_id`) AS `total_quantity`, (SELECT GROUP_CONCAT(CONCAT(`name`, ' (', `quantity`, ')') SEPARATOR ', ') FROM `" . DB_PREFIX . "order_product` WHERE `order_id` = `o`.`order_id`) AS `items_with_qty`, (SELECT `db`.`name` FROM `" . DB_PREFIX . "delivery_boy` `db` WHERE `db`.`delivery_boy_id` = `o`.`delivery_boy_id`) AS `delivery_boy` FROM `" . DB_PREFIX . "order` `o`";
 
 		if (!empty($data['filter_order_status'])) {
 			$implode = [];
@@ -246,7 +246,8 @@ class Order extends \Opencart\System\Engine\Model {
 			'order_status',
 			'o.date_added',
 			'o.date_modified',
-			'o.total'
+			'o.total',
+			'o.telephone'
 		];
 
 		if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {

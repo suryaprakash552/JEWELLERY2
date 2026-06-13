@@ -10,6 +10,11 @@ class Home extends \Opencart\System\Engine\Controller
         }
 
         $data = [];
+        
+        // ALWAYS fetch combo offers so they reflect immediately on refresh without needing a re-login
+        $combo_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "combo_offers` WHERE status = 1");
+        $data["live_combo_offers"] = json_encode($combo_query->rows);
+        
         if (!$this->config->get("module_purpletree_pos_status")) {
             $this->response->redirect(
                 $this->url->link("common/home", "", true)
@@ -158,6 +163,7 @@ class Home extends \Opencart\System\Engine\Controller
                     $data["posData"][
                         "posProductReward"
                     ] = $this->model_extension_purpletree_pos_pos_posproduct->getPosProductReward();
+
                     $data["posData"][
                         "weightUnit"
                     ] = $this->model_extension_purpletree_pos_pos_posproduct->getWeightUnit();
@@ -1443,6 +1449,7 @@ class Home extends \Opencart\System\Engine\Controller
                 "customer_group_id" => $agentId,
                 "cash_amount" => $cash_amount,
                 "upi_amount" => $upi_amount,
+                "takeaway_amount" => 0,
                 "coupon" => $coupon_final,
                 "credit_points" => $reward_points,
                 "discount" => $discount,
@@ -1520,12 +1527,41 @@ class Home extends \Opencart\System\Engine\Controller
                     false,
                     true
                 );
+                
+                // --- INSERT RETURN RECORDS INTO opencart RETURN TABLE ---
+                $this->load->model('extension/purpletree_pos/pos/posproduct');
+                $previous_order_info = $this->model_checkout_order->getOrder($previousOrderId);
+                $date_ordered = $previous_order_info ? date('Y-m-d', strtotime($previous_order_info['date_added'])) : date('Y-m-d');
+                
+                foreach ($cart_products as $p) {
+                    $return_data = [
+                        'order_id'         => $previousOrderId,
+                        'product_id'       => $p['product_id'] ?? 0,
+                        'customer_id'      => $customer_id,
+                        'firstname'        => $order_data['firstname'],
+                        'lastname'         => $order_data['lastname'],
+                        'email'            => $order_data['email'],
+                        'telephone'        => $order_data['telephone'],
+                        'product'          => $p['name'] ?? '',
+                        'model'            => '', // POS currently ignores model
+                        'quantity'         => $p['quantity'] ?? 1,
+                        'opened'           => 1, // Assume opened
+                        'return_reason_id' => $this->config->get("config_return_reason_id") ?: 1, // Default reason
+                        'return_action_id' => $this->config->get("module_purpletree_pos_return_action") ?: 1,
+                        'return_status_id' => $this->config->get("module_purpletree_pos_return_status") ?: 1,
+                        'comment'          => 'Returned from POS',
+                        'date_ordered'     => $date_ordered,
+                        'agent_id'         => $agentId
+                    ];
+                    $this->model_extension_purpletree_pos_pos_posproduct->addReturn($return_data);
+                }
+                // --------------------------------------------------------
             
             } else {
             
                 $this->model_checkout_order->addHistory(
                     $order_id,
-                    5, // Complete
+                    1, // Order Placed (Pending)
                     "",
                     false,
                     true

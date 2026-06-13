@@ -112,7 +112,7 @@ class Posagent extends \Opencart\System\Engine\Controller {
 						'email'=>$results['email'],
 						'date_added'=>$results['date_added'],
 						'edit'      => $this->url->link('customer/customer|form', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $results['customer_id']."&posagent=1", true),
-						'delete'    => $this->url->link('extension/purpletree_pos/posagent|delete', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $results['customer_id'], true)			
+						'delete'    => $this->url->link('extension/purpletree_pos/pos/posagent|delete', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $results['customer_id'], true)			
 					);
 				  }					
 			  }
@@ -167,12 +167,12 @@ class Posagent extends \Opencart\System\Engine\Controller {
 			$url .= '&page=' . $this->request->get['page'];
 		}
 
-		$data['sort_name'] = $this->url->link('extension/purpletree_pos/posagent', 'user_token=' . $this->session->data['user_token'] . '&sort=name' . $url, true);
+		$data['sort_name'] = $this->url->link('extension/purpletree_pos/pos/posagent', 'user_token=' . $this->session->data['user_token'] . '&sort=name' . $url, true);
 		
-		$data['sort_user_type'] = $this->url->link('extension/purpletree_pos/posagent', 'user_token=' . $this->session->data['user_token'] . '&sort=ppa.agent_status' . $url, true);
-		$data['sort_email'] = $this->url->link('extension/purpletree_pos/posagent', 'user_token=' . $this->session->data['user_token'] . '&sort=c.email' . $url, true);
-		$data['sort_status'] = $this->url->link('extension/purpletree_pos/posagent', 'user_token=' . $this->session->data['user_token'] . '&sort=c.status' . $url, true);
-		$data['sort_date_added'] = $this->url->link('extension/purpletree_pos/posagent', 'user_token=' . $this->session->data['user_token'] . '&sort=c.date_added' . $url, true);
+		$data['sort_user_type'] = $this->url->link('extension/purpletree_pos/pos/posagent', 'user_token=' . $this->session->data['user_token'] . '&sort=ppa.agent_status' . $url, true);
+		$data['sort_email'] = $this->url->link('extension/purpletree_pos/pos/posagent', 'user_token=' . $this->session->data['user_token'] . '&sort=c.email' . $url, true);
+		$data['sort_status'] = $this->url->link('extension/purpletree_pos/pos/posagent', 'user_token=' . $this->session->data['user_token'] . '&sort=c.status' . $url, true);
+		$data['sort_date_added'] = $this->url->link('extension/purpletree_pos/pos/posagent', 'user_token=' . $this->session->data['user_token'] . '&sort=c.date_added' . $url, true);
 			
 			$data['breadcrumbs'] = array();
 			
@@ -183,7 +183,7 @@ class Posagent extends \Opencart\System\Engine\Controller {
 			
 			$data['breadcrumbs'][] = array(
 			'text' => $this->language->get('heading_title'),
-			'href' => $this->url->link('extension/purpletree_pos/posagent', 'user_token=' . $this->session->data['user_token'], true)
+			'href' => $this->url->link('extension/purpletree_pos/pos/posagent', 'user_token=' . $this->session->data['user_token'], true)
 			);
 			$data['addnewcustomer'] = array(
 			'href' => $this->url->link('customer/customer|form', 'user_token=' . $this->session->data['user_token']."&posagent=1", true)
@@ -195,7 +195,7 @@ class Posagent extends \Opencart\System\Engine\Controller {
 			$data['column_left'] = $this->load->controller('common/column_left');
 			$data['footer'] = $this->load->controller('common/footer');
 			$data['user_token'] = $this->session->data['user_token'];
-			$data['delete'] = $this->url->link('extension/purpletree_pos/posagent|delete', 'user_token=' . $this->session->data['user_token'] . $url, true);
+			$data['delete'] = $this->url->link('extension/purpletree_pos/pos/posagent|delete', 'user_token=' . $this->session->data['user_token'] . $url, true);
 			
 			$data['sort'] = $sort;
 		    $data['order'] = $order;
@@ -206,7 +206,7 @@ class Posagent extends \Opencart\System\Engine\Controller {
 			$pagination->total = $Total_posagent;
 			$pagination->page = $page;
 			$pagination->limit = $this->config->get('config_limit_admin');
-			$pagination->url = $this->url->link('extension/purpletree_pos/posagent', 'user_token=' . $this->session->data['user_token'] . '&page={page}'. $url, true);
+			$pagination->url = $this->url->link('extension/purpletree_pos/pos/posagent', 'user_token=' . $this->session->data['user_token'] . '&page={page}'. $url, true);
 			
 			
 			$data['pagination'] = $pagination->render();
@@ -217,7 +217,7 @@ class Posagent extends \Opencart\System\Engine\Controller {
 			'total' => $Total_posagent,
 			'page'  => $page,
 			'limit' => $this->config->get('config_pagination_admin'),
-			'url'   => $this->url->link('extension/purpletree_pos/posagent', $url . '&page={page}'.'&language=' . $this->config->get('config_language'), true)
+			'url'   => $this->url->link('extension/purpletree_pos/pos/posagent', $url . '&page={page}'.'&language=' . $this->config->get('config_language'), true)
 		]);
 
 			$data['results'] = sprintf($this->language->get('text_pagination'), ($Total_posagent) ? (($page - 1) * $this->config->get('config_pagination_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_pagination_admin')) > ($Total_posagent - $this->config->get('config_pagination_admin'))) ? $Total_posagent : ((($page - 1) * $this->config->get('config_pagination_admin')) + $this->config->get('config_pagination_admin')), $Total_posagent, ceil($Total_posagent / $this->config->get('config_pagination_admin')));
@@ -269,7 +269,7 @@ class Posagent extends \Opencart\System\Engine\Controller {
 				$url .= '&page=' . $this->request->get['page'];
 			}
 
-			$this->response->redirect($this->url->link('extension/purpletree_pos/posagent', 'user_token=' . $this->session->data['user_token'] . $url, true));	
+			$this->response->redirect($this->url->link('extension/purpletree_pos/pos/posagent', 'user_token=' . $this->session->data['user_token'] . $url, true));	
 			
 		
 		}

@@ -4,9 +4,9 @@
       <thead>
         <tr>
           <th class="text-center" style="width: 1px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></th>
-          <th><a href="{{ sort_name }}"{% if sort == 'name' %} class="{{ order|lower }}"{% endif %}>{{ column_name }}</a></th>
-          <th><a href="{{ sort_description }}"{% if sort == 'description' %} class="{{ order|lower }}"{% endif %}>{{ column_description }}</a></th>
-          <th class="text-end">{{ column_action }}</th>
+          <th class="text-center"><a href="{{ sort_name }}"{% if sort == 'name' %} class="{{ order|lower }}"{% endif %}>{{ column_name }}</a></th>
+          <th class="text-center"><a href="{{ sort_description }}"{% if sort == 'description' %} class="{{ order|lower }}"{% endif %}>{{ column_description }}</a></th>
+          <th class="text-center col-1">{{ column_action }}</th>
         </tr>
       </thead>
       <tbody>
@@ -14,9 +14,9 @@
           {% for geo_zone in geo_zones %}
             <tr>
               <td class="text-center"><input type="checkbox" name="selected[]" value="{{ geo_zone.geo_zone_id }}" class="form-check-input"/></td>
-              <td>{{ geo_zone.name }}</td>
-              <td>{{ geo_zone.description }}</td>
-              <td class="text-end"><a href="{{ geo_zone.edit }}" data-bs-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></a></td>
+              <td class="text-center">{{ geo_zone.name }}</td>
+              <td class="text-center">{{ geo_zone.description }}</td>
+              <td class="text-center"><a href="{{ geo_zone.edit }}" data-bs-toggle="tooltip" title="{{ button_edit }}" class="btn btn-custom-edit"><i class="fa-solid fa-pencil"></i>Edit</a></td>
             </tr>
           {% endfor %}
         {% else %}
@@ -28,7 +28,7 @@
     </table>
   </div>
   <div class="row">
-    <div class="col-sm-6 text-start">{{ pagination }}</div>
-    <div class="col-sm-6 text-end">{{ results }}</div>
+    <div class="col-sm-6 text-start">{{ results }}</div>
+    <div class="col-sm-6 text-end">{{ pagination }}</div>
   </div>
 </form>

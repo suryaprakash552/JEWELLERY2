@@ -1,11 +1,11 @@
+<div class="language-selection-header" style="padding: 10px 20px 5px 20px; font-size: 11px; color: var(--bs-secondary-color); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Language</div>
 {% for language in languages %}
-  {% if language.code == code %}
-    <a href="{{ language.code }}" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><img src="{{ language.image }}" alt="{{ language.name }}" title="{{ language.name }}"/></a>
-  {% endif %}
+  <a href="{{ language.code }}" class="dropdown-item" style="padding: 10px 20px; font-size: 14px; display: flex; align-items: center; gap: 12px; color: var(--bs-body-color); transition: all 0.2s;">
+    <img src="{{ language.image }}" alt="{{ language.name }}" title="{{ language.name }}" style="width: 18px; height: auto; border-radius: 2px;"/>
+    <span>{{ language.name }}</span>
+    {% if language.code == code %}
+      <i class="fa-solid fa-check ms-auto text-primary" style="font-size: 12px;"></i>
+    {% endif %}
+  </a>
 {% endfor %}
-<ul class="dropdown-menu">
-  {% for language in languages %}
-    <li><a href="{{ language.code }}" class="dropdown-item"><img src="{{ language.image }}" alt="{{ language.name }}" title="{{ language.name }}"/> {{ language.name }}</a></li>
-  {% endfor %}
-</ul>
 <input type="hidden" name="redirect" value="{{ redirect }}" id="input-redirect"/>

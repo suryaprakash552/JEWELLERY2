@@ -44,6 +44,13 @@ image/cache/*
 image/cache/**
  
 # =========================
+# POS Uploaded Images (user uploads - do not commit)
+# =========================
+ 
+image/catalog/pos_uploads/*
+image/catalog/pos_uploads/**
+ 
+# =========================
 # Config Files (Sensitive)
 # =========================
  

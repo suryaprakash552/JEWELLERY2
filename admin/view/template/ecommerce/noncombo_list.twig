@@ -1,0 +1,350 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header" style="padding-top: 24px; padding-bottom: 24px; margin-bottom: 0;">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 600; line-height: 28px; color: var(--bs-heading-color) !important; font-family: 'Outfit', 'Inter', sans-serif;">Non-Combo Offers</h2>
+      <ol class="breadcrumb" style="margin: 0; padding: 0; --bs-breadcrumb-divider: '>';">
+        {% for breadcrumb in breadcrumbs %}
+          {% if loop.last %}
+            <li class="breadcrumb-item active" style="color: var(--bs-heading-color) !important;">{{ breadcrumb.text }}</li>
+          {% else %}
+            <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}" style="color: #64748b !important; text-decoration: none;">{{ breadcrumb.text }}</a></li>
+          {% endif %}
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+    {% if success %}
+    <div class="alert alert-success alert-dismissible fade show"><i class="fas fa-check-circle me-2"></i>{{ success }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endif %}
+
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span style="color: var(--bs-heading-color) !important; font-weight: 600; font-family: 'Outfit', 'Inter', sans-serif; font-size: 15px; display: inline-flex; align-items: center;">
+            <i class="fa-solid fa-list" style="margin-right: 8px;"></i>Non-Combo Offer List
+          </span>
+          <div class="d-flex gap-2 align-items-center">
+            <button type="button" class="btn btn-primary btn-custom-add" data-bs-toggle="modal" data-bs-target="#modal-noncombo">
+              <i class="fa-solid fa-plus"></i> Add
+            </button>
+            <button type="button" class="btn btn-danger btn-custom-delete" onclick="deleteSelectedOffers()">
+              <i class="fa-solid fa-trash-can text-white"></i> Delete
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle text-center mb-0">
+              <thead>
+                <tr>
+                  <th style="width:40px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></th>
+                  <th style="width:55px;">#</th>
+                  <th>Product Name</th>
+                  <th style="width:95px;">Product ID</th>
+                  <th>Variants (Weight = Price)</th>
+                  <th style="width:110px;">Variant Count</th>
+                  <th style="width:90px;">Status</th>
+                  <th style="width:120px;">Date Added</th>
+                  <th style="width:80px;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if noncombo_offers %}
+                  {% for offer in noncombo_offers %}
+                  <tr>
+                    <td><input type="checkbox" name="selected[]" value="{{ offer.id }}" class="form-check-input"/></td>
+                    <td>{{ loop.index }}</td>
+                    <td class="text-start ps-3"><span class="fw-bold text-primary">{{ offer.product_name }}</span></td>
+                    <td><span class="badge bg-dark" style="font-size:0.85em;">#{{ offer.product_id }}</span></td>
+                    <td class="text-start ps-3"><span style="font-size:0.88em;">{{ offer.variants|raw }}</span></td>
+                    <td><span class="badge bg-info">{{ offer.variant_count }}</span></td>
+                    <td>
+                      {% if offer.status == 1 %}<span class="badge bg-success">Active</span>
+                      {% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
+                    </td>
+                    <td>{{ offer.date_added }}</td>
+                    <td>
+                      <button class="btn btn-custom-edit btn-sm" onclick="editOffer({{ offer.id }})">
+                        <i class="fa-solid fa-pencil"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr><td colspan="9" class="text-center py-4 text-muted">
+                    <i class="fas fa-inbox fa-2x d-block mb-2"></i>No non-combo offers found. Click <strong>Add</strong> to create one.
+                  </td></tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+          {% if noncombo_offers %}
+          <div class="row align-items-center p-2">
+            <div class="col-sm-6 text-start">{{ results }}</div>
+            <div class="col-sm-6 text-end">{{ pagination }}</div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add / Edit Non-Combo Modal -->
+<div class="modal fade" id="modal-noncombo" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#465fff,#6b7fff);color:#fff;">
+        <h5 class="modal-title" id="modal-nc-title"><i class="fas fa-boxes me-2"></i> Add Non-Combo Product</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="noncombo-alert" class="alert d-none"></div>
+        <input type="hidden" id="nc-edit-id">
+
+        <div class="row g-3">
+          <!-- Product Name -->
+          <div class="col-md-8">
+            <label class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
+            <input type="text" id="nc-product-name" class="form-control" placeholder="e.g. Sugar - Weight Based Offer">
+          </div>
+
+          <!-- SKU -->
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">SKU / Barcode</label>
+            <input type="text" id="nc-sku" class="form-control" placeholder="e.g. NC-001">
+          </div>
+
+          <!-- Base Price -->
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Base Price (₹) <span class="text-danger">*</span></label>
+            <input type="number" id="nc-base-price" class="form-control" step="0.01" min="0" placeholder="Default product price">
+            <small class="text-muted">Default e-commerce listing price</small>
+          </div>
+
+          <!-- Status -->
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Status</label>
+            <select id="nc-status" class="form-select" style="color: #495057 !important; background-color: #ffffff !important;">
+              <option value="1">Active</option>
+              <option value="0">Inactive</option>
+            </select>
+          </div>
+
+          <!-- Weight Variants -->
+          <div class="col-12 mt-2">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label fw-semibold mb-0">Weight Variants <span class="text-danger">*</span></label>
+              <button type="button" id="btn-add-variant" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-plus"></i> Add Variant
+              </button>
+            </div>
+            <div class="table-responsive border rounded">
+              <table class="table table-sm mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Weight</th>
+                    <th style="width:140px;">Unit</th>
+                    <th>Price (₹)</th>
+                    <th style="width:50px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="variant-tbody">
+                  <tr id="variant-row-0">
+                    <td><input type="number" class="form-control form-control-sm variant-weight" step="0.01" min="0" placeholder="e.g. 500"></td>
+                    <td>
+                      <select class="form-select form-select-sm variant-unit" style="color: #495057 !important; background-color: #ffffff !important; padding-right: 20px;">
+                        <option value="g">g</option>
+                        <option value="kg">kg</option>
+                        <option value="ml">ml</option>
+                        <option value="L">L</option>
+                        <option value="pcs">pcs</option>
+                      </select>
+                    </td>
+                    <td><input type="number" class="form-control form-control-sm variant-price" step="0.01" min="0" placeholder="e.g. 45"></td>
+                    <td class="text-center align-middle">
+                      <button type="button" class="btn btn-sm btn-danger py-0 px-2" onclick="removeVariantRow(0)"><i class="fas fa-times"></i></button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="saveOffer()">
+          <i class="fas fa-save me-1"></i> <span id="nc-save-label">Create NonCombo Product</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const userToken = '{{ user_token }}';
+let variantCount = 1;
+
+// Reset on Add
+document.getElementById('modal-noncombo').addEventListener('show.bs.modal', function(event) {
+  const btn = event.relatedTarget;
+  if (btn && btn.classList.contains('btn-custom-add')) {
+    document.getElementById('modal-nc-title').innerHTML   = '<i class="fas fa-boxes me-2"></i> Add Non-Combo Product';
+    document.getElementById('nc-save-label').textContent  = 'Create NonCombo Product';
+    document.getElementById('nc-edit-id').value           = '';
+    document.getElementById('nc-product-name').value     = '';
+    document.getElementById('nc-sku').value               = '';
+    document.getElementById('nc-base-price').value        = '';
+    document.getElementById('nc-status').value            = '1';
+    document.getElementById('noncombo-alert').className   = 'alert d-none';
+    resetVariantRows();
+  }
+});
+
+function resetVariantRows() {
+  document.getElementById('variant-tbody').innerHTML = `
+    <tr id="variant-row-0">
+      <td><input type="number" class="form-control form-control-sm variant-weight" step="0.01" min="0" placeholder="e.g. 500"></td>
+      <td><select class="form-select form-select-sm variant-unit" style="color: #495057 !important; background-color: #ffffff !important; padding-right: 20px;">
+        <option value="g">g</option><option value="kg">kg</option>
+        <option value="ml">ml</option><option value="L">L</option><option value="pcs">pcs</option>
+      </select></td>
+      <td><input type="number" class="form-control form-control-sm variant-price" step="0.01" min="0" placeholder="e.g. 45"></td>
+      <td class="text-center align-middle">
+        <button type="button" class="btn btn-sm btn-danger py-0 px-2" onclick="removeVariantRow(0)"><i class="fas fa-times"></i></button>
+      </td>
+    </tr>`;
+  variantCount = 1;
+}
+
+document.getElementById('btn-add-variant').addEventListener('click', function(e) {
+  e.preventDefault(); addVariantRow();
+});
+
+function addVariantRow() {
+  const tr = document.createElement('tr');
+  tr.id = 'variant-row-' + variantCount;
+  tr.innerHTML = `
+    <td><input type="number" class="form-control form-control-sm variant-weight" step="0.01" min="0" placeholder="e.g. 500"></td>
+    <td><select class="form-select form-select-sm variant-unit" style="color: #495057 !important; background-color: #ffffff !important; padding-right: 20px;">
+      <option value="g">g</option><option value="kg">kg</option>
+      <option value="ml">ml</option><option value="L">L</option><option value="pcs">pcs</option>
+    </select></td>
+    <td><input type="number" class="form-control form-control-sm variant-price" step="0.01" min="0" placeholder="e.g. 45"></td>
+    <td class="text-center align-middle">
+      <button type="button" class="btn btn-sm btn-danger py-0 px-2" onclick="removeVariantRow(${variantCount})"><i class="fas fa-times"></i></button>
+    </td>`;
+  document.getElementById('variant-tbody').appendChild(tr);
+  variantCount++;
+}
+
+function removeVariantRow(id) {
+  const row = document.getElementById('variant-row-' + id);
+  if (row) row.remove();
+}
+
+function saveOffer() {
+  const alertBox = document.getElementById('noncombo-alert');
+  const variants = [];
+  document.querySelectorAll('#variant-tbody tr').forEach(tr => {
+    const w = parseFloat(tr.querySelector('.variant-weight').value) || 0;
+    const u = tr.querySelector('.variant-unit').value;
+    const p = parseFloat(tr.querySelector('.variant-price').value) || 0;
+    if (w > 0 && p > 0) variants.push({weight: w, weight_unit: u, price: p});
+  });
+
+  const data = new URLSearchParams();
+  data.append('product_name', document.getElementById('nc-product-name').value);
+  data.append('sku',          document.getElementById('nc-sku').value);
+  data.append('base_price',   document.getElementById('nc-base-price').value);
+  data.append('status',       document.getElementById('nc-status').value);
+  data.append('edit_id',      document.getElementById('nc-edit-id').value);
+  variants.forEach((v, i) => {
+    data.append(`variants[${i}][weight]`,      v.weight);
+    data.append(`variants[${i}][weight_unit]`, v.weight_unit);
+    data.append(`variants[${i}][price]`,       v.price);
+  });
+
+  fetch('index.php?route=ecommerce/noncombo.save&user_token=' + userToken, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: data
+  }).then(r => r.json()).then(res => {
+    if (res.success) {
+      alertBox.className   = 'alert alert-success';
+      alertBox.textContent = res.success;
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      alertBox.className   = 'alert alert-danger';
+      alertBox.textContent = res.error;
+    }
+  });
+}
+
+function editOffer(id) {
+  fetch('index.php?route=ecommerce/noncombo.getOffer&user_token=' + userToken + '&id=' + id)
+    .then(r => r.json()).then(res => {
+      if (res.id) {
+        document.getElementById('modal-nc-title').innerHTML  = '<i class="fas fa-boxes me-2"></i> Edit Non-Combo Product';
+        document.getElementById('nc-save-label').textContent = 'Update NonCombo Product';
+        document.getElementById('nc-edit-id').value          = res.id;
+        document.getElementById('nc-product-name').value    = res.product_name || '';
+        document.getElementById('nc-sku').value              = res.sku || '';
+        document.getElementById('nc-base-price').value       = parseFloat(res.base_price || 0).toFixed(2);
+        document.getElementById('nc-status').value           = res.status;
+        document.getElementById('noncombo-alert').className  = 'alert d-none';
+
+        // Rebuild variants
+        const tbody = document.getElementById('variant-tbody');
+        tbody.innerHTML = '';
+        variantCount = 0;
+        if (res.variants && res.variants.length) {
+          res.variants.forEach(v => {
+            const tr = document.createElement('tr');
+            tr.id = 'variant-row-' + variantCount;
+            tr.innerHTML = `
+              <td><input type="number" class="form-control form-control-sm variant-weight" step="0.01" min="0" value="${parseFloat(v.weight)}"></td>
+              <td><select class="form-select form-select-sm variant-unit" style="color: #495057 !important; background-color: #ffffff !important; padding-right: 20px;">
+                <option value="g"   ${v.weight_unit==='g'  ?'selected':''}>g</option>
+                <option value="kg"  ${v.weight_unit==='kg' ?'selected':''}>kg</option>
+                <option value="ml"  ${v.weight_unit==='ml' ?'selected':''}>ml</option>
+                <option value="L"   ${v.weight_unit==='L'  ?'selected':''}>L</option>
+                <option value="pcs" ${v.weight_unit==='pcs'?'selected':''}>pcs</option>
+              </select></td>
+              <td><input type="number" class="form-control form-control-sm variant-price" step="0.01" min="0" value="${parseFloat(v.price)}"></td>
+              <td class="text-center align-middle">
+                <button type="button" class="btn btn-sm btn-danger py-0 px-2" onclick="removeVariantRow(${variantCount})"><i class="fas fa-times"></i></button>
+              </td>`;
+            tbody.appendChild(tr);
+            variantCount++;
+          });
+        } else { addVariantRow(); }
+
+        let mi = bootstrap.Modal.getInstance(document.getElementById('modal-noncombo'));
+        if (!mi) mi = new bootstrap.Modal(document.getElementById('modal-noncombo'));
+        mi.show();
+      }
+    });
+}
+
+function deleteSelectedOffers() {
+  const selected = Array.from(document.querySelectorAll('input[name="selected[]"]:checked')).map(cb => cb.value);
+  if (!selected.length) { alert('Please select at least one item to delete.'); return; }
+  if (!confirm('Delete selected non-combo offer(s)? The generated product will also be deleted.')) return;
+  const params = new URLSearchParams();
+  selected.forEach(id => params.append('selected[]', id));
+  fetch('index.php?route=ecommerce/noncombo.delete&user_token=' + userToken, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: params
+  }).then(r => r.json()).then(res => {
+    if (res.success) location.reload();
+    else alert(res.error);
+  });
+}
+</script>
+{{ footer }}

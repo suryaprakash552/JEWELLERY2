@@ -192,6 +192,18 @@ class Store extends \Opencart\System\Engine\Controller {
 			$data['config_description'] = [];
 		}
 
+		if (isset($setting_info['config_wp_add_pct'])) {
+			$data['config_wp_add_pct'] = $setting_info['config_wp_add_pct'];
+		} else {
+			$data['config_wp_add_pct'] = 25;
+		}
+
+		if (isset($setting_info['config_rp_add_pct'])) {
+			$data['config_rp_add_pct'] = $setting_info['config_rp_add_pct'];
+		} else {
+			$data['config_rp_add_pct'] = 35;
+		}
+
 		$data['themes'] = [];
 
 		// Extension

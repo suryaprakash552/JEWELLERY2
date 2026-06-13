@@ -37,6 +37,13 @@ class ColumnLeft extends \Opencart\System\Engine\Controller {
 					'children' => array()		
 				);	
 			}
+			if ($this->user->hasPermission('access', 'extension/stockregister')) {			
+				$purpletree_pos[] = array(
+					'name'	   => $this->language->get('text_pos_batch_no'),
+					'href'     => $this->url->link('extension/stockregister', 'user_token=' . $this->session->data['user_token'], true),
+					'children' => array()		
+				);	
+			}
 			}
 			if ($purpletree_pos) {
 				$data['menus'][] = array(
@@ -47,6 +54,23 @@ class ColumnLeft extends \Opencart\System\Engine\Controller {
 					'children' => $purpletree_pos
 				);	
 			}
+
+			// E-Commerce menu — appears after POS
+			$ecommerce_children = [];
+			
+			$ecommerce_children[] = [
+				'name'     => 'Products / Offers',
+				'href'     => $this->url->link('ecommerce/combo', 'user_token=' . $this->session->data['user_token'], true),
+				'children' => []
+			];
+			$data['menus'][] = [
+				'id'       => 'menu-ecommerce',
+				'icon'     => 'fas fa-shopping-bag',
+				'name'     => 'E-Commerce',
+				'href'     => '',
+				'children' => $ecommerce_children
+			];
+
 			}
 		}		
 }

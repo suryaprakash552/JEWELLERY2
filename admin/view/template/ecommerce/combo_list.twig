@@ -1,0 +1,646 @@
+{{ header }}{{ column_left }}
+<style>
+/* App-like Toggle Switches */
+.app-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+.app-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.app-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #cbd5e1;
+  transition: .4s;
+  border-radius: 34px;
+}
+.app-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px; width: 22px;
+  left: 3px; bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+input:checked + .app-slider.featured-slider { background-color: #64748b; }
+input:checked + .app-slider.combo-slider { background-color: #f59e0b; }
+input:checked + .app-slider:before { transform: translateX(22px); }
+
+/* Pieces / Units Cards */
+.variant-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+}
+.variant-card.is-default {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+.variant-radio-custom {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  cursor: pointer;
+  background: #fff;
+}
+.variant-card.is-default .variant-radio-custom {
+  border-color: #22c55e;
+  background: #22c55e;
+}
+.variant-card.is-default .variant-radio-custom::after {
+  content: '\f00c';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  color: #fff;
+  font-size: 12px;
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+.weight-badge {
+  background: #22c55e;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+}
+.img-upload-btn {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  border-radius: 6px;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  color: #94a3b8;
+  cursor: pointer;
+}
+.variant-input-group label {
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+.variant-input-group input {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 14px;
+  width: 100%;
+}
+.variant-card.is-default .variant-input-group input {
+  background: #fff;
+}
+</style>
+
+<div id="content">
+  <div class="page-header" style="padding-top: 24px; padding-bottom: 24px; margin-bottom: 0;">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 600; line-height: 28px; color: var(--bs-heading-color) !important; font-family: 'Outfit', 'Inter', sans-serif;">Products / Offers</h2>
+      <ol class="breadcrumb" style="margin: 0; padding: 0; --bs-breadcrumb-divider: '>';">
+        {% for breadcrumb in breadcrumbs %}
+          {% if loop.last %}
+            <li class="breadcrumb-item active" style="color: var(--bs-heading-color) !important;">{{ breadcrumb.text }}</li>
+          {% else %}
+            <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}" style="color: #64748b !important; text-decoration: none;">{{ breadcrumb.text }}</a></li>
+          {% endif %}
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+    {% if success %}
+    <div class="alert alert-success alert-dismissible fade show"><i class="fas fa-check-circle me-2"></i>{{ success }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endif %}
+
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span style="color: var(--bs-heading-color) !important; font-weight: 600; font-family: 'Outfit', 'Inter', sans-serif; font-size: 15px; display: inline-flex; align-items: center;">
+            <i class="fa-solid fa-layer-group" style="margin-right: 8px;"></i>App Products
+          </span>
+          <div class="d-flex gap-2 align-items-center">
+            <button type="button" class="btn btn-primary btn-custom-add" data-bs-toggle="modal" data-bs-target="#modal-product">
+              <i class="fa-solid fa-plus"></i> Add
+            </button>
+            <button type="button" class="btn btn-danger btn-custom-delete" onclick="deleteSelected()">
+              <i class="fa-solid fa-trash-can text-white"></i> Delete
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle text-center mb-0">
+              <thead>
+                <tr>
+                  <th style="width:40px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></th>
+                  <th style="width:70px;">S.No.</th>
+                  <th>Product Name</th>
+                  <th style="width:80px;">Type</th>
+                  <th>Pieces / Units</th>
+                  <th style="width:90px;">Tiers</th>
+                  <th style="width:90px;">Status</th>
+                  <th style="width:120px;">Date Added</th>
+                  <th style="width:80px;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if products %}
+                  {% for p in products %}
+                  <tr>
+                    <td><input type="checkbox" name="selected[]" value="{{ p.id }}" class="form-check-input"/></td>
+                    <td>{{ loop.index }}</td>
+                    <td>
+                      <span class="fw-bold text-primary">{{ p.product_name }}</span>
+                      {% if p.is_featured %}<i class="fas fa-star text-warning ms-1" title="Featured"></i>{% endif %}
+                    </td>
+                    <td>
+                      {% if p.is_combo %}
+                        <span class="badge bg-warning text-dark"><i class="fas fa-cart-plus me-1"></i> Combo</span>
+                      {% else %}
+                        <span class="badge bg-info"><i class="fas fa-box me-1"></i> Non-Combo</span>
+                      {% endif %}
+                    </td>
+                    <td style="font-size:0.87em; line-height:1.8;">{{ p.variants|raw }}</td>
+                    <td><span class="badge bg-secondary">{{ p.variant_count }}</span></td>
+                    <td>
+                      {% if p.status == 1 %}<span class="badge bg-success">Active</span>
+                      {% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
+                    </td>
+                    <td>{{ p.date_added }}</td>
+                    <td>
+                      <button class="btn btn-custom-edit btn-sm" onclick="editProduct({{ p.id }})">
+                        <i class="fa-solid fa-pencil"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr><td colspan="9" class="text-center py-5 text-muted">
+                    <i class="fas fa-box-open fa-2x d-block mb-2"></i>
+                    No app products found. Click <strong>Add</strong> to create one.
+                  </td></tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+          {% if products %}
+          <div class="row align-items-center p-2">
+            <div class="col-sm-6 text-start">{{ results }}</div>
+            <div class="col-sm-6 text-end">{{ pagination }}</div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add / Edit Modal -->
+<div class="modal fade" id="modal-product" tabindex="-1">
+  <div class="modal-dialog" style="max-width: 500px;">
+    <div class="modal-content" style="border-radius: 16px; border: none; overflow: hidden; background: #fff;">
+      
+      <!-- App Header Style -->
+      <div class="modal-header align-items-center" style="background: #0ea5e9; color: #fff; padding: 16px 20px; border-bottom: none;">
+        <div class="d-flex align-items-center gap-3">
+          <i class="fas fa-arrow-left fa-lg" data-bs-dismiss="modal" style="cursor: pointer;"></i>
+          <h5 class="modal-title m-0 fw-semibold" id="modal-title" style="font-size: 18px;">Add Product</h5>
+        </div>
+      </div>
+
+      <div class="modal-body p-4" style="background: #fff; max-height: 75vh; overflow-y: auto;">
+        <div id="alert-box" class="alert d-none"></div>
+        <input type="hidden" id="edit-id">
+
+        <!-- Image Upload -->
+        <div class="mb-4 text-center">
+          <div class="card border-0 shadow-sm position-relative" style="border-radius: 12px; overflow: hidden; display: inline-block;">
+            <img src="{{ placeholder }}" alt="" title="" id="thumb-image" data-placeholder="{{ placeholder }}" class="img-fluid" style="height: 120px; object-fit: cover;" />
+            <div class="position-absolute bottom-0 end-0 p-1">
+              <button type="button" data-oc-toggle="image" data-oc-target="#input-image" data-oc-thumb="#thumb-image" class="btn btn-primary btn-sm rounded-circle shadow">
+                <i class="fa-solid fa-pencil"></i>
+              </button>
+            </div>
+            <input type="hidden" name="image" value="" id="input-image" />
+          </div>
+        </div>
+
+        <!-- Product Name -->
+        <div class="mb-3">
+          <label class="form-label fw-bold text-dark" style="font-size: 14px;">Product Name *</label>
+          <input type="text" id="product-name" class="form-control" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+        </div>
+        
+        <!-- Category & SKU -->
+        <div class="row g-3 mb-3">
+          <div class="col-8">
+            <label class="form-label fw-bold text-dark" style="font-size: 14px;">Category *</label>
+            <div class="d-flex gap-2">
+              <select id="category-id" class="form-control" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <option value="0">--- Select Category ---</option>
+                {% for category in categories %}
+                  <option value="{{ category.category_id }}">{{ category.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="col-4">
+            <label class="form-label fw-bold text-dark" style="font-size: 14px;">SKU</label>
+            <input type="text" id="sku" class="form-control" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+          </div>
+        </div>
+
+        <!-- Cost & Selling Price -->
+        <div class="row g-3 mb-3">
+          <div class="col-6">
+            <label class="form-label fw-bold text-dark mb-1" style="font-size: 14px;">Cost Price</label>
+            <div class="input-group">
+              <span class="input-group-text border-0" style="background: #f8fafc; border-top-left-radius: 8px; border-bottom-left-radius: 8px;">₹</span>
+              <input type="number" step="0.01" id="cost-price" class="form-control border-start-0 ps-0" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0 8px 8px 0;">
+            </div>
+          </div>
+          <div class="col-6">
+            <label class="form-label fw-bold text-danger mb-1" style="font-size: 14px;">Selling Price *</label>
+            <div class="input-group">
+              <span class="input-group-text border-0" style="background: #f8fafc; border-top-left-radius: 8px; border-bottom-left-radius: 8px;">₹</span>
+              <input type="number" step="0.01" id="selling-price" class="form-control border-start-0 ps-0" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0 8px 8px 0;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Global Qty & SPL Price -->
+        <div class="row g-3 mb-4">
+          <div class="col-6">
+            <label class="form-label fw-bold text-danger mb-1" style="font-size: 14px;">Quantity *</label>
+            <input type="number" id="global-qty" class="form-control" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;" placeholder="e.g. 100">
+          </div>
+          <div class="col-6">
+            <label class="form-label fw-bold text-dark mb-1" style="font-size: 14px;">SPL Price</label>
+            <div class="input-group">
+              <span class="input-group-text border-0" style="background: #f8fafc; border-top-left-radius: 8px; border-bottom-left-radius: 8px;">₹</span>
+              <input type="number" step="0.01" id="global-spl-price" class="form-control border-start-0 ps-0" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0 8px 8px 0;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Toggles -->
+        <div class="d-flex justify-content-between align-items-center p-3 mb-3" style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+          <div class="d-flex align-items-center gap-2">
+            <i class="far fa-star text-warning fa-lg"></i>
+            <span class="fw-semibold text-dark">Featured Product</span>
+          </div>
+          <label class="app-switch mb-0">
+            <input type="checkbox" id="is-featured">
+            <span class="app-slider featured-slider"></span>
+          </label>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center p-3 mb-4" style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-cart-plus text-warning fa-lg"></i>
+            <span class="fw-semibold text-dark">Combo Product</span>
+          </div>
+          <label class="app-switch mb-0">
+            <input type="checkbox" id="is-combo" onchange="toggleComboMode()">
+            <span class="app-slider combo-slider"></span>
+          </label>
+        </div>
+
+        <!-- Status -->
+        <div class="mb-4">
+          <label class="form-label fw-bold text-dark" style="font-size: 14px;">Status</label>
+          <select id="status" class="form-control" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <option value="1">Active</option>
+            <option value="0">Inactive</option>
+          </select>
+        </div>
+
+        <!-- Pieces / Units Section -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold m-0 text-dark">Pieces / Units</h6>
+          <button type="button" class="btn text-white fw-semibold" style="background: #f59e0b; border-radius: 8px; padding: 6px 16px;" onclick="addVariantCard()">
+            <i class="fas fa-plus me-1"></i> Add Piece
+          </button>
+        </div>
+
+        <div id="variants-container">
+          <!-- Cards injected here -->
+        </div>
+
+      </div>
+      <div class="modal-footer p-3" style="background: #fff; border-top: 1px solid #f1f5f9;">
+        <button class="btn btn-dark w-100 fw-bold" style="border-radius: 12px; padding: 12px;" onclick="saveProduct()">
+          <i class="fas fa-check me-2"></i> <span id="save-label">Update Product</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const userToken = '{{ user_token }}';
+let variantIdCounter = 0;
+let isComboMode = false;
+
+document.getElementById('modal-product').addEventListener('show.bs.modal', function(event) {
+  const btn = event.relatedTarget;
+  if (btn && btn.classList.contains('btn-custom-add')) {
+    document.getElementById('modal-title').textContent = 'Add Product';
+    document.getElementById('save-label').textContent  = 'Save Product';
+    document.getElementById('edit-id').value           = '';
+    document.getElementById('input-image').value       = '';
+    document.getElementById('thumb-image').querySelector('img').src = '{{ placeholder }}';
+    document.getElementById('product-name').value      = '';
+    document.getElementById('category-id').value       = '0';
+    document.getElementById('sku').value               = '';
+    document.getElementById('cost-price').value        = '';
+    document.getElementById('selling-price').value     = '';
+    document.getElementById('global-qty').value        = '';
+    document.getElementById('global-spl-price').value  = '';
+    document.getElementById('is-featured').checked     = false;
+    document.getElementById('is-combo').checked        = false;
+    document.getElementById('status').value            = '1';
+    document.getElementById('alert-box').className     = 'alert d-none';
+    
+    document.getElementById('variants-container').innerHTML = '';
+    isComboMode = false;
+    addVariantCard(true); // Add one default card
+  }
+});
+
+function toggleComboMode() {
+  isComboMode = document.getElementById('is-combo').checked;
+  // Update all existing cards' qty label
+  document.querySelectorAll('.qty-label').forEach(el => {
+    el.textContent = isComboMode ? 'Min Qty' : 'POS Qty';
+  });
+}
+
+function addVariantCard(isDefault = false) {
+  const id = variantIdCounter++;
+  const card = document.createElement('div');
+  card.className = `variant-card ${isDefault ? 'is-default' : ''}`;
+  card.id = `vcard-${id}`;
+  
+  const qtyLabel = isComboMode ? 'Min Qty' : 'POS Qty';
+  
+  card.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <div class="d-flex align-items-center gap-2" onclick="setDefaultVariant(${id})" style="cursor:pointer;">
+        <div class="variant-radio-custom" id="radio-${id}"></div>
+        <div class="d-flex shadow-sm rounded-3 overflow-hidden" style="border: 1px solid #e2e8f0;">
+          <input type="number" class="v-weight border-0 text-center fw-bold" value="1" style="width: 40px; background:#fff; padding: 4px;" onchange="updateBadge(${id})">
+          <select class="v-unit border-0 bg-success text-white fw-bold" style="padding: 4px 8px; appearance: none; outline: none; cursor:pointer;" onchange="updateBadge(${id})">
+            <option value="KG">KG</option>
+            <option value="G">G</option>
+            <option value="L">L</option>
+            <option value="ML">ML</option>
+            <option value="PCS">PCS</option>
+          </select>
+        </div>
+        <button class="img-upload-btn"><i class="fas fa-camera"></i></button>
+      </div>
+      <button class="btn btn-sm" style="color: #ef4444; background: #fee2e2; border-radius: 6px;" onclick="removeVariantCard(${id})">
+        <i class="fas fa-trash-alt"></i>
+      </button>
+    </div>
+    
+    <div class="row g-2 mt-1">
+      <div class="col-4 variant-input-group">
+        <label class="qty-label">${qtyLabel}</label>
+        <input type="number" class="v-qty" placeholder="0">
+      </div>
+      <div class="col-4 variant-input-group">
+        <label>Price</label>
+        <div class="position-relative">
+          <span class="position-absolute text-muted" style="left:8px; top:6px; font-size:14px;">₹</span>
+          <input type="number" step="0.01" class="v-price ps-4" placeholder="0">
+        </div>
+      </div>
+      <div class="col-4 variant-input-group">
+        <label>Spl price</label>
+        <div class="position-relative">
+          <span class="position-absolute text-muted" style="left:8px; top:6px; font-size:14px;">₹</span>
+          <input type="number" step="0.01" class="v-spl-price ps-4" placeholder="0">
+        </div>
+      </div>
+    </div>
+    <input type="hidden" class="v-is-default" value="${isDefault ? '1' : '0'}">
+  `;
+  document.getElementById('variants-container').appendChild(card);
+}
+
+function updateBadge(id) {
+  // Can be used if we want to visually update anything when weight/unit changes
+}
+
+function setDefaultVariant(id) {
+  document.querySelectorAll('.variant-card').forEach(c => {
+    c.classList.remove('is-default');
+    c.querySelector('.v-is-default').value = '0';
+  });
+  const target = document.getElementById(`vcard-${id}`);
+  if (target) {
+    target.classList.add('is-default');
+    target.querySelector('.v-is-default').value = '1';
+  }
+}
+
+function removeVariantCard(id) {
+  const card = document.getElementById(`vcard-${id}`);
+  if (card) {
+    // If we removed default, make the first remaining one default
+    const wasDefault = card.classList.contains('is-default');
+    card.remove();
+    if (wasDefault) {
+      const first = document.querySelector('.variant-card');
+      if (first) {
+        first.classList.add('is-default');
+        first.querySelector('.v-is-default').value = '1';
+      }
+    }
+  }
+}
+
+function saveProduct() {
+  const alertBox = document.getElementById('alert-box');
+  const variants = [];
+  
+  document.querySelectorAll('.variant-card').forEach(card => {
+    const w = parseFloat(card.querySelector('.v-weight').value) || 0;
+    const p = parseFloat(card.querySelector('.v-price').value) || 0;
+    if (w > 0 && p > 0) {
+      variants.push({
+        weight:      w,
+        weight_unit: card.querySelector('.v-unit').value,
+        variant_qty: parseInt(card.querySelector('.v-qty').value) || 0,
+        price:       p,
+        spl_price:   parseFloat(card.querySelector('.v-spl-price').value) || 0,
+        is_default:  parseInt(card.querySelector('.v-is-default').value) || 0
+      });
+    }
+  });
+
+  const data = new URLSearchParams();
+  data.append('product_name', document.getElementById('product-name').value);
+  data.append('image',        document.getElementById('input-image').value);
+  data.append('category_id',  document.getElementById('category-id').value);
+  data.append('cost_price',   document.getElementById('cost-price').value);
+  data.append('selling_price',document.getElementById('selling-price').value);
+  data.append('sku',          document.getElementById('sku').value);
+  data.append('quantity',     document.getElementById('global-qty').value);
+  data.append('spl_price',    document.getElementById('global-spl-price').value);
+  data.append('is_featured',  document.getElementById('is-featured').checked ? 1 : 0);
+  data.append('is_combo',     document.getElementById('is-combo').checked ? 1 : 0);
+  data.append('status',       document.getElementById('status').value);
+  data.append('edit_id',      document.getElementById('edit-id').value);
+  
+  variants.forEach((v, i) => {
+    data.append(`variants[${i}][weight]`,      v.weight);
+    data.append(`variants[${i}][weight_unit]`, v.weight_unit);
+    data.append(`variants[${i}][variant_qty]`, v.variant_qty);
+    data.append(`variants[${i}][price]`,       v.price);
+    data.append(`variants[${i}][spl_price]`,   v.spl_price);
+    data.append(`variants[${i}][is_default]`,  v.is_default);
+  });
+
+  fetch('index.php?route=ecommerce/combo.save&user_token=' + userToken, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: data
+  }).then(r => r.json()).then(res => {
+    if (res.success) {
+      alertBox.className   = 'alert alert-success';
+      alertBox.textContent = res.success;
+      setTimeout(() => location.reload(), 800);
+    } else {
+      alertBox.className   = 'alert alert-danger';
+      alertBox.textContent = res.error;
+    }
+  });
+}
+
+function editProduct(id) {
+  fetch('index.php?route=ecommerce/combo.getOffer&user_token=' + userToken + '&id=' + id)
+    .then(r => r.json()).then(res => {
+      if (res.id) {
+        document.getElementById('modal-title').textContent = 'Edit Product';
+        document.getElementById('save-label').textContent  = 'Update Product';
+        document.getElementById('edit-id').value          = res.id;
+        document.getElementById('input-image').value      = res.image || '';
+        document.getElementById('thumb-image').querySelector('img').src = res.thumb || '{{ placeholder }}';
+        document.getElementById('product-name').value     = res.product_name || '';
+        document.getElementById('category-id').value      = res.category_id || '0';
+        document.getElementById('sku').value              = res.sku || '';
+        document.getElementById('cost-price').value       = res.cost_price > 0 ? parseFloat(res.cost_price).toFixed(2) : '';
+        document.getElementById('selling-price').value    = res.selling_price > 0 ? parseFloat(res.selling_price).toFixed(2) : '';
+        document.getElementById('global-qty').value       = res.quantity || '';
+        document.getElementById('global-spl-price').value = res.spl_price > 0 ? parseFloat(res.spl_price).toFixed(2) : '';
+        document.getElementById('is-featured').checked    = parseInt(res.is_featured) === 1;
+        document.getElementById('is-combo').checked       = parseInt(res.is_combo) === 1;
+        document.getElementById('status').value           = res.status;
+        document.getElementById('alert-box').className    = 'alert d-none';
+        
+        isComboMode = parseInt(res.is_combo) === 1;
+        
+        const container = document.getElementById('variants-container');
+        container.innerHTML = '';
+        
+        if (res.variants && res.variants.length) {
+          res.variants.forEach((v) => {
+            const isDef = parseInt(v.is_default) === 1;
+            const vid = variantIdCounter++;
+            const qtyLabel = isComboMode ? 'Min Qty' : 'POS Qty';
+            
+            const card = document.createElement('div');
+            card.className = `variant-card ${isDef ? 'is-default' : ''}`;
+            card.id = `vcard-${vid}`;
+            card.innerHTML = `
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex align-items-center gap-2" onclick="setDefaultVariant(${vid})" style="cursor:pointer;">
+                  <div class="variant-radio-custom" id="radio-${vid}"></div>
+                  <div class="d-flex shadow-sm rounded-3 overflow-hidden" style="border: 1px solid #e2e8f0;">
+                    <input type="number" class="v-weight border-0 text-center fw-bold" value="${parseFloat(v.weight)}" style="width: 40px; background:#fff; padding: 4px;">
+                    <select class="v-unit border-0 bg-success text-white fw-bold" style="padding: 4px 8px; appearance: none; outline: none; cursor:pointer;">
+                      <option value="KG"  ${v.weight_unit==='KG'?'selected':''}>KG</option>
+                      <option value="G"   ${v.weight_unit==='G'?'selected':''}>G</option>
+                      <option value="L"   ${v.weight_unit==='L'?'selected':''}>L</option>
+                      <option value="ML"  ${v.weight_unit==='ML'?'selected':''}>ML</option>
+                      <option value="PCS" ${v.weight_unit==='PCS'?'selected':''}>PCS</option>
+                    </select>
+                  </div>
+                  <button class="img-upload-btn"><i class="fas fa-camera"></i></button>
+                </div>
+                <button class="btn btn-sm" style="color: #ef4444; background: #fee2e2; border-radius: 6px;" onclick="removeVariantCard(${vid})">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+              <div class="row g-2 mt-1">
+                <div class="col-4 variant-input-group">
+                  <label class="qty-label">${qtyLabel}</label>
+                  <input type="number" class="v-qty" value="${v.variant_qty}">
+                </div>
+                <div class="col-4 variant-input-group">
+                  <label>Price</label>
+                  <div class="position-relative">
+                    <span class="position-absolute text-muted" style="left:8px; top:6px; font-size:14px;">₹</span>
+                    <input type="number" step="0.01" class="v-price ps-4" value="${parseFloat(v.price).toFixed(2)}">
+                  </div>
+                </div>
+                <div class="col-4 variant-input-group">
+                  <label>Spl price</label>
+                  <div class="position-relative">
+                    <span class="position-absolute text-muted" style="left:8px; top:6px; font-size:14px;">₹</span>
+                    <input type="number" step="0.01" class="v-spl-price ps-4" value="${v.spl_price > 0 ? parseFloat(v.spl_price).toFixed(2) : ''}">
+                  </div>
+                </div>
+              </div>
+              <input type="hidden" class="v-is-default" value="${isDef ? '1' : '0'}">
+            `;
+            container.appendChild(card);
+          });
+        } else {
+          addVariantCard(true);
+        }
+
+        let mi = bootstrap.Modal.getInstance(document.getElementById('modal-product'));
+        if (!mi) mi = new bootstrap.Modal(document.getElementById('modal-product'));
+        mi.show();
+      }
+    });
+}
+
+function deleteSelected() {
+  const selected = Array.from(document.querySelectorAll('input[name="selected[]"]:checked')).map(cb => cb.value);
+  if (!selected.length) { alert('Please select at least one item to delete.'); return; }
+  if (!confirm('Delete selected app products? The generated e-commerce products will also be removed.')) return;
+  const params = new URLSearchParams();
+  selected.forEach(id => params.append('selected[]', id));
+  fetch('index.php?route=ecommerce/combo.delete&user_token=' + userToken, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: params
+  }).then(r => r.json()).then(res => {
+    if (res.success) location.reload();
+    else alert(res.error);
+  });
+}
+</script>
+{{ footer }}

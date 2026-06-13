@@ -23,6 +23,7 @@
     gap: 8px;
     align-items: center;
     margin-bottom: 10px;
+    margin-right: 20px;
 }
 
 .sales-tab-btn {
@@ -71,11 +72,12 @@
 
 /* Filter Bar - No gap with header */
 .filter-bar {
-    background: #1e293b;
+    background: var(--bs-tertiary-bg);
     padding: 15px 20px;
     border-radius: 8px;
     margin-bottom: 20px;
     margin-top: 0;
+    border: 1px solid var(--bs-border-color);
 }
 
 /* Filter Row - Better responsive behavior */
@@ -98,7 +100,7 @@
 
 .filter-label {
     font-size: 11px;
-    color: #cbd5e1;
+    color: #64748b;
     margin-bottom: 4px;
     white-space: nowrap;
     display: block;
@@ -106,8 +108,8 @@
 
 /* Date Input Groups - Fixed sizing */
 .input-group.date {
-    background: #0f172a !important;
-    border: 1px solid #334155 !important;
+    background: var(--bs-body-bg) !important;
+    border: 1px solid var(--bs-border-color) !important;
     border-radius: 8px !important;
     padding: 0 !important;
     height: 36px;
@@ -116,8 +118,8 @@
 }
 
 .input-group.date input {
-    background: #0f172a !important;
-    color: #fff !important;
+    background: transparent !important;
+    color: var(--bs-body-color) !important;
     border: none !important;
     padding: 8px 10px !important;
     height: 36px !important;
@@ -140,8 +142,7 @@
 
 /* Table Styles */
 .excel-dark-table {
-    background: #000;
-    border: 3px solid #fff;
+    border-radius: 8px;
     overflow-x: auto;
     margin-top: 0;
 }
@@ -150,36 +151,21 @@
     width: 100%;
     margin: 0;
     border-collapse: collapse;
-    background: #000;
-    color: #fff;
-    min-width: 1200px;
 }
 
 .excel-dark-table thead th {
-    padding: 15px 20px;
+    padding: 12px 10px;
     font-weight: 600;
-    font-size: 14px;
-    color: #fff;
-    border: 1px solid #4a5568;
-    background: #000;
+    font-size: 13px;
     white-space: nowrap;
-}
-
-.excel-dark-table tbody tr {
-    background: #000;
-}
-
-.excel-dark-table tbody tr:hover {
-    background: #1a1a1a;
+    border: 1px solid var(--bs-border-color);
 }
 
 .excel-dark-table tbody tr td {
-    padding: 18px 20px;
-    font-size: 14px;
-    color: #fff;
-    border: 1px solid #4a5568;
-    background: #000;
+    padding: 12px 10px;
+    font-size: 13px;
     white-space: nowrap;
+    border: 1px solid var(--bs-border-color);
 }
 
 /* Pagination and Results */
@@ -187,38 +173,7 @@
     margin-top: 15px !important;
 }
 
-.pagination {
-    display: flex;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    gap: 4px;
-}
 
-.pagination li {
-    display: inline-block;
-}
-
-.pagination li a,
-.pagination li span {
-    display: block;
-    padding: 6px 12px;
-    background: #1e293b;
-    color: #cbd5e1;
-    border-radius: 4px;
-    text-decoration: none;
-    transition: all 0.2s;
-}
-
-.pagination li a:hover {
-    background: #334155;
-    color: #fff;
-}
-
-.pagination li.active span {
-    background: #3b82f6;
-    color: #fff;
-}
 
 /* Text Alignment */
 .text-center {
@@ -387,14 +342,41 @@
                             </tr>
                         </thead>
                         <tbody id="salesprice-data">
-                            <tr><td colspan="17" class="text-center">Loading...</td></tr>
+                            {% if salesprice_rows %}
+                                {% for row in salesprice_rows %}
+                                <tr>
+                                    <td>{{ row.srno }}</td>
+                                    <td>{{ row.order_id }}</td>
+                                    <td>{{ row.date_added }}</td>
+                                    <td>{{ row.r_price }}</td>
+                                    <td>{{ row.r_tax }}</td>
+                                    <td>{{ row.r_total }}</td>
+                                    <td>{{ row.s_price }}</td>
+                                    <td>{{ row.s_tax }}</td>
+                                    <td>{{ row.s_total }}</td>
+                                    <td>{{ row.profit }}</td>
+                                    <td>{{ row.cash }}</td>
+                                    <td>{{ row.upi }}</td>
+                                    <td>{{ row.advance }}</td>
+                                    <td>{{ row.balance }}</td>
+                                    <td>{{ row.discount }}</td>
+                                    <td>
+                                        <a href="index.php?route=sale/retail.invoice&user_token={{ user_token }}&order_id={{ row.order_id }}" class="btn btn-info btn-xs" target="_blank">
+                                            <i class="fa fa-print"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr><td colspan="17" class="text-center">No results</td></tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
             </div>
             <div class="row mt-3">
-                <div class="col-sm-6 text-left" id="pagination-price"></div>
-                <div class="col-sm-6 text-right" id="results-price"></div>
+                <div class="col-sm-6 text-start" id="results-price"></div>
+                <div class="col-sm-6 text-end" id="pagination-price"></div>
             </div>
         </div>
         <!-- TAB 2: Sales by Order -->
@@ -419,14 +401,33 @@
                             </tr>
                         </thead>
                         <tbody id="salesbyorder-data">
-                            <tr><td colspan="12" class="text-center">Loading...</td></tr>
+                            {% if salesbyorder_rows %}
+                                {% for row in salesbyorder_rows %}
+                                <tr>
+                                    <td>{{ row.srno }}</td>
+                                    <td>{{ row.date }}</td>
+                                    <td>{{ row.no_orders }}</td>
+                                    <td>{{ row.no_products }}</td>
+                                    <td>{{ row.r_price }}</td>
+                                    <td>{{ row.r_tax }}</td>
+                                    <td>{{ row.r_total }}</td>
+                                    <td>{{ row.s_price }}</td>
+                                    <td>{{ row.s_tax }}</td>
+                                    <td>{{ row.s_total }}</td>
+                                    <td>{{ row.profit }}</td>
+                                    <td>{{ row.discount }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr><td colspan="12" class="text-center">No results</td></tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
             </div>
             <div class="row mt-3">
-                <div class="col-sm-6 text-left" id="pagination-order"></div>
-                <div class="col-sm-6 text-right" id="results-order"></div>
+                <div class="col-sm-6 text-start" id="results-order"></div>
+                <div class="col-sm-6 text-end" id="pagination-order"></div>
             </div>
         </div>
 
@@ -451,14 +452,32 @@
                             </tr>
                         </thead>
                         <tbody id="salesbyproduct-data">
-                            <tr><td colspan="11" class="text-center">Loading...</td></tr>
+                            {% if salesbyproduct_rows %}
+                                {% for row in salesbyproduct_rows %}
+                                <tr>
+                                    <td>{{ row.srno }}</td>
+                                    <td>{{ row.date }}</td>
+                                    <td>{{ row.total_products }}</td>
+                                    <td>{{ row.r_price }}</td>
+                                    <td>{{ row.r_tax }}</td>
+                                    <td>{{ row.r_total }}</td>
+                                    <td>{{ row.s_price }}</td>
+                                    <td>{{ row.s_tax }}</td>
+                                    <td>{{ row.s_total }}</td>
+                                    <td>{{ row.profit }}</td>
+                                    <td>{{ row.discount }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr><td colspan="11" class="text-center">No results</td></tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
             </div>
             <div class="row mt-3">
-                <div class="col-sm-6 text-left" id="pagination-product"></div>
-                <div class="col-sm-6 text-right" id="results-product"></div>
+                <div class="col-sm-6 text-start" id="results-product"></div>
+                <div class="col-sm-6 text-end" id="pagination-product"></div>
             </div>
         </div>
 
@@ -518,14 +537,37 @@
                             </tr>
                         </thead>
                         <tbody id="salesbynumber-data">
-                            <tr><td colspan="13" class="text-center">Loading...</td></tr>
+                            {% if salesbynumber_rows %}
+                                {% for row in salesbynumber_rows %}
+                                <tr>
+                                    <td>{{ row.srno }}</td>
+                                    <td>{{ row.date }}</td>
+                                    <td>{{ row.number }}</td>
+                                    <td>{{ row.name }}</td>
+                                    <td>{{ row.no_orders }}</td>
+                                    <td>{{ row.no_products }}</td>
+                                    <td>{{ row.s_total }}</td>
+                                    <td>{{ row.cash }}</td>
+                                    <td>{{ row.upi }}</td>
+                                    <td>{{ row.due }}</td>
+                                    <td>{{ row.advance }}</td>
+                                    <td>
+                                        <a href="index.php?route=sale/retail.invoice&user_token={{ user_token }}&order_id={{ row.order_id }}" class="btn btn-info btn-xs" target="_blank">
+                                            <i class="fa fa-print"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr><td colspan="13" class="text-center">No results</td></tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
             </div>
             <div class="row mt-3">
-                <div class="col-sm-6 text-left" id="pagination-number"></div>
-                <div class="col-sm-6 text-right" id="results-number"></div>
+                <div class="col-sm-6 text-start" id="results-number"></div>
+                <div class="col-sm-6 text-end" id="pagination-number"></div>
             </div>
         </div>
 
@@ -551,14 +593,32 @@
                             </tr>
                         </thead>
                         <tbody id="salesbyseller-data">
-                            <tr><td colspan="11" class="text-center">Loading...</td></tr>
+                            {% if salesbyseller_rows %}
+                                {% for row in salesbyseller_rows %}
+                                <tr>
+                                    <td>{{ row.srno }}</td>
+                                    <td>{{ row.seller_id }}</td>
+                                    <td>{{ row.seller_name }}</td>
+                                    <td>{{ row.last_order_date }}</td>
+                                    <td>{{ row.total_orders }}</td>
+                                    <td>{{ row.total_products }}</td>
+                                    <td>{{ row.sale_total }}</td>
+                                    <td>{{ row.tax_total }}</td>
+                                    <td>{{ row.grand_total }}</td>
+                                    <td>{{ row.discount_total }}</td>
+                                    <td>{{ row.profit }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr><td colspan="11" class="text-center">No results</td></tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
             </div>
             <div class="row mt-3">
-                <div class="col-sm-6 text-left" id="pagination-seller"></div>
-                <div class="col-sm-6 text-right" id="results-seller"></div>
+                <div class="col-sm-6 text-start" id="results-seller"></div>
+                <div class="col-sm-6 text-end" id="pagination-seller"></div>
             </div>
         </div>
 
@@ -621,14 +681,37 @@
                             </tr>
                         </thead>
                         <tbody id="salesbytotal-data">
-                            <tr><td colspan="15" class="text-center">Loading...</td></tr>
+                            {% if salesbytotal_rows %}
+                                {% for row in salesbytotal_rows %}
+                                <tr>
+                                    <td>{{ row.srno }}</td>
+                                    <td>{{ row.date }}</td>
+                                    <td>{{ row.no_orders }}</td>
+                                    <td>{{ row.no_products }}</td>
+                                    <td>{{ row.r_price }}</td>
+                                    <td>{{ row.r_tax }}</td>
+                                    <td>{{ row.r_total }}</td>
+                                    <td>{{ row.s_price }}</td>
+                                    <td>{{ row.s_tax }}</td>
+                                    <td>{{ row.s_total }}</td>
+                                    <td>{{ row.profit }}</td>
+                                    <td>{{ row.discount }}</td>
+                                    <td>{{ row.cash }}</td>
+                                    <td>{{ row.upi }}</td>
+                                    <td>{{ row.due }}</td>
+                                    <td>{{ row.advance }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr><td colspan="15" class="text-center">No results</td></tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
             </div>
             <div class="row mt-3">
-                <div class="col-sm-6 text-left" id="pagination-total"></div>
-                <div class="col-sm-6 text-right" id="results-total"></div>
+                <div class="col-sm-6 text-start" id="results-total"></div>
+                <div class="col-sm-6 text-end" id="pagination-total"></div>
             </div>
         </div>
 
@@ -657,14 +740,36 @@
                             </tr>
                         </thead>
                         <tbody id="salesbycoupon-data">
-                            <tr><td colspan="15" class="text-center">Loading...</td></tr>
+                            {% if salesbycoupon_rows %}
+                                {% for row in salesbycoupon_rows %}
+                                <tr>
+                                    <td>{{ row.srno }}</td>
+                                    <td>{{ row.date }}</td>
+                                    <td>{{ row.number }}</td>
+                                    <td>{{ row.name }}</td>
+                                    <td>{{ row.coupon }}</td>
+                                    <td>{{ row.no_orders }}</td>
+                                    <td>{{ row.no_products }}</td>
+                                    <td>{{ row.r_price }}</td>
+                                    <td>{{ row.r_tax }}</td>
+                                    <td>{{ row.r_total }}</td>
+                                    <td>{{ row.s_price }}</td>
+                                    <td>{{ row.s_tax }}</td>
+                                    <td>{{ row.s_total }}</td>
+                                    <td>{{ row.profit }}</td>
+                                    <td>{{ row.discount }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr><td colspan="15" class="text-center">No results</td></tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
             </div>
             <div class="row mt-3">
-                <div class="col-sm-6 text-left" id="pagination-coupon"></div>
-                <div class="col-sm-6 text-right" id="results-coupon"></div>
+                <div class="col-sm-6 text-start" id="results-coupon"></div>
+                <div class="col-sm-6 text-end" id="pagination-coupon"></div>
             </div>
         </div>
     </div>
@@ -688,17 +793,16 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.sales-tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content-wrapper').forEach(t => t.classList.remove('active'));
-            
+
             this.classList.add('active');
             const tabId = this.getAttribute('data-tab');
             currentTab = tabId;
             document.getElementById('tab-' + tabId).classList.add('active');
-            
-            loadTabData(tabId);
+
+            // Only load via AJAX if data needs to be refreshed (filtering, pagination, etc.)
+            // Initial data is now loaded server-side for all tabs
         });
     });
-
-    loadTabData('salesprice');
 
    const filterBtn = document.getElementById('button-filter-price');
 
@@ -744,7 +848,9 @@ if (downloadBtn) {
         // Trigger download
         window.location.href = url;
     });
- // ✅ FILTER – Sales by Number
+}
+
+// ✅ FILTER – Sales by Number
 document.getElementById('button-filter-number')?.addEventListener('click', function () {
 
     const tbody = document.getElementById('salesbynumber-data');
@@ -770,7 +876,7 @@ document.getElementById('button-clear-number')?.addEventListener('click', functi
     currentPage.salesbynumber = 1;
     loadTabData('salesbynumber');
 });
-}
+
 
 
 
@@ -846,6 +952,9 @@ document.getElementById('button-download-total')?.addEventListener('click', func
             window.location = url;
         });
     }
+
+    // Load initial salesprice tab data on page load to display pagination and results
+    loadTabData('salesprice', 1);
 });
 
 document.getElementById('button-clear-total')?.addEventListener('click', function () {
@@ -1118,23 +1227,43 @@ function renderPagination(tabName, total, page, limit) {
 
     let html = '<ul class="pagination">';
 
+    // First page
     if (page > 1) {
-        html += '<li><a href="#" onclick="loadTabData(\'' + tabName + '\', ' + (page - 1) + '); return false;">«</a></li>';
+        html += '<li class="page-item"><a href="#" onclick="loadTabData(\'' + tabName + '\', 1); return false;" class="page-link">|&lt;</a></li>';
     }
 
-    const startPage = Math.max(1, page - 2);
-    const endPage = Math.min(totalPages, page + 2);
+    // Previous page
+    if (page > 1) {
+        html += '<li class="page-item"><a href="#" onclick="loadTabData(\'' + tabName + '\', ' + (page - 1) + '); return false;" class="page-link">&lt;</a></li>';
+    }
+
+    // Page links range calculations (matching OpenCart's 9 pages view)
+    let startPage = Math.max(1, page - 4);
+    let endPage = Math.min(totalPages, page + 4);
+
+    if (page - startPage < 4) {
+        endPage = Math.min(totalPages, endPage + (4 - (page - startPage)));
+    }
+    if (endPage - page < 4) {
+        startPage = Math.max(1, startPage - (4 - (endPage - page)));
+    }
 
     for (let i = startPage; i <= endPage; i++) {
         if (i === page) {
-            html += '<li class="active"><span>' + i + '</span></li>';
+            html += '<li class="page-item active"><span class="page-link">' + i + '</span></li>';
         } else {
-            html += '<li><a href="#" onclick="loadTabData(\'' + tabName + '\', ' + i + '); return false;">' + i + '</a></li>';
+            html += '<li class="page-item"><a href="#" onclick="loadTabData(\'' + tabName + '\', ' + i + '); return false;" class="page-link">' + i + '</a></li>';
         }
     }
 
+    // Next page
     if (page < totalPages) {
-        html += '<li><a href="#" onclick="loadTabData(\'' + tabName + '\', ' + (page + 1) + '); return false;">»</a></li>';
+        html += '<li class="page-item"><a href="#" onclick="loadTabData(\'' + tabName + '\', ' + (page + 1) + '); return false;" class="page-link">&gt;</a></li>';
+    }
+
+    // Last page
+    if (page < totalPages) {
+        html += '<li class="page-item"><a href="#" onclick="loadTabData(\'' + tabName + '\', ' + totalPages + '); return false;" class="page-link">&gt;|</a></li>';
     }
 
     html += '</ul>';

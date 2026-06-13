@@ -12,6 +12,217 @@ class Retail extends \Opencart\System\Engine\Controller {
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
+        $data['salesprice_rows'] = [];
+
+        $this->load->model('sale/retail');
+
+        $initial_results = $this->model_sale_retail->getOrders([
+            'start' => 0,
+            'limit' => 10
+        ]);
+
+        $sr = 1;
+        foreach ($initial_results as $r) {
+            $s_total = $r['s_price'] ?? 0;
+            $r_total = $r['r_total'] ?? 0;
+            $profit = $s_total - $r_total;
+
+            $data['salesprice_rows'][] = [
+                'srno' => $sr++,
+                'order_id' => $r['order_id'] ?? '',
+                'date_added' => $r['date_added'] ?? '',
+                'r_price' => number_format($r['r_price'] ?? 0, 2),
+                'r_tax' => number_format($r['r_tax'] ?? 0, 2),
+                'r_total' => number_format($r['r_total'] ?? 0, 2),
+                's_price' => number_format($r['s_price'] ?? 0, 2),
+                's_tax' => number_format($r['s_tax'] ?? 0, 2),
+                's_total' => number_format($r['s_price'] ?? 0, 2),
+                'cash' => number_format($r['cash'] ?? 0, 2),
+                'upi' => number_format($r['upi'] ?? 0, 2),
+                'advance' => number_format($r['advance'] ?? 0, 2),
+                'balance' => number_format($r['balance'] ?? 0, 2),
+                'discount' => number_format($r['discount'] ?? 0, 2),
+                'profit' => number_format($profit, 2)
+            ];
+        }
+
+        // Prepare initial data for Sales by Order tab
+        $data['salesbyorder_rows'] = [];
+        $order_results = $this->model_sale_retail->getDailyOrderSummary([
+            'start' => 0,
+            'limit' => 10
+        ]);
+        $sr = 1;
+        foreach ($order_results as $r) {
+            $s_price = $r['s_price'] ?? 0;
+            $s_tax = $r['s_tax'] ?? 0;
+            $r_total = $r['r_total'] ?? 0;
+            $s_total = $s_price;
+            $profit = $s_total - $r_total;
+
+            $data['salesbyorder_rows'][] = [
+                'srno' => $sr++,
+                'date' => $r['order_date'] ?? '',
+                'no_orders' => $r['no_orders'] ?? 0,
+                'no_products' => $r['no_products'] ?? 0,
+                'r_price' => number_format($r['r_price'] ?? 0, 2),
+                'r_tax' => number_format($r['r_tax'] ?? 0, 2),
+                'r_total' => number_format($r_total, 2),
+                's_price' => number_format($s_price, 2),
+                's_tax' => number_format($s_tax, 2),
+                's_total' => number_format($s_total, 2),
+                'discount' => number_format($r['discount'] ?? 0, 2),
+                'profit' => number_format($profit, 2)
+            ];
+        }
+
+        // Prepare initial data for Sales by Product tab
+        $data['salesbyproduct_rows'] = [];
+        $product_results = $this->model_sale_retail->getDailyProductReport([
+            'start' => 0,
+            'limit' => 10
+        ]);
+        $sr = 1;
+        foreach ($product_results as $r) {
+            $s_price = $r['s_price'] ?? 0;
+            $s_tax = $r['s_tax'] ?? 0;
+            $r_total = $r['r_total'] ?? 0;
+            $s_total = $s_price;
+            $profit = $s_total - $r_total;
+
+            $data['salesbyproduct_rows'][] = [
+                'srno' => $sr++,
+                'date' => $r['order_date'] ?? '',
+                'total_products' => $r['total_products'] ?? 0,
+                'r_price' => number_format($r['r_price'] ?? 0, 2),
+                'r_tax' => number_format($r['r_tax'] ?? 0, 2),
+                'r_total' => number_format($r_total, 2),
+                's_price' => number_format($s_price, 2),
+                's_tax' => number_format($s_tax, 2),
+                's_total' => number_format($s_total, 2),
+                'discount' => number_format($r['discount'] ?? 0, 2),
+                'profit' => number_format($profit, 2)
+            ];
+        }
+
+        // Prepare initial data for Sales by Number tab
+        $data['salesbynumber_rows'] = [];
+        $number_results = $this->model_sale_retail->getSalesByNumber([
+            'filter_phone' => '',
+            'start' => 0,
+            'limit' => 10
+        ]);
+        $sr = 1;
+        foreach ($number_results as $r) {
+            $profit = ($r['s_total'] ?? 0) - ($r['r_total'] ?? 0);
+            $data['salesbynumber_rows'][] = [
+                'srno' => $sr++,
+                'date' => $r['order_date'] ?? '',
+                'number' => $r['number'] ?? '',
+                'name' => $r['name'] ?? '',
+                'no_orders' => $r['no_orders'] ?? 0,
+                'no_products' => $r['no_products'] ?? 0,
+                'r_price' => number_format($r['r_price'] ?? 0, 2),
+                'r_tax' => number_format($r['r_tax'] ?? 0, 2),
+                'r_total' => number_format($r['r_total'] ?? 0, 2),
+                's_price' => number_format($r['s_price'] ?? 0, 2),
+                's_tax' => number_format($r['s_tax'] ?? 0, 2),
+                's_total' => number_format($r['s_total'] ?? 0, 2),
+                'cash' => number_format($r['cash'] ?? 0, 2),
+                'upi' => number_format($r['upi'] ?? 0, 2),
+                'due' => number_format($r['due'] ?? 0, 2),
+                'advance' => number_format($r['advance'] ?? 0, 2),
+                'profit' => number_format($profit, 2)
+            ];
+        }
+
+        // Prepare initial data for Sales by Seller tab
+        $data['salesbyseller_rows'] = [];
+        $seller_results = $this->model_sale_retail->getSellerSummary([
+            'start' => 0,
+            'limit' => 10
+        ]);
+        $sr = 1;
+        foreach ($seller_results as $r) {
+            $data['salesbyseller_rows'][] = [
+                'srno' => $sr++,
+                'seller_id' => $r['seller_id'] ?? '',
+                'seller_name' => $r['seller_name'] ?? '',
+                'last_order_date' => $r['last_order_date'] ?? '',
+                'total_orders' => $r['total_orders'] ?? 0,
+                'total_products' => $r['total_products'] ?? 0,
+                'sale_total' => number_format($r['sale_total'] ?? 0, 2),
+                'tax_total' => number_format($r['tax_total'] ?? 0, 2),
+                'grand_total' => number_format($r['grand_total'] ?? 0, 2),
+                'discount_total' => number_format($r['discount_total'] ?? 0, 2),
+                'profit' => number_format($r['profit'] ?? 0, 2)
+            ];
+        }
+
+        // Prepare initial data for Sales by Total Amount tab
+        $data['salesbytotal_rows'] = [];
+        $total_results = $this->model_sale_retail->getReport([
+            'filter_date_added' => '',
+            'filter_date_modified' => '',
+            'start' => 0,
+            'limit' => 10
+        ]);
+        $sr = 1;
+        foreach ($total_results as $r) {
+            $s_price = $r['s_price'] ?? 0;
+            $s_tax = $r['s_tax'] ?? 0;
+            $r_total = $r['r_total'] ?? 0;
+            $s_total = $s_price;
+            $profit = $s_total - $r_total;
+
+            $data['salesbytotal_rows'][] = [
+                'srno' => $sr++,
+                'date' => $r['order_date'] ?? '',
+                'no_orders' => $r['no_orders'] ?? 0,
+                'no_products' => $r['no_products'] ?? 0,
+                'r_price' => number_format($r['r_price'] ?? 0, 2),
+                'r_tax' => number_format($r['r_tax'] ?? 0, 2),
+                'r_total' => number_format($r_total, 2),
+                's_price' => number_format($s_price, 2),
+                's_tax' => number_format($s_tax, 2),
+                's_total' => number_format($s_total, 2),
+                'discount' => number_format($r['discount'] ?? 0, 2),
+                'profit' => number_format($profit, 2)
+            ];
+        }
+
+        // Prepare initial data for Sales by Coupon tab
+        $data['salesbycoupon_rows'] = [];
+        $coupon_results = $this->model_sale_retail->getCouponSummary([
+            'start' => 0,
+            'limit' => 10
+        ]);
+        $sr = 1;
+        foreach ($coupon_results as $r) {
+            $s_price = $r['s_price'] ?? 0;
+            $s_tax = $r['s_tax'] ?? 0;
+            $r_total = $r['r_total'] ?? 0;
+            $s_total = $s_price;
+            $profit = $s_total - $r_total;
+
+            $data['salesbycoupon_rows'][] = [
+                'srno' => $sr++,
+                'date' => $r['order_date'] ?? '',
+                'number' => $r['number'] ?? '',
+                'name' => $r['name'] ?? '',
+                'coupon' => $r['coupon_code'] ?? '',
+                'no_orders' => $r['no_orders'] ?? 0,
+                'no_products' => $r['no_products'] ?? 0,
+                'r_price' => number_format($r['r_price'] ?? 0, 2),
+                'r_tax' => number_format($r['r_tax'] ?? 0, 2),
+                'r_total' => number_format($r_total, 2),
+                's_price' => number_format($s_price, 2),
+                's_tax' => number_format($s_tax, 2),
+                's_total' => number_format($s_total, 2),
+                'discount' => number_format($r['discount'] ?? 0, 2),
+                'profit' => number_format($profit, 2)
+            ];
+        }
 
         $this->response->setOutput($this->load->view('sale/retail', $data));
     }
@@ -195,7 +406,7 @@ $profit = $s_total - $r_total;
         $this->load->model('sale/retail');
 
         $page  = isset($this->request->get['page']) ? (int)$this->request->get['page'] : 1;
-        $limit = 20; // ✅ Always 20 per page
+        $limit = 10; // 10 rows per page
 
         $filter_phone = $this->request->get['filter_phone'] ?? '';
 

@@ -47,7 +47,19 @@ $data['module_purpletree_pos_status'] = $this->config->get('module_purpletree_po
 				} else {
 					$data['pos'] = '';
 				}
-				if (isset($this->request->post['pos_quentity'])) {
+				// Force pos_quentity to sync with standard quantity
+				if (isset($this->request->post['quantity'])) {
+					$base_qty = (int)$this->request->post['quantity'];
+					$barcode_type = isset($this->request->post['barcode_type']) ? $this->request->post['barcode_type'] : 'unit';
+					$max_qty = isset($this->request->post['max_quantity']) ? (int)$this->request->post['max_quantity'] : 1;
+					if ($max_qty <= 0) $max_qty = 1;
+					
+					if ($barcode_type === 'box') {
+						$data['pos_quentity'] = $base_qty * $max_qty;
+					} else {
+						$data['pos_quentity'] = $base_qty;
+					}
+				} elseif (isset($this->request->post['pos_quentity'])) {
 					$data['pos_quentity'] = $this->request->post['pos_quentity'];
 				} elseif (!empty($data)) {
 					$data['pos_quentity'] = $data['pos_quentity'];
@@ -76,7 +88,19 @@ $data['module_purpletree_pos_status'] = $this->config->get('module_purpletree_po
 				} else {
 					$data['pos'] = '';
 				}
-				if (isset($this->request->post['pos_quentity'])) {
+				// Force pos_quentity to sync with standard quantity
+				if (isset($this->request->post['quantity'])) {
+					$base_qty = (int)$this->request->post['quantity'];
+					$barcode_type = isset($this->request->post['barcode_type']) ? $this->request->post['barcode_type'] : 'unit';
+					$max_qty = isset($this->request->post['max_quantity']) ? (int)$this->request->post['max_quantity'] : 1;
+					if ($max_qty <= 0) $max_qty = 1;
+					
+					if ($barcode_type === 'box') {
+						$data['pos_quentity'] = $base_qty * $max_qty;
+					} else {
+						$data['pos_quentity'] = $base_qty;
+					}
+				} elseif (isset($this->request->post['pos_quentity'])) {
 					$data['pos_quentity'] = $this->request->post['pos_quentity'];
 				} elseif (!empty($product_data)) {
 					$data['pos_quentity'] = $product_data['pos_quentity'];

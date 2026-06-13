@@ -1,0 +1,70 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="float-end"><a href="{{ add }}" class="btn btn-primary btn-custom-add"><i class="fa-solid fa-plus"></i> Add</a>
+        <button type="button" data-bs-toggle="tooltip" title="{{ button_delete }}" class="btn btn-danger btn-custom-delete" onclick="if ($('input[name*=\'selected\']:checked').length == 0) { alert('Please select at least one item to delete.'); return false; } if (confirm('{{ text_confirm }}')) { $('#form-delivery-boy').submit(); }"><i class="fa-solid fa-trash-can text-white"></i> Delete</button>
+      </div>
+      <h1>{{ heading_title }}</h1>
+      <ol class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+          <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  <div class="container-fluid">
+    {% if error_warning %}
+      <div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> {{ error_warning }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endif %}
+    {% if success %}
+      <div class="alert alert-success alert-dismissible"><i class="fa-solid fa-check-circle"></i> {{ success }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endif %}
+    <div class="card">
+      <div class="card-header"><i class="fa-solid fa-list"></i> {{ text_list }}</div>
+      <div class="card-body">
+        <form action="{{ delete }}" method="post" enctype="multipart/form-data" id="form-delivery-boy">
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+              <thead>
+                <tr>
+                  <td class="text-center" style="width: 1px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></td>
+                  <td class="text-center"><a href="{{ sort_name }}"{% if sort == 'name' %} class="{{ order|lower }}"{% endif %}>{{ column_name }}</a></td>
+                  <td class="text-center"><a href="{{ sort_telephone }}"{% if sort == 'telephone' %} class="{{ order|lower }}"{% endif %}>{{ column_telephone }}</a></td>
+                  <td class="text-center"><a href="{{ sort_status }}"{% if sort == 'status' %} class="{{ order|lower }}"{% endif %}>{{ column_status }}</a></td>
+                  <td class="text-center">{{ column_action }}</td>
+                </tr>
+              </thead>
+              <tbody>
+                {% if delivery_boys %}
+                  {% for delivery_boy in delivery_boys %}
+                    <tr>
+                      <td class="text-center"><input type="checkbox" name="selected[]" value="{{ delivery_boy.delivery_boy_id }}" class="form-check-input"/></td>
+                      <td class="text-center">{{ delivery_boy.name }}</td>
+                      <td class="text-center">{{ delivery_boy.telephone }}</td>
+                      <td class="text-center">{{ delivery_boy.status }}</td>
+                      <td class="text-center"><a href="{{ delivery_boy.edit }}" data-bs-toggle="tooltip" title="{{ button_edit }}" class="btn btn-custom-edit"><i class="fa-solid fa-pencil"></i>Edit</a></td>
+                    </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td class="text-center" colspan="5">{{ text_no_results }}</td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </form>
+        <div class="row">
+          <div class="col-sm-6 text-start">{{ results }}</div>
+          <div class="col-sm-6 text-end">{{ pagination }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{ footer }}

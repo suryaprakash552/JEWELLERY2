@@ -5,7 +5,7 @@
    * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
    */
 :root, [data-bs-theme="light"] {
-  --bs-blue: #1e91cf;
+  --bs-blue: #465fff;
   --bs-indigo: #6610f2;
   --bs-purple: #6f42c1;
   --bs-pink: #d63384;
@@ -28,7 +28,7 @@
   --bs-gray-700: #495057;
   --bs-gray-800: #343a40;
   --bs-gray-900: #212529;
-  --bs-primary: #1e91cf;
+  --bs-primary: #465fff;
   --bs-secondary: #6c757d;
   --bs-success: #4cb64c;
   --bs-info: #54b7d3;
@@ -36,7 +36,7 @@
   --bs-danger: #e3503e;
   --bs-light: #fff;
   --bs-dark: #212529;
-  --bs-primary-rgb: 30, 145, 207;
+  --bs-primary-rgb: 70, 95, 255;
   --bs-secondary-rgb: 108, 117, 125;
   --bs-success-rgb: 76, 182, 76;
   --bs-info-rgb: 84, 183, 211;
@@ -3826,7 +3826,7 @@ textarea.form-control-lg {
 .card-body {
   flex: 1 1 auto;
   padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x);
-  color: white;
+  color: var(--bs-card-color);
 }
 .card-title {
   margin-bottom: var(--bs-card-title-spacer-y);
@@ -3846,7 +3846,7 @@ textarea.form-control-lg {
 .card-header {
   padding: var(--bs-card-cap-padding-y) var(--bs-card-cap-padding-x);
   margin-bottom: 0;
-  color: white;
+  color: var(--bs-card-cap-color);
   background-color: var(--bs-card-cap-bg);
   border-bottom: var(--bs-card-border-width) solid var(--bs-card-border-color);
 }
@@ -4084,7 +4084,7 @@ textarea.form-control-lg {
 }
 /* OpenCart Start */
 .breadcrumb-item a {
-  color: white;
+  color: var(--bs-primary);
 }
 .breadcrumb-item:last-child a {
   color: #1e91cf;
@@ -4420,9 +4420,9 @@ textarea.form-control-lg {
   position: relative;
   display: block;
   padding: var(--bs-list-group-item-padding-y) var(--bs-list-group-item-padding-x);
-  color:#ffffff;
+  color: var(--bs-list-group-color);
   text-decoration: none;
-  background-color:#000000;
+  background-color: var(--bs-list-group-bg);
   border: var(--bs-list-group-border-width) solid var(--bs-list-group-border-color);
 }
 .list-group-item:first-child {
@@ -7566,7 +7566,7 @@ textarea.form-control-lg {
 }
 .bg-primary {
   --bs-bg-opacity: 1;
-  background-color:#000; 
+  background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)) !important;
 }
 .bg-secondary {
   --bs-bg-opacity: 1;
@@ -7574,7 +7574,7 @@ textarea.form-control-lg {
 }
 .bg-success {
   --bs-bg-opacity: 1;
-  background-color:#000000 
+  background-color: rgba(var(--bs-success-rgb), var(--bs-bg-opacity)) !important;
 }
 .bg-info {
   --bs-bg-opacity: 1;
@@ -7582,15 +7582,15 @@ textarea.form-control-lg {
 }
 .bg-warning {
   --bs-bg-opacity: 1;
-  background-color:#000000 
+  background-color: rgba(var(--bs-warning-rgb), var(--bs-bg-opacity)) !important;
 }
 .bg-danger {
   --bs-bg-opacity: 1;
-  background-color:#000000
+  background-color: rgba(var(--bs-danger-rgb), var(--bs-bg-opacity)) !important;
 }
 .bg-light {
   --bs-bg-opacity: 1;
-  background-color:rgb(0 0 0) !important;
+  background-color: rgba(var(--bs-light-rgb), var(--bs-bg-opacity)) !important;
 }
 .bg-dark {
   --bs-bg-opacity: 1;

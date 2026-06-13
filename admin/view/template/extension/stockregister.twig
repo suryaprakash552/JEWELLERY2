@@ -1,517 +1,1064 @@
 {{ header }}{{ column_left }}
 <div id="content">
-  <div class="page-header">
-    <div class="d-flex justify-content-between align-items-center">
-      <div style="margin-left: 37px;">
-        <h1> Stock Register</h1>
-         <ol class="breadcrumb">
-            {% for breadcrumb in breadcrumbs %}
-            <li class="breadcrumb-item">
-              <a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a>
-            </li>
-            {% endfor %}
-          </ol>
-      </div>
-      {#<div>#}
-      {#  <button type="button" class="btn btn-success" onclick="exportData()" style="background: #10b981; border: none; padding: 10px 20px; border-radius: 6px;">#}
-      {#    <i class="fa fa-download"></i> Export CSV#}
-      {#  </button>#}
-      {#</div>#}
-    </div>
-  </div>
+	<div class="page-header" style="padding-top: 24px; padding-bottom: 24px; margin-bottom: 0;">
+		<div class="container-fluid d-flex justify-content-between align-items-center">
+			<h2 style="margin: 0; font-size: 20px; font-weight: 600; line-height: 28px; color: var(--bs-heading-color) !important; font-family: 'Outfit', 'Inter', sans-serif;">POS Batch No</h2>
+			<ul class="breadcrumb" style="margin: 0; padding: 0; --bs-breadcrumb-divider: '>';">
+				{% for breadcrumb in breadcrumbs %}
+				  {% if loop.last %}
+				    <li class="breadcrumb-item active" style="color: var(--bs-heading-color) !important;">{{ breadcrumb.text }}</li>
+				  {% else %}
+				    <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}" style="color: #64748b !important; text-decoration: none;">{{ breadcrumb.text }}</a></li>
+				  {% endif %}
+				{% endfor %}
+			</ul>
+		</div>
+	</div>
 
-  <div class="container-fluid" style="padding: 3px 30px;">
-    {% if success %}
-      <div class="alert alert-success alert-dismissible" style="background: #10b981; color: #fff; border: none; border-radius: 6px;">
-        <i class="fa fa-check-circle"></i> {{ success }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
-    {% endif %}
-    
-    {% if error %}
-      <div class="alert alert-danger alert-dismissible" style="background: #ef4444; color: #fff; border: none; border-radius: 6px;">
-        <i class="fa fa-exclamation-circle"></i> {{ error }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
-    {% endif %}
-<style>
-input::placeholder {
-  color: #fff !important;
-  opacity: 1; /* for Firefox */
-}
-</style>
-    {# Filters Section #}
-        <div class="filter-bar" style=" padding: 15px 20px; border-radius: 8px; margin-bottom: 20px;">
-              <div class="row g-2 align-items-center">
-                <div class="col-md-2 col-sm-6">
-                  <input type="text" id="filter_po_number" value="{{ filter_po_number }}" placeholder="PO Number"
-                         class="form-control"
-                         style="background: #0f172a; border: 1px solid #334155; color: #fff!important; padding: 8px 10px;" >
-                </div>
-                <div class="col-md-2 col-sm-6">
-                  <input type="text" id="filter_supplier" value="{{ filter_supplier }}" placeholder="Supplier"
-                         class="form-control"
-                         style="background: #0f172a; border: 1px solid #334155; color: #fff!important; padding: 8px 10px;">
-                </div>
-                <div class="col-md-2 col-sm-6">
-                  <input type="text" id="filter_product" value="{{ filter_product }}" placeholder="Product"
-                         class="form-control"
-                         style="background: #0f172a; border: 1px solid #334155; color: #fff!important; padding: 8px 10px;">
-                </div>
-                <div class="col-md-2 col-sm-6">
-                  <input type="date" id="filter_date_from" value="{{ filter_date_from }}" placeholder="From Date"
-                         class="form-control"
-                         style="background: #0f172a; border: 1px solid #334155; color: #fff; padding: 8px 10px;">
-                </div>
-                <div class="col-md-2 col-sm-6">
-                  <input type="date" id="filter_date_to" value="{{ filter_date_to }}" placeholder="To Date"
-                         class="form-control"
-                         style="background: #0f172a; border: 1px solid #334155; color: #fff; padding: 8px 10px;">
-                </div>
-                <div class="col-md-2 col-sm-12 d-flex gap-2">
-                  <button type="button" id="button-filter" class="btn btn-primary flex-fill"
-                          style="background: #3b82f6; border: none; padding: 8px 10px; white-space: nowrap;">
-                    <i class="fa fa-search"></i> Search
-                  </button>
-                  <button type="button" id="button-clear" class="btn btn-danger flex-fill"
-                          style="background: #ef4444; border: none; padding: 8px 10px; white-space: nowrap;">
-                    <i class="fa fa-eraser"></i> Clear
-                  </button>
-                  <button type="button" class="btn btn-success flex-fill" onclick="exportData()"
-                          style="background: #10b981; border: none; padding: 8px 10px; white-space: nowrap;">
-                    <i class="fa fa-download"></i> Export
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-        {# Main Table #}
-                <div class="table-container" style="background: #000000; overflow: hidden; padding: 20px;">
-      <div class="table-responsive">
-        <table class="table table-dark table-hover m-0" style="color: #fff; border-collapse: separate; border-spacing: 0;">
-          <thead style="background: #000000;">
-            <tr>
-              <th style="padding: 15px; font-weight: 600; border: 1px solid #ffffff;">PO Number</th>
-              <th style="padding: 15px; font-weight: 600; border: 1px solid #ffffff;">Supplier</th>
-              <th style="padding: 15px; font-weight: 600; border: 1px solid #ffffff;">Product</th>
-              <th style="padding: 15px; font-weight: 600; border: 1px solid #ffffff;">Received Date</th>
-              <th style="padding: 15px; font-weight: 600; border: 1px solid #ffffff;">Received Qty</th>
-              <th style="padding: 15px; font-weight: 600; border: 1px solid #ffffff;">Used Qty</th>
-              <th style="padding: 15px; font-weight: 600; border: 1px solid #ffffff;">Balance Qty</th>
-              <th style="padding: 15px; font-weight: 600; border: 1px solid #ffffff;">Updated</th>
-              <th style="padding: 15px; font-weight: 600; border: 1px solid #ffffff; text-align: center;">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% if purchase_orders %}
-              {% for po in purchase_orders %}
-                <tr style="background: #000000;">
-                  <td style="padding: 15px; border: 1px solid #ffffff;">
-                    <div style="font-weight: 600;">{{ po.po_number }}</div>
-                    <small style="color: #94a3b8; font-weight: 600;">{{ po.purchase_order_product_id }}</small>
+	<div class="container-fluid">
+		{% if success %}
+		<div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> {{ success }}
+			<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+		</div>
+		{% endif %}
+		{% if error %}
+		<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error }}
+			<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+		</div>
+		{% endif %}
+
+		<div class="card">
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<span style="color: var(--bs-heading-color) !important; font-weight: 600; font-family: 'Outfit', 'Inter', sans-serif; font-size: 15px; display: inline-flex; align-items: center;"><i class="fa-solid fa-list" style="margin-right: 8px;"></i> Batch Display</span>
+				<div class="d-flex gap-2 align-items-center">
+					<button type="button" onclick="location.href='{{ export }}'" data-toggle="tooltip" title="Export" class="btn btn-custom-export">Export <i class="fa-solid fa-download"></i></button>
+					<button type="button" data-bs-toggle="modal" data-bs-target="#modal-create-batch" data-toggle="tooltip" title="Add" class="btn btn-primary btn-custom-add"><i class="fa-solid fa-plus"></i> Add Batch</button>
+					<button type="button" data-toggle="tooltip" title="Delete" class="btn btn-danger btn-custom-delete" onclick="if ($('input[name*=\'selected\']:checked').length == 0) { alert('Please select at least one item to delete.'); return false; } if (confirm('Are you sure?')) { $('#form-batch').submit(); }"><i class="fa-solid fa-trash-can text-white"></i> Delete</button>
+				</div>
+			</div>
+      <div class="card-body panel-body">
+        <form action="{{ delete }}" method="post" enctype="multipart/form-data" id="form-batch">
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+              <thead>
+                <tr>
+                  <td style="width: 1px; text-align: center;">
+                    <input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', this.checked);" />
                   </td>
-                  <td style="padding: 15px; border: 1px solid #ffffff;">
-                    <div style="font-weight: 600;">{{ po.supplier_name }}</div>
+                  <td class="text-center font-bold">SRNO</td>
+                  <td class="text-center font-bold">
+                    {% if sort == 'batch_no' %}
+                    <a href="{{ sort_batch_no }}" class="{{ order|lower }}">Batch No</a>
+                    {% else %}
+                    <a href="{{ sort_batch_no }}">Batch No</a>
+                    {% endif %}
                   </td>
-                  <td style="padding: 15px; border: 1px solid #ffffff;">
-                    <div style="font-weight: 600;">{{ po.product_name }}</div>
-                    <small style="color: #94a3b8;">{{ po.product_model }}</small>
+                  <td class="text-center font-bold">
+                    {% if sort == 'received_products' %}
+                    <a href="{{ sort_received_products }}" class="{{ order|lower }}">Received Products</a>
+                    {% else %}
+                    <a href="{{ sort_received_products }}">Received Products</a>
+                    {% endif %}
                   </td>
-                  <td style="padding: 15px; border: 1px solid #ffffff;">
-                    <small style="color: #94a3b8;">{{ po.received_date }}</small>
+                  <td class="text-center font-bold">
+                    {% if sort == 'created_products' %}
+                    <a href="{{ sort_created_products }}" class="{{ order|lower }}">Created Products</a>
+                    {% else %}
+                    <a href="{{ sort_created_products }}">Created Products</a>
+                    {% endif %}
                   </td>
-                  <td style="padding: 15px; border: 1px solid #ffffff;">
-                    <div style="font-weight: 600;">{{ po.received_qty }}</div>
-                    <small style="font-weight: 600; color: #10b981;">₹{{ po.received_total_price }}</small>
+                  <td class="text-center font-bold">
+                    {% if sort == 'received_q' %}
+                    <a href="{{ sort_received_q }}" class="{{ order|lower }}">Received Quantity</a>
+                    {% else %}
+                    <a href="{{ sort_received_q }}">Received Quantity</a>
+                    {% endif %}
                   </td>
-                  <td style="padding: 15px; border: 1px solid #ffffff;">
-                    <div style="font-weight: 600;">{{ po.used_qty }}</div>
-                    <small style="font-weight: 600; color: #ef4444;">₹{{ po.used_qty_price }}</small>
+                  <td class="text-center font-bold">
+                    {% if sort == 'available_q' %}
+                    <a href="{{ sort_available_q }}" class="{{ order|lower }}">Available Quantity</a>
+                    {% else %}
+                    <a href="{{ sort_available_q }}">Available Quantity</a>
+                    {% endif %}
                   </td>
-                  <td style="padding: 15px; border: 1px solid #ffffff;">
-                    <div style="font-weight: 700; font-size: 16px; color: {% if po.balance_qty == '0.00' %}#6b7280{% elseif po.balance_qty < 10 %}#f59e0b{% else %}#10b981{% endif %};">
-                      {{ po.balance_qty }}
-                    </div>
-                    <small style="font-weight: 700; color: #3b82f6;">₹{{ po.balance_qty_price }}</small>
+                  <td class="text-center font-bold">
+                    {% if sort == 'sold_q' %}
+                    <a href="{{ sort_sold_q }}" class="{{ order|lower }}">Sold Quantity</a>
+                    {% else %}
+                    <a href="{{ sort_sold_q }}">Sold Quantity</a>
+                    {% endif %}
                   </td>
-                  <td style="padding: 15px; border: 1px solid #ffffff;">
-                    <small style="color: #94a3b8;">{{ po.updated_time }}</small>
+                  <td class="text-center font-bold">
+                    {% if sort == 'created_date' %}
+                    <a href="{{ sort_created_date }}" class="{{ order|lower }}">Creation Date</a>
+                    {% else %}
+                    <a href="{{ sort_created_date }}">Creation Date</a>
+                    {% endif %}
                   </td>
-                  <td style="padding: 15px; border: 1px solid #ffffff; text-align: center;">
-                    <div class="btn-group" style="gap: 5px; display: inline-flex;">
-                      <button type="button" class="btn btn-sm" onclick="viewBatchHistory({{ po.batchid }})" style="background: #3b82f6; border: none; padding: 8px 12px; border-radius: 5px; color: #fff;" data-bs-toggle="tooltip" title="View History">
-                        <i class="fa fa-eye"></i>
-                      </button>
-                      {% if po.can_edit %}
-                        <a href="{{ po.edit }}" class="btn btn-sm" style="background: #10b981; border: none; padding: 8px 12px; border-radius: 5px; color: #fff; text-decoration: none;" data-bs-toggle="tooltip" title="Use Stock">
-                          <i class="fa fa-edit"></i>
-                        </a>
-                      {% else %}
-                        <span class="btn btn-sm" style="background: #6b7280; border: none; padding: 8px 12px; border-radius: 5px; color: #fff; cursor: not-allowed;" data-bs-toggle="tooltip" title="Stock Completed">
-                          <i class="fa fa-ban"></i>
-                        </span>
-                      {% endif %}
-                    </div>
+                  <td class="text-center font-bold">Action</td>
+                </tr>
+              </thead>
+              <tbody>
+                {% if pos_batches %}
+                {% set srno = 1 %}
+                {% for batch in pos_batches %}
+                <tr {% if batch.batch_no == selected_batch %}class="active-batch"{% endif %}>
+                  <td class="text-center">
+                    <input type="checkbox" name="selected[]" value="{{ batch.id }}" />
+                  </td>
+                  <td class="text-center">{{ srno }}</td>
+                  <td class="text-center">
+                    <a href="{{ batch.select_link }}" class="batch-link" style="color: #3b82f6; font-weight: bold; text-decoration: none;">{{ batch.batch_no }}</a>
+                  </td>
+                  <td class="text-center">{{ batch.received_products }}</td>
+                  <td class="text-center">{{ batch.created_products }}</td>
+                  <td class="text-center">{{ batch.received_q }}</td>
+                  <td class="text-center">{{ batch.available_q }}</td>
+                  <td class="text-center">{{ batch.sold_q }}</td>
+                  <td class="text-center">{{ batch.creation_date }}</td>
+                  <td class="text-center">
+                    <button type="button" onclick="editBatch('{{ batch.id }}', '{{ batch.batch_no }}', '{{ batch.received_q }}', '{{ batch.received_products }}', '{{ batch.creation_date_raw }}')" data-toggle="tooltip" title="Edit Batch" class="btn btn-primary btn-sm" style="background: #465fff; border: 1px solid #465fff; color: #fff; padding: 6px 12px; border-radius: 4px; font-weight: 600;">
+                      <i class="fa-solid fa-pencil" style="margin-right: 4px;"></i>Edit
+                    </button>
                   </td>
                 </tr>
-              {% endfor %}
-            {% else %}
-              <tr>
-                <td colspan="9" style="padding: 40px; text-align: center; color: #64748b; border: 1px solid #ffffff;">
-                  <i class="fa fa-inbox fa-3x" style="margin-bottom: 15px;"></i>
-                  <p>No stock records found</p>
-                </td>
-              </tr>
-            {% endif %}
-          </tbody>
-        </table>
+                {% set srno = srno + 1 %}
+                {% endfor %}
+                {% else %}
+                <tr>
+                  <td class="text-center" colspan="10">No results!</td>
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </form>
+        
+        <div class="row" style="margin-top: 15px; padding: 0 15px;">
+          <div class="col-sm-6 text-start">{{ results }}</div>
+          <div class="col-sm-6 text-end">{{ pagination }}</div>
+        </div>
       </div>
     </div>
-      
-      {# Pagination #}
-      <div style="background: #0f172a; padding: 15px 20px; border-top: 1px solid #334155;">
-        <div class="row align-items-center">
-          <div class="col-sm-6">
-            <div style="color: #94a3b8;">{{ results }}</div>
+    
+    <div id="product-create-container">
+    {% if selected_batch is not empty %}
+    <div style="margin-top: 30px;">
+        <div class="card panel panel-default" style="margin-top: 20px;">
+  <div class="card-header panel-heading d-flex justify-content-between align-items-center" style="background: #fff;">
+    <h3 class="card-title panel-title m-0" style="font-size: 16px; font-weight: 600;"><i class="fa fa-barcode"></i> Product Create Page - Batch: {{ selected_batch }}</h3>
+    <div style="font-size: 12px; font-weight: 600; color: #64748b; display: inline-flex; align-items: center; gap: 8px;">
+      SETTINGS: WP-Add % <input type="text" id="setting-wp-add" value="{{ wp_add_pct ? wp_add_pct : 20 }}" readonly style="width: 40px; text-align: center; border: 1px solid #e2e8f0; border-radius: 4px; padding: 2px; background: #f8fafc; cursor: not-allowed; color: #64748b;"> 
+      RP-Add % <input type="text" id="setting-rp-add" value="{{ rp_add_pct ? rp_add_pct : 20 }}" readonly style="width: 40px; text-align: center; border: 1px solid #e2e8f0; border-radius: 4px; padding: 2px; margin-right: 10px; background: #f8fafc; cursor: not-allowed; color: #64748b;">
+      <button type="button" data-toggle="tooltip" title="Delete" class="btn btn-danger btn-custom-delete" onclick="deleteSelectedProducts()"><i class="fa-solid fa-trash-can text-white"></i> Delete</button>
+    </div>
+  </div>
+  
+    <form action="{{ action }}" method="post" id="form-product" onsubmit="return false;"></form>
+    <table class="table table-bordered table-hover" style="margin-bottom: 0; background: #fff;">
+      <thead style="background: #f8f9fa;">
+        <tr>
+          <td style="width: 1px; text-align: center;"><input type="checkbox" onclick="$('input[name*=\'selected_products\']').prop('checked', this.checked);" /></td>
+          <td class="text-center font-bold">SRNO</td>
+          <td class="text-center font-bold">Batch No</td>
+          <td class="text-center font-bold">Box ID / Product Name</td>
+          <td class="text-center font-bold">Image</td>
+          <td class="text-center font-bold">Type / Received Price</td>
+          <td class="text-center font-bold">WP / SWP</td>
+          <td class="text-center font-bold">RP / SRP</td>
+          <td class="text-center font-bold">Quantity</td>
+          <td class="text-center font-bold" style="width: 200px; min-width: 200px;">Barcode</td>
+          <td class="text-center font-bold">Rack</td>
+          <td class="text-center font-bold">Creation Date</td>
+          <td class="text-center font-bold">Action</td>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Add Form Row -->
+        <tr style="background: #fff;">
+            <td class="text-center" style="vertical-align: middle;"></td>
+            <td class="text-center" style="vertical-align: middle;">+</td>
+            <td class="text-center" style="vertical-align: middle;">{{ selected_batch }}</td>
+            <td style="vertical-align: middle;">
+              <input type="text" name="box_id" form="form-product" placeholder="Box ID" class="form-control form-control-sm mb-1" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+              <input type="text" name="name" form="form-product" placeholder="Product Name" class="form-control form-control-sm" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;" required>
+            </td>
+            <td class="text-center" style="vertical-align: middle;">
+              <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <button type="button" id="button-upload-image" class="btn" style="background: #f8fafc; color: #94a3b8; border-radius: 8px; width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center; border: 1px dashed #cbd5e1; margin-bottom: 4px;">
+                  <i class="fa fa-upload" style="font-size: 18px;"></i>
+                </button>
+                <div id="text-upload-image" onclick="$('#button-upload-image').click();" style="font-size: 11px; font-weight: 600; color: #64748b; line-height: 1.2; cursor: pointer;">Upload<br>Image</div>
+                <input type="hidden" name="image" value="" id="input-image" form="form-product">
+              </div>
+            </td>
+            <td style="vertical-align: middle;">
+              <select name="type" form="form-product" class="form-control form-control-sm mb-1" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+                <option value="Global">Global</option>
+                <option value="Local">Local</option>
+              </select>
+              <input type="text" name="received_price" id="input-received-price" form="form-product" placeholder="Rec Price" class="form-control form-control-sm" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+            </td>
+            <td style="vertical-align: middle;">
+              <input type="text" name="wp" form="form-product" placeholder="0.00" class="form-control form-control-sm mb-1" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+              <input type="text" name="swp" form="form-product" placeholder="SWP" class="form-control form-control-sm" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+            </td>
+            <td style="vertical-align: middle;">
+              <input type="text" name="rp" form="form-product" placeholder="0.00" class="form-control form-control-sm mb-1" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+              <input type="text" name="srp" form="form-product" placeholder="SRP" class="form-control form-control-sm" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+            </td>
+            <td style="vertical-align: middle;">
+              <input type="number" step="0.01" name="quantity" form="form-product" placeholder="Qty" class="form-control form-control-sm" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;" required>
+            </td>
+            <td style="vertical-align: middle; width: 200px; min-width: 200px;">
+              <select name="barcode_type" form="form-product" class="form-control form-control-sm mb-1" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+                <option value="Unit">Unit</option>
+                <option value="Box">Box</option>
+              </select>
+              <div class="input-group input-group-sm">
+                <input type="text" name="barcode" id="input-barcode" form="form-product" placeholder="Barcode" class="form-control" style="border-radius: 4px 0 0 4px; border: 1px solid #3b82f6; color: #3b82f6;" required>
+                <button type="button" class="btn btn-primary" onclick="generateBarcode()" style="background: #3b82f6; border-color: #3b82f6;"><i class="fa fa-refresh"></i> Gen</button>
+              </div>
+            </td>
+            <td style="vertical-align: middle;">
+              <input type="number" name="rack" form="form-product" placeholder="Rack" class="form-control form-control-sm" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+            </td>
+            <td class="text-center" style="vertical-align: middle; font-size: 12px; color: #64748b;">Today</td>
+            <td class="text-center" style="vertical-align: middle;">
+              <button type="submit" form="form-product" class="btn btn-primary btn-sm" style="background-color: #465fff !important; border-color: #465fff !important; color: #ffffff !important; border-radius: 4px; font-weight: 600; padding: 6px 12px;"><i class="fa-solid fa-floppy-disk" style="margin-right: 4px;"></i> Save</button>
+            </td>
+        </tr>
+        
+        <!-- Saved Products List -->
+        {% if batch_products %}
+          {% set p_srno = 1 %}
+          {% for product in batch_products %}
+            <tr>
+              <td class="text-center" style="vertical-align: middle;"><input type="checkbox" name="selected_products[]" value="{{ product.product_id }}" /></td>
+              <td class="text-center" style="vertical-align: middle;">{{ p_srno }}</td>
+              <td class="text-center" style="vertical-align: middle;">{{ selected_batch }}</td>
+              <td class="text-center" style="vertical-align: middle;">
+                <div style="font-size: 12px; margin-bottom: 4px;">{{ product.box_id }}</div>
+                <div style="font-size: 13px; font-weight: 600;">{{ product.name }}</div>
+              </td>
+              <td class="text-center" style="vertical-align: middle;">
+                <div style="width: 40px; height: 40px; background: transparent; border: 1px solid #e2e8f0; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; overflow: hidden;">
+                  {% if product.image %}
+                  <img src="../image/{{ product.image }}" style="width: 100%; height: 100%; object-fit: cover;" alt="Product Image" />
+                  {% else %}
+                  <span style="color: #64748b; font-size: 18px;"><i class="fa fa-image"></i></span>
+                  {% endif %}
+                </div>
+              </td>
+              <td class="text-center" style="vertical-align: middle;">
+                <div style="font-size: 12px; margin-bottom: 4px;">{{ product.price_type|capitalize }}</div>
+                <div style="font-size: 12px; font-weight: 600; color: #64748b;">₹{{ product.received_price }}</div>
+              </td>
+              <td class="text-center" style="vertical-align: middle;">
+                <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">₹{{ product.wp }}</div>
+                <div style="font-size: 12px; color: #64748b;">S: ₹{{ product.swp }}</div>
+              </td>
+              <td class="text-center" style="vertical-align: middle;">
+                <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">₹{{ product.rp }}</div>
+                <div style="font-size: 12px; color: #64748b;">S: ₹{{ product.srp }}</div>
+              </td>
+              <td class="text-center" style="vertical-align: middle; font-weight: 600;">{{ product.quantity }}</td>
+              <td class="text-center" style="vertical-align: middle;">
+                <div style="font-size: 10px; font-weight: bold;">{{ product.barcode_type|upper }}</div>
+                <svg class="barcode-svg"
+                     jsbarcode-format="code128"
+                     jsbarcode-value="{{ product.barcode }}"
+                     jsbarcode-height="20"
+                     jsbarcode-width="1"
+                     jsbarcode-displayvalue="false"
+                     jsbarcode-margin="0"
+                     style="max-width: 100px;">
+                </svg>
+                <div style="font-size: 11px; font-weight: bold;">{{ product.barcode }}</div>
+              </td>
+              <td class="text-center" style="vertical-align: middle;">{{ product.rack_code }}</td>
+              <td class="text-center" style="vertical-align: middle; font-size: 12px;">{{ product.date_added }}</td>
+              <td class="text-center" style="vertical-align: middle;">
+                <div class="d-flex justify-content-center" style="gap: 5px;">
+                  <button type="button"
+                          class="ptsbarcodeselect btn-success btn btn-sm"
+                          data-maxqty="{{ product.max_quantity }}"
+                          data-price="{{ product.rp }}"
+                          data-wholesale="{{ product.wp }}"
+                          data-rtag="{{ product.r_tag }}"
+                          data-wtag="{{ product.w_tag }}"
+                          data-rackcode="{{ product.rack_code }}"
+                          data-boxid="{{ product.box_id }}"
+                          data-productid="{{ product.product_id }}"
+                          data-barcode="{{ product.barcode }}"
+                          data-name="{{ product.name|escape }}"
+                          data-bs-toggle="modal"
+                          data-bs-target="#mymodel"
+                          style="background: #465fff; border: none; color: #fff; border-radius: 4px; padding: 6px; font-size: 11px; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 45px; height: 45px;">
+                    <i class="fa-solid fa-print" style="font-size: 14px; margin-bottom: 3px;"></i>Print
+                  </button>
+                  <button type="button" class="btn btn-warning btn-sm" 
+                    data-product-id="{{ product.product_id }}"
+                    data-box-id="{{ product.box_id }}"
+                    data-name="{{ product.name|escape }}"
+                    data-received-price="{{ product.received_price }}"
+                    data-price-type="{{ product.price_type }}"
+                    data-wp="{{ product.wp }}"
+                    data-swp="{{ product.swp }}"
+                    data-rp="{{ product.rp }}"
+                    data-srp="{{ product.srp }}"
+                    data-quantity="{{ product.quantity }}"
+                    data-barcode="{{ product.barcode }}"
+                    data-barcode-type="{{ product.barcode_type }}"
+                    data-rack="{{ product.rack_code }}"
+                    data-image="{{ product.image }}"
+                    data-created-date="{{ product.date_added_raw }}"
+                    onclick="editBatchProduct(this)" 
+                    style="background: #465fff; border: none; color: #fff; border-radius: 4px; padding: 6px; font-size: 11px; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 45px; height: 45px;"><i class="fa-solid fa-pencil" style="font-size: 14px; margin-bottom: 3px;"></i>Edit</button>
+                  <button type="button" class="btn btn-danger btn-sm" onclick="deleteBatchProduct('{{ product.product_id }}')" style="background: #ef4444; border: none; border-radius: 4px; padding: 6px; font-size: 11px; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 45px; height: 45px;"><i class="fa-solid fa-trash-can" style="font-size: 14px; margin-bottom: 3px;"></i>Delete</button>
+                </div>
+              </td>
+            </tr>
+            {% set p_srno = p_srno + 1 %}
+          {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+    {% endif %}
+    </div>
+
+{# Print Barcode Modal - same as Products page #}
+<div class="modal" id="mymodel">
+  <div class="modal-dialog">
+    <div class="modal-content masspopup">
+      <div class="modal-header">
+        <h6 class="modal-title" style="color:black;">Enter the number of barcode slips</h6>
+        <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post" target="_blank" action="{{ action_printbarcode }}">
+          <div class="form-group">
+            <label class="masspopuplabel" style="color:black;">Enter Quantity</label>
+            <input type="hidden" id="printbarcode" name="printbarcode">
+            <input type="hidden" id="printbarcodename" name="printbarcodename">
+            <input type="hidden" id="printbarcodeprice" name="printbarcodeprice">
+            <input type="hidden" id="printsku" name="printsku">
+            <input type="hidden" id="printmaxqty" name="printmaxqty">
+            <input type="hidden" id="print_r_tag" name="print_r_tag">
+            <input type="hidden" id="print_w_tag" name="print_w_tag">
+            <input type="hidden" id="print_price" name="print_price">
+            <input type="hidden" id="print_product_id" name="print_product_id">
+            <input type="hidden" id="print_rack_code" name="print_rack_code">
+            <input type="hidden" id="print_box_id" name="print_box_id">
+            <input type="hidden" id="print_wholesale" name="print_wholesale">
+            <input type="number" class="form-control massinputpopup" style="color:black;" name="qty" required>
           </div>
-          <div class="col-sm-6 text-end">
-            {{ pagination }}
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background-color: #ef4444 !important; border-color: #ef4444 !important; color: #ffffff !important; border-radius: 20px !important; padding: 6px 24px !important; font-weight: 500 !important; font-size: 14px !important;">Close</button>
+            <input type="submit" class="btn btn-success" value="Print" style="background-color: #465fff !important; border-color: #465fff !important; color: #ffffff !important; border-radius: 20px !important; padding: 6px 24px !important; font-weight: 500 !important; font-size: 14px !important;">
           </div>
-        </div>
+        </form>
       </div>
     </div>
   </div>
 </div>
 
-{# History Modal #}
-<div class="modal fade" id="modal-batch-history" tabindex="-1">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content" style="background: #1e293b; border: 1px solid #334155;">
-      <div class="modal-header" style="border-bottom: 1px solid #334155; background: #0f172a;">
-        <h5 class="modal-title" style="color: #fff;"><i class="fa fa-history"></i> Stock History</h5>
-        <div  style="padding-left: 791px;">
-          <button type="button" class="btn btn-sm" onclick="exportBatchHistory()" style="background: #10b981; color: #fff; border: none; padding: 8px 16px; border-radius: 5px; margin-right: 10px;">
-            <i class="fa fa-download"></i> Export CSV
-          </button>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-      </div>
-      <div class="modal-body" id="batch-history-content" style="background: #1e293b; color: #fff; max-height: 600px; overflow-y: auto;">
-        <div class="text-center p-5">
-          <div class="spinner-border" role="status" style="color: #3b82f6;">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer" style="border-top: 1px solid #334155; background: #0f172a;">
-        <button type="button" class="btn" data-bs-dismiss="modal" style="background: #6b7280; color: #fff; border: none;">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
+<script>
+$(document).on('click', '.ptsbarcodeselect', function () {
+    var btn = $(this);
 
-<style>
-.table-dark tbody tr:hover {
-  background: #334155 !important;
-  cursor: pointer;
-}
+    var barcodeprint     = btn.data('barcode');
+    var barcodeprintname = btn.data('name');
+    var price            = btn.data('price');
+    var wholesale        = btn.data('wholesale');
+    var r_tag            = btn.data('rtag');
+    var w_tag            = btn.data('wtag');
+    var product_id       = btn.data('productid');
+    var rack_code        = btn.data('rackcode');
+    var maxqty           = btn.data('maxqty');
+    var box_id           = btn.data('boxid');
 
-.btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  transition: all 0.2s;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0f172a;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #475569;
-  border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
-}
-
-.pagination {
-  margin: 0;
-}
-
-.pagination .page-link {
-  background: #334155;
-  border: 1px solid #475569;
-  color: #fff;
-  margin: 0 2px;
-  border-radius: 5px;
-}
-
-.pagination .page-link:hover {
-  background: #475569;
-  color: #fff;
-}
-
-.pagination .page-item.active .page-link {
-  background: #3b82f6;
-  border-color: #3b82f6;
-}
-
-input[type="date"] {
-  color-scheme: dark;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-}
-</style>
-
-<script type="text/javascript">
-// Global variables to store current batch history data
-var currentBatchHistory = null;
-var currentBatchId = null;
-
-$('#button-filter').on('click', function() {
-  var url = 'index.php?route=extension/stockregister&user_token={{ user_token }}';
-  
-  var filter_po_number = $('#filter_po_number').val();
-  if (filter_po_number) {
-    url += '&filter_po_number=' + encodeURIComponent(filter_po_number);
-  }
-  
-  var filter_supplier = $('#filter_supplier').val();
-  if (filter_supplier) {
-    url += '&filter_supplier=' + encodeURIComponent(filter_supplier);
-  }
-  
-  var filter_product = $('#filter_product').val();
-  if (filter_product) {
-    url += '&filter_product=' + encodeURIComponent(filter_product);
-  }
-  
-  var filter_date_from = $('#filter_date_from').val();
-  if (filter_date_from) {
-    url += '&filter_date_from=' + encodeURIComponent(filter_date_from);
-  }
-  
-  var filter_date_to = $('#filter_date_to').val();
-  if (filter_date_to) {
-    url += '&filter_date_to=' + encodeURIComponent(filter_date_to);
-  }
-  
-  location = url;
+    $('#printbarcode').val(barcodeprint);
+    $('#printbarcodename').val(barcodeprintname);
+    $('#printbarcodeprice').val(price);
+    $('#printsku').val(barcodeprint);
+    $('#printmaxqty').val(maxqty);
+    $('#print_price').val(price);
+    $('#print_wholesale').val(wholesale);
+    $('#print_r_tag').val(r_tag);
+    $('#print_w_tag').val(w_tag);
+    $('#print_product_id').val(product_id);
+    $('#print_rack_code').val(rack_code);
+    $('#print_box_id').val(box_id);
 });
 
-$('#filter_po_number, #filter_supplier, #filter_product, #filter_date_from, #filter_date_to').on('keydown', function(e) {
-  if (e.keyCode == 13) {
-    $('#button-filter').trigger('click');
-  }
-});
-
-function exportData() {
-  var url = 'index.php?route=extension/stockregister.export&user_token={{ user_token }}';
-  
-  var filter_po_number = $('#filter_po_number').val();
-  if (filter_po_number) {
-    url += '&filter_po_number=' + encodeURIComponent(filter_po_number);
-  }
-  
-  var filter_supplier = $('#filter_supplier').val();
-  if (filter_supplier) {
-    url += '&filter_supplier=' + encodeURIComponent(filter_supplier);
-  }
-  
-  var filter_product = $('#filter_product').val();
-  if (filter_product) {
-    url += '&filter_product=' + encodeURIComponent(filter_product);
-  }
-  
-  var filter_date_from = $('#filter_date_from').val();
-  if (filter_date_from) {
-    url += '&filter_date_from=' + encodeURIComponent(filter_date_from);
-  }
-  
-  var filter_date_to = $('#filter_date_to').val();
-  if (filter_date_to) {
-    url += '&filter_date_to=' + encodeURIComponent(filter_date_to);
-  }
-  
-  window.open(url, '_blank');
-}
-
-function exportBatchHistory() {
-  if (!currentBatchHistory || !currentBatchHistory.history) {
-    alert('No history data available to export');
-    return;
-  }
-  
-  // Prepare CSV content
-  var csv = 'Date Added,Transaction Type,Product Line ID,Used Amount,Balance,Store,Description\n';
-  
-  // Reverse the array to show in descending order (newest first)
-  var reversedHistory = currentBatchHistory.history.slice().reverse();
-  
-  for (var i = 0; i < reversedHistory.length; i++) {
-    var item = reversedHistory[i];
-    var row = [
-      item.date_added || 'N/A',
-      item.transaction_type || 'N/A',
-      item.purchase_order_product_id || 'N/A',
-      item.amount || '0.00',
-      item.balance || '0.00',
-      item.store_name || 'N/A',
-      '"' + (item.description || 'N/A').replace(/"/g, '""') + '"'
-    ];
-    csv += row.join(',') + '\n';
-  }
-  
-  // Add summary at the end
-  csv += '\n';
-  csv += 'Summary\n';
-  csv += 'Total Received,' + (currentBatchHistory.current_stock || '0.00') + '\n';
-  csv += 'Total Used,' + (currentBatchHistory.used_stock || '0.00') + '\n';
-  csv += 'Current Balance,' + (currentBatchHistory.balance_stock || '0.00') + '\n';
-  
-  // Create download link
-  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  var link = document.createElement('a');
-  var url = URL.createObjectURL(blob);
-  
-  link.setAttribute('href', url);
-  link.setAttribute('download', 'batch_history_' + currentBatchId + '_' + new Date().getTime() + '.csv');
-  link.style.visibility = 'hidden';
-  
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-function viewBatchHistory(batchid) {
-  currentBatchId = batchid;
-  
-  $.ajax({
-    url: 'index.php?route=extension/stockregister.history&user_token={{ user_token }}&batchid=' + batchid,
-    type: 'get',
-    dataType: 'json',
-    beforeSend: function() {
-      $('#batch-history-content').html('<div class="text-center p-5"><div class="spinner-border" role="status" style="color: #3b82f6;"><span class="visually-hidden">Loading...</span></div></div>');
-      var myModal = new bootstrap.Modal(document.getElementById('modal-batch-history'));
-      myModal.show();
-    },
-    success: function(json) {
-      currentBatchHistory = json;
-      
-      if (json['error']) {
-        $('#batch-history-content').html('<div class="alert alert-danger">' + json['error'] + '</div>');
-      } else {
-        var html = '';
-        
-        // Current Stock Status Header
-        html += '<div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 10px; padding: 25px; margin-bottom: 25px; color: white;">';
-        html += '<h4 style="margin: 0 0 20px 0;"><i class="fa fa-cube"></i> Current Stock Status</h4>';
-        html += '<div class="row text-center">';
-        html += '<div class="col-md-4"><div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 8px;"><div style="font-size: 14px; margin-bottom: 5px;">Total Received</div><div style="font-size: 32px; font-weight: 700;">' + json['current_stock'] + '</div></div></div>';
-        html += '<div class="col-md-4"><div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 8px;"><div style="font-size: 14px; margin-bottom: 5px;">Total Used</div><div style="font-size: 32px; font-weight: 700;">' + json['used_stock'] + '</div></div></div>';
-        html += '<div class="col-md-4"><div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 8px;"><div style="font-size: 14px; margin-bottom: 5px;">Current Balance</div><div style="font-size: 32px; font-weight: 700;">' + json['balance_stock'] + '</div></div></div>';
-        html += '</div></div>';
-        
-        // Transaction History Table
-        if (json['history'] && json['history'].length > 0) {
-          html += '<h5 style="color: #fff; margin: 25px 0 15px 0;"><i class="fa fa-clock-o"></i> Stock Transaction History</h5>';
-          
-          html += '<div class="table-responsive">';
-          html += '<table class="table m-0" style="color: #fff;">';
-          html += '<thead style="background: #0f172a;">';
-          html += '<tr>';
-          html += '<th style="padding: 12px; border-bottom: 2px solid #334155;">Date Added</th>';
-          html += '<th style="padding: 12px; border-bottom: 2px solid #334155;">Transaction Type</th>';
-          html += '<th style="padding: 12px; border-bottom: 2px solid #334155; text-align: right;">Used</th>';
-          html += '<th style="padding: 12px; border-bottom: 2px solid #334155; text-align: right;">Balance</th>';
-          html += '<th style="padding: 12px; border-bottom: 2px solid #334155;">Store</th>';
-          html += '<th style="padding: 12px; border-bottom: 2px solid #334155;">Description</th>';
-          html += '</tr>';
-          html += '</thead>';
-          html += '<tbody>';
-          
-          // Reverse the array to show in descending order (newest first)
-          var reversedHistory = json['history'].slice().reverse();
-          
-          for (var i = 0; i < reversedHistory.length; i++) {
-            var item = reversedHistory[i];
-            var bgColor = (i % 2 == 0) ? '#1e293b' : '#0f172a';
-            
-            html += '<tr style="background: ' + bgColor + '; border-bottom: 1px solid #334155;">';
-            
-            // Date Added
-            html += '<td style="padding: 12px;">';
-            html += '<span style="color: #94a3b8;">' + (item.date_added || 'N/A') + '</span>';
-            html += '</td>';
-            
-            // Transaction Type
-            html += '<td style="padding: 12px;">';
-            html += '<span style="color: #94a3b8;">' + (item.transaction_type || 'N/A') + '</span>';
-            html += '</td>';
-            
-            // Amount (Used)
-            html += '<td style="padding: 12px; text-align: right;">';
-            html += '<span style="color: #fff; font-weight: 600;">' + (item.amount || '0.00') + '</span>';
-            html += '</td>';
-            
-            // Balance
-            html += '<td style="padding: 12px; text-align: right;">';
-            html += '<span style="color: #3b82f6; font-weight: 700; font-size: 15px;">' + (item.balance || '0.00') + '</span>';
-            html += '</td>';
-            
-            // Store Name
-            html += '<td style="padding: 12px;">';
-            html += '<span style="color: #10b981; font-weight: 600;">' + (item.store_name || 'N/A') + '</span>';
-            html += '</td>';
-            
-            // Description
-            html += '<td style="padding: 12px;">';
-            html += '<span style="color: #fff;">' + (item.description || 'N/A') + '</span>';
-            html += '</td>';
-            
-            html += '</tr>';
-          }
-          
-          html += '</tbody>';
-          html += '</table>';
-          html += '</div>';
-        } else {
-          html += '<div class="text-center p-5"><i class="fa fa-inbox fa-3x" style="color: #475569; margin-bottom: 20px;"></i><p style="color: #94a3b8;">No transaction history found</p></div>';
-        }
-        
-        $('#batch-history-content').html(html);
-      }
-    },
-    error: function(xhr, ajaxOptions, thrownError) {
-      $('#batch-history-content').html('<div class="alert alert-danger">Error loading history: ' + thrownError + '</div>');
-    }
-  });
-}
-
-$(document).ready(function() {
-  $('[data-bs-toggle="tooltip"]').tooltip();
-});
-$('#button-clear').on('click', function() {
-  $('#filter_po_number').val('');
-  $('#filter_supplier').val('');
-  $('#filter_product').val('');
-  $('#filter_date_from').val('');
-  $('#filter_date_to').val('');
+$('#mymodel').on('show.bs.modal', function () {
+    $(this).find('input[name="qty"]').val('');
 });
 </script>
 
+<script>
+$(document).ready(function() {
+    // Intercept clicks on the batch links to load the bottom table via AJAX
+    $(document).on('click', '.batch-link', function(e) {
+        e.preventDefault();
+        var url = $(this).attr('href');
+        
+        // Add a loading indicator or dim the container
+        $('#product-create-container').css('opacity', '0.5');
+        
+        // Highlight the selected row visually
+        $('#form-batch tbody tr').removeClass('active-batch');
+        $(this).closest('tr').addClass('active-batch');
+        $('.batch-link').removeClass('active-batch-link');
+        $(this).addClass('active-batch-link');
+        
+        $.ajax({
+            url: url,
+            type: 'get',
+            dataType: 'html',
+            cache: false,
+            success: function(html) {
+                // Extract the #product-create-container content from the returned HTML
+                var newContent = $(html).find('#product-create-container').html();
+                $('#product-create-container').html(newContent).css('opacity', '1');
+                
+                // Initialize barcodes
+                if (typeof JsBarcode !== 'undefined') {
+                    JsBarcode(".barcode-svg").init();
+                }
+                
+                // Deliberately NOT using pushState here.
+                // This ensures that if the user hits refresh (F5), they go back to the clean URL without a batch_no!
+            },
+            error: function() {
+                // Fallback to standard navigation if AJAX fails
+                window.location = url;
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.font-bold { font-weight: 600; }
+.active-batch td { background-color: #dbeafe !important; }
+/* Match Products page print modal dimensions exactly */
+.masspopup { width: 50%; margin-left: 25%; }
+.masspopuplabel { font-size: 15px; }
+.massinputpopup { height: 32px; }
+
+/* Ensure all three header buttons have identical heights, padding, and vertical alignment */
+.btn-custom-export-blue,
+.btn-custom-add,
+.btn-custom-delete {
+    height: 35px !important;
+    padding: 0 16px !important;
+    font-size: 14px !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
+    line-height: normal !important;
+    font-weight: 500 !important;
+}
+
+.btn-custom-export-blue {
+    background-color: #ffffff !important;
+    border: 1px solid #dee4ee !important;
+    color: #000000 !important;
+    margin-right: 5px;
+    text-decoration: none !important;
+    transition: all 0.2s ease-in-out;
+}
+.btn-custom-export-blue:hover {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #000000 !important;
+}
+.btn-custom-export-blue i {
+    margin-left: 8px !important;
+    margin-right: 0 !important;
+    color: #000000 !important;
+}
+.btn-custom-export-blue:hover i {
+    color: #000000 !important;
+}
+</style>
+
+<!-- Create Batch Modal -->
+<div class="modal fade" id="modal-create-batch" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create Batch</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-create-batch">
+          <div class="mb-3">
+            <label class="form-label">Batch No</label>
+            <input type="text" name="batch_no" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Received Quantity</label>
+            <input type="number" step="0.01" name="received_q" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Received Products</label>
+            <input type="number" name="received_products" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Creation Date</label>
+            <input type="date" name="created_date" id="create-date" class="form-control" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal" style="background: #dc3545; border: 1px solid #dc3545; color: #fff;">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitCreateBatch()" style="background: #465fff; border: 1px solid #465fff; color: #fff;">Create Batch</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Batch Modal -->
+<div class="modal fade" id="modal-edit-batch" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Batch</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-edit-batch">
+          <input type="hidden" name="batch_id" id="edit-batch-id">
+          <div class="mb-3">
+            <label class="form-label">Batch No</label>
+            <input type="text" name="batch_no" id="edit-batch-no" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Received Quantity</label>
+            <input type="number" step="0.01" name="received_q" id="edit-received-q" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Received Products</label>
+            <input type="number" name="received_products" id="edit-received-products" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Creation Date</label>
+            <input type="date" name="created_date" id="edit-created-date" class="form-control" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal" style="background: #dc3545; border: 1px solid #dc3545; color: #fff;">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitEditBatch()" style="background: #465fff; border: 1px solid #465fff; color: #fff;">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Set default date to today when Create Batch modal is opened
+document.addEventListener('DOMContentLoaded', function() {
+    var modal = document.getElementById('modal-create-batch');
+    if (modal) {
+        modal.addEventListener('show.bs.modal', function() {
+            var today = new Date();
+            var yyyy = today.getFullYear();
+            var mm = String(today.getMonth() + 1).padStart(2, '0');
+            var dd = String(today.getDate()).padStart(2, '0');
+            var dateString = yyyy + '-' + mm + '-' + dd;
+            document.getElementById('create-date').value = dateString;
+        });
+    }
+});
+
+function submitCreateBatch() {
+    $.ajax({
+        url: 'index.php?route=extension/stockregister.addBatch&user_token={{ user_token }}',
+        type: 'post',
+        data: $('#form-create-batch').serialize(),
+        dataType: 'json',
+        success: function(json) {
+            if (json['error']) {
+                alert(json['error']);
+            }
+            if (json['success']) {
+                location.reload();
+            }
+        }
+    });
+}
+
+function editBatch(id, batch_no, received_q, received_products, created_date) {
+    $('#edit-batch-id').val(id);
+    $('#edit-batch-no').val(batch_no);
+    $('#edit-received-q').val(received_q.replace(/,/g, ''));
+    $('#edit-received-products').val(received_products);
+    $('#edit-created-date').val(created_date);
+    
+    var modal = new bootstrap.Modal(document.getElementById('modal-edit-batch'));
+    modal.show();
+}
+
+function submitEditBatch() {
+    $.ajax({
+        url: 'index.php?route=extension/stockregister.editBatch&user_token={{ user_token }}',
+        type: 'post',
+        data: $('#form-edit-batch').serialize(),
+        dataType: 'json',
+        success: function(json) {
+            if (json['error']) {
+                alert(json['error']);
+            }
+            if (json['success']) {
+                location.reload();
+            }
+        }
+    });
+}
+
+$('#form-product').on('submit', function(e) {
+    e.preventDefault();
+    
+    // Add the selected_batch manually
+    var formData = $(this).serialize() + '&batch_no={{ selected_batch }}';
+    
+    var isEdit = $(this).attr('data-mode') === 'edit';
+    var submitUrl = isEdit ? 
+        'index.php?route=extension/stockregister.editBatchProduct&user_token={{ user_token }}' : 
+        'index.php?route=extension/stockregister.addBatchProduct&user_token={{ user_token }}';
+
+    $.ajax({
+        url: submitUrl,
+        type: 'post',
+        data: formData,
+        dataType: 'json',
+        success: function(json) {
+            if (json['error']) {
+                alert(json['error']);
+            }
+            if (json['success']) {
+                if ($('.active-batch-link').length) {
+                    $('.active-batch-link').click();
+                } else {
+                    location.reload();
+                }
+            }
+        }
+    });
+});
+
+function deleteBatchProduct(product_id) {
+    if (confirm('Are you sure?')) {
+        $.ajax({
+            url: 'index.php?route=extension/stockregister.deleteBatchProduct&user_token={{ user_token }}&product_id=' + product_id,
+            dataType: 'json',
+            success: function(json) {
+                if (json['error']) {
+                    alert(json['error']);
+                }
+                if (json['success']) {
+                if ($('.active-batch-link').length) {
+                    $('.active-batch-link').click();
+                } else {
+                    location.reload();
+                }
+                }
+            }
+        });
+    }
+}
+
+function deleteSelectedProducts() {
+    var checked = $('input[name*=\'selected_products\']:checked');
+    if (checked.length == 0) {
+        alert('Please select at least one item to delete.');
+        return false;
+    }
+    if (confirm('Are you sure?')) {
+        $.ajax({
+            url: 'index.php?route=extension/stockregister.deleteBatchProduct&user_token={{ user_token }}',
+            type: 'post',
+            data: checked.serialize(),
+            dataType: 'json',
+            success: function(json) {
+                if (json['error']) {
+                    alert(json['error']);
+                }
+                if (json['success']) {
+                    if ($('.active-batch-link').length) {
+                        $('.active-batch-link').click();
+                    } else {
+                        location.reload();
+                    }
+                }
+            }
+        });
+    }
+}
+
+function editBatchProduct(node) {
+    var $btn = $(node);
+    
+    // Set form to edit mode
+    $('#form-edit-product #edit-product-id').val($btn.data('product-id'));
+    $('#form-edit-product #edit-created-date').val($btn.data('created-date'));
+    
+    // Populate fields
+    $('#form-edit-product #edit-box-id').val($btn.data('box-id'));
+    $('#form-edit-product #edit-name').val($btn.data('name'));
+    $('#form-edit-product #edit-price-type').val($btn.data('price-type') === 'local' ? 'local' : 'global');
+    $('#form-edit-product #edit-received-price').val($btn.data('received-price'));
+    $('#form-edit-product #edit-wp').val($btn.data('wp'));
+    $('#form-edit-product #edit-swp').val($btn.data('swp'));
+    $('#form-edit-product #edit-rp').val($btn.data('rp'));
+    $('#form-edit-product #edit-srp').val($btn.data('srp'));
+    $('#form-edit-product #edit-quantity').val($btn.data('quantity'));
+    $('#form-edit-product #edit-barcode').val($btn.data('barcode'));
+    $('#form-edit-product #edit-barcode-type').val($btn.data('barcode-type') === 'box' ? 'Box' : 'Unit');
+    $('#form-edit-product #edit-rack').val($btn.data('rack'));
+    
+    // Handle image
+    var imagePath = $btn.data('image');
+    $('#input-edit-image').val(imagePath);
+    if (imagePath) {
+        var imageUrl = '../image/' + imagePath;
+        $('#button-edit-image').empty().append('<img src="' + imageUrl + '" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" alt="Product Image" />');
+        $('#text-edit-image').html('Change Image');
+        $('#button-edit-image').css('background', 'transparent').css('padding', '0');
+    } else {
+        $('#button-edit-image').empty().append('<i class="fa fa-cloud-upload" style="font-size: 24px;"></i>');
+        $('#text-edit-image').html('Click to Upload Image');
+        $('#button-edit-image').css('background', '#f8fafc').css('padding', '0');
+    }
+    
+    // Show Modal
+    $('#modal-edit-product').modal('show');
+}
+
+function submitEditProduct() {
+    $.ajax({
+        url: 'index.php?route=extension/stockregister.editBatchProduct&user_token={{ user_token }}',
+        type: 'post',
+        data: $('#form-edit-product').serialize(),
+        dataType: 'json',
+        success: function(json) {
+            if (json['error']) {
+                alert(json['error']);
+            }
+            if (json['success']) {
+                $('#modal-edit-product').modal('hide');
+                if ($('.active-batch-link').length) {
+                    $('.active-batch-link').click();
+                } else {
+                    location.reload();
+                }
+            }
+        }
+    });
+}
+
+function generateEditBarcode() {
+    if ($('#edit-barcode').val().trim() !== '') {
+        return; // Already generated
+    }
+    var type = $('#edit-barcode-type').val().toLowerCase();
+    $.ajax({
+        url: 'index.php?route=catalog/product.generateBarcode&user_token={{ user_token }}&type=' + type,
+        dataType: 'json',
+        success: function(json) {
+            if (json['barcode']) {
+                $('#edit-barcode').val(json['barcode']);
+            }
+        },
+        error: function() {
+            alert('Error generating barcode!');
+        }
+    });
+}
+
+function generateBarcode() {
+    if ($('#input-barcode').val().trim() !== '') {
+        return; // Already generated
+    }
+    var type = $('select[name="barcode_type"]').val() ? $('select[name="barcode_type"]').val().toLowerCase() : 'unit';
+    $.ajax({
+        url: 'index.php?route=catalog/product.generateBarcode&user_token={{ user_token }}&type=' + type,
+        dataType: 'json',
+        success: function(json) {
+            if (json['barcode']) {
+                $('#input-barcode').val(json['barcode']);
+            }
+        },
+        error: function() {
+            alert('Error generating barcode!');
+        }
+    });
+}
+
+function printBarcode(barcode, name) {
+    if (!barcode) return;
+    
+    // Create a temporary SVG element
+    var svgNode = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    document.body.appendChild(svgNode);
+    
+    // Generate barcode using local JsBarcode
+    if (typeof JsBarcode !== 'undefined') {
+        JsBarcode(svgNode, barcode, {
+            format: "code128",
+            height: 40,
+            displayValue: true,
+            fontSize: 16,
+            margin: 10
+        });
+    }
+    
+    var svgHtml = svgNode.outerHTML;
+    document.body.removeChild(svgNode);
+
+    var printWindow = window.open('', '_blank', 'width=400,height=400');
+    printWindow.document.write('<html><head><title>Print Barcode</title></head><body style="text-align:center;font-family:Arial;padding:20px;">');
+    printWindow.document.write('<h4 style="margin-bottom:10px;">' + name + '</h4>');
+    printWindow.document.write('<div>' + svgHtml + '</div>');
+    printWindow.document.write('<script>window.onload = function() { window.print(); window.close(); }<\/script>');
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+}
+
+$(document).ready(function() {
+    // Direct Upload Image functionality to system files
+    $(document).on('click', '#button-upload-image, #button-edit-image', function() {
+        var node = this;
+        var isModal = $(this).attr('id') === 'button-edit-image';
+        
+        $('#form-upload').remove();
+        $('body').prepend('<form enctype="multipart/form-data" id="form-upload" style="display: none;"><input type="file" name="file" accept="image/*" /></form>');
+        $('#form-upload input[name=\'file\']').trigger('click');
+        if (typeof timer != 'undefined') {
+            clearInterval(timer);
+        }
+        timer = setInterval(function() {
+            if ($('#form-upload input[name=\'file\']').val() != '') {
+                clearInterval(timer);
+                $.ajax({
+                    url: 'index.php?route=extension/stockregister.uploadImage&user_token={{ user_token }}',
+                    type: 'post',
+                    dataType: 'json',
+                    data: new FormData($('#form-upload')[0]),
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    beforeSend: function() {
+                        $(node).find('i').replaceWith('<i class="fa fa-circle-o-notch fa-spin" style="font-size: ' + (isModal ? '24px' : '18px') + ';"></i>');
+                    },
+                    complete: function() {
+                        $(node).find('i').replaceWith('<i class="fa ' + (isModal ? 'fa-cloud-upload' : 'fa-upload') + '" style="font-size: ' + (isModal ? '24px' : '18px') + ';"></i>');
+                    },
+                    success: function(json) {
+                        if (json['error']) {
+                            alert(json['error']);
+                        }
+                        if (json['success']) {
+                            if (isModal) {
+                                $('#input-edit-image').val(json['image_path']);
+                                $('#text-edit-image').html('Change Image');
+                            } else {
+                                $('#input-image').val(json['image_path']);
+                                $('#text-upload-image').html('Change<br>Image');
+                            }
+                            
+                            // Display the uploaded image inside the button
+                            var imageUrl = '../image/' + json['image_path'];
+                            $(node).empty().append('<img src="' + imageUrl + '" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" alt="Product Image" />');
+                            
+                            $(node).css('background', 'transparent'); 
+                            $(node).css('padding', '0');
+                        }
+                    },
+                    error: function(xhr, ajaxOptions, thrownError) {
+                        alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+                    }
+                });
+            }
+        }, 500);
+    });
+
+    // WP/RP Auto Calculation
+    $(document).on('input', '#input-received-price, #edit-received-price', function() {
+        var isModal = $(this).attr('id') === 'edit-received-price';
+        var recPrice = parseFloat($(this).val()) || 0;
+        
+        var wpAddPercent = parseFloat($('#setting-wp-add').val()) || 0;
+        var rpAddPercent = parseFloat($('#setting-rp-add').val()) || 0;
+        
+        var priceType = isModal ? $('#edit-price-type').val() : $('select[name="type"]').val();
+        
+        if (priceType && priceType.toLowerCase() === 'local') {
+            return; // Do not auto-calculate for Local
+        }
+        
+        if (recPrice > 0) {
+            var wp = recPrice + (recPrice * (wpAddPercent / 100));
+            var rp = recPrice + (recPrice * (rpAddPercent / 100));
+            
+            if (isModal) {
+                $('#edit-wp').val(wp.toFixed(2));
+                $('#edit-rp').val(rp.toFixed(2));
+            } else {
+                $('input[name="wp"]').not('#edit-wp').val(wp.toFixed(2));
+                $('input[name="rp"]').not('#edit-rp').val(rp.toFixed(2));
+            }
+        }
+    });
+    
+    // Trigger calculation when changing price type back to Global, or clear when changing to Local
+    $(document).on('change', '#edit-price-type, select[name="type"]', function() {
+        var isModal = $(this).attr('id') === 'edit-price-type';
+        var priceType = $(this).val();
+        
+        if (priceType && priceType.toLowerCase() === 'global') {
+            var targetInput = isModal ? $('#edit-received-price') : $('#input-received-price');
+            targetInput.trigger('input');
+        } else if (priceType && priceType.toLowerCase() === 'local') {
+            if (isModal) {
+                $('#edit-wp').val('');
+                $('#edit-rp').val('');
+            } else {
+                $('input[name="wp"]').not('#edit-wp').val('');
+                $('input[name="rp"]').not('#edit-rp').val('');
+            }
+        }
+    });
+});
+</script>
+
+<!-- Edit Product Modal -->
+<div class="modal fade" id="modal-edit-product" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 8px;">
+      <div class="modal-header">
+        <h5 class="modal-title" style="font-weight: 600; font-size: 15px;"><i class="fa fa-edit"></i> Edit Product</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-edit-product" onsubmit="return false;">
+          <input type="hidden" name="product_id" id="edit-product-id">
+          
+          <div class="text-center mb-4">
+            <div style="font-size: 10px; font-weight: 600; color: #64748b; margin-bottom: 5px;">PRODUCT IMAGE</div>
+            <div id="edit-image-container" style="display: inline-flex; flex-direction: column; align-items: center;">
+              <button type="button" id="button-edit-image" class="btn" style="background: #f8fafc; color: #64748b; border-radius: 50%; width: 60px; height: 60px; padding: 0; display: flex; align-items: center; justify-content: center; border: 1px dashed #cbd5e1; margin-bottom: 8px;">
+                <i class="fa fa-cloud-upload" style="font-size: 24px;"></i>
+              </button>
+              <div id="text-edit-image" onclick="$('#button-edit-image').click();" style="font-size: 11px; color: #64748b; cursor: pointer;">Click to Upload Image</div>
+              <input type="hidden" name="image" value="" id="input-edit-image">
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-sm-5">
+              <label class="form-label" style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase;">Box ID</label>
+              <input type="text" name="box_id" id="edit-box-id" class="form-control form-control-sm" style="border-radius: 4px; border: 1px solid #3b82f6; color: #334155;">
+            </div>
+            <div class="col-sm-7">
+              <label class="form-label" style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase;">Barcode Type / Barcode</label>
+              <div class="input-group input-group-sm mb-1">
+                <select name="barcode_type" id="edit-barcode-type" class="form-control" style="border-radius: 4px; border: 1px solid #cbd5e1; color: #334155;">
+                  <option value="Unit">Unit</option>
+                  <option value="Box">Box</option>
+                </select>
+              </div>
+              <div class="input-group input-group-sm">
+                <input type="text" name="barcode" id="edit-barcode" class="form-control" style="border-radius: 4px 0 0 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+                <button type="button" class="btn btn-primary" onclick="generateEditBarcode()" style="background: #0ea5e9; border-color: #0ea5e9;"><i class="fa fa-refresh"></i> Gen</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label" style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase;">Product Name</label>
+            <input type="text" name="name" id="edit-name" class="form-control form-control-sm" style="border-radius: 4px; border: 1px solid #3b82f6; color: #334155;">
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-sm-4">
+              <label class="form-label" style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase;">Price Type</label>
+              <select name="price_type" id="edit-price-type" class="form-control form-control-sm" style="border-radius: 4px; border: 1px solid #cbd5e1; color: #64748b;">
+                <option value="global">Global</option>
+                <option value="local">Local</option>
+              </select>
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label" style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase;">Received Price</label>
+              <input type="text" name="received_price" id="edit-received-price" class="form-control form-control-sm" style="border-radius: 4px; border: 1px solid #cbd5e1; color: #334155;">
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label" style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase;">Quantity</label>
+              <input type="text" name="quantity" id="edit-quantity" class="form-control form-control-sm" style="border-radius: 4px; border: 1px solid #cbd5e1; color: #334155;">
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-sm-6">
+              <label class="form-label" style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase;">WP (Wholesale)</label>
+              <input type="text" name="wp" id="edit-wp" class="form-control form-control-sm" style="border-radius: 4px; border: 1px solid #3b82f6; color: #334155;">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase;">SWP</label>
+              <input type="text" name="swp" id="edit-swp" class="form-control form-control-sm" style="border-radius: 4px; border: 1px solid #3b82f6; color: #334155;">
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-sm-6">
+              <label class="form-label" style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase;">RP (Retail)</label>
+              <input type="text" name="rp" id="edit-rp" class="form-control form-control-sm" style="border-radius: 4px; border: 1px solid #3b82f6; color: #334155;">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase;">SRP</label>
+              <input type="text" name="srp" id="edit-srp" class="form-control form-control-sm" style="border-radius: 4px; border: 1px solid #3b82f6; color: #334155;">
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-sm-6">
+              <label class="form-label" style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase;">Creation Date</label>
+              <input type="text" name="created_date" id="edit-created-date" class="form-control form-control-sm" style="border-radius: 4px; border: 1px solid #cbd5e1; color: #334155;" readonly>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" style="font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase;">Rack</label>
+              <input type="number" name="rack" id="edit-rack" class="form-control form-control-sm" style="border-radius: 4px; border: 1px solid #cbd5e1; color: #334155;">
+            </div>
+          </div>
+          
+        </form>
+      </div>
+      <div class="modal-footer" style="justify-content: flex-end; border-top: none; padding-bottom: 20px; padding-right: 24px; gap: 10px;">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background: #ef4444; border: none; border-radius: 20px; padding: 6px 20px; font-size: 12px; font-weight: 600; color: #fff;">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitEditProduct()" style="background: #465fff; border: none; border-radius: 20px; padding: 6px 20px; font-size: 12px; font-weight: 600; color: #fff;">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript" src="../extension/purpletree_pos/admin/view/javascript/ptsbarcode/JsBarcode.all.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Initialize barcodes on initial page load
+    if (typeof JsBarcode !== 'undefined') {
+        JsBarcode(".barcode-svg").init();
+    }
+});
+</script>
+
+</div>
+</div>
 {{ footer }}

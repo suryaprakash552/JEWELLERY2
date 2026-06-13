@@ -30,13 +30,13 @@
               </div>
             </div>
           </div>
-          <div class="accuracy-info" id="accuracyInfo" style="margin-top: 10px; padding: 10px; background: #1a1d29; border-radius: 6px; font-size: 0.85rem; color: #8b92a9;">
+          <div class="accuracy-info" id="accuracyInfo" style="margin-top: 10px; padding: 10px; background: rgba(128, 128, 128, 0.05); border-radius: 6px; font-size: 0.85rem; color: #6c757d; border: 1px solid var(--bs-border-color);">
             <i class="fa-solid fa-satellite-dish"></i> GPS Accuracy: <span id="accuracyText">--</span>
           </div>
-          <div class="location-info" id="locationInfo" style="margin-top: 10px; padding: 10px; background: #1a1d29; border-radius: 6px; font-size: 0.85rem; color: #8b92a9;">
+          <div class="location-info" id="locationInfo" style="margin-top: 10px; padding: 10px; background: rgba(128, 128, 128, 0.05); border-radius: 6px; font-size: 0.85rem; color: #6c757d; border: 1px solid var(--bs-border-color);">
             <i class="fa-solid fa-map-marker-alt"></i> <span id="locationText">Detecting location...</span>
           </div>
-          <div class="location-info" id="locationInfo" style="margin-top: 10px; padding: 10px; background: #1a1d29; border-radius: 6px; font-size: 0.85rem; color: #8b92a9;">
+          <div class="location-info" id="locationInfo" style="margin-top: 10px; padding: 10px; background: rgba(128, 128, 128, 0.05); border-radius: 6px; font-size: 0.85rem; color: #6c757d; border: 1px solid var(--bs-border-color);">
             <i class="fa-solid fa-map-marker-alt"></i> <span id="locationText">Current location:</span>
             <span class="coordinate-label"></span>
             <span class="coordinate-value" id="userLat"></span>
@@ -611,20 +611,19 @@
   * { box-sizing: border-box; }
 
   #content {
-    background: #1a1d29;
+    background-color: transparent;
     min-height: 100vh;
     padding: 0;
   }
 
   .page-header {
-    background: #1a1d29;
-    border-bottom: 1px solid #2a2d3a;
+    border-bottom: 1px solid var(--bs-border-color);
     padding: 20px 30px;
     margin-bottom: 0;
   }
 
   .page-header h1 {
-    color: #ffffff;
+    color: var(--bs-heading-color);
     font-size: 1.8rem;
     margin: 0;
     font-weight: 500;
@@ -637,23 +636,22 @@
   }
 
   .card {
-    background: #262936;
     border-radius: 8px;
     padding: 25px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     margin-bottom: 20px;
-    border: 1px solid #2a2d3a;
+    border: 1px solid var(--bs-border-color);
   }
 
   .card h2 {
-    color: #ffffff;
+    color: var(--bs-heading-color);
     margin-bottom: 20px;
     font-size: 1.2rem;
     display: flex;
     align-items: center;
     gap: 10px;
     font-weight: 500;
-    border-bottom: 1px solid #2a2d3a;
+    border-bottom: 1px solid var(--bs-border-color);
     padding-bottom: 15px;
   }
 
@@ -668,13 +666,13 @@
     text-align: center;
     padding: 20px;
     border-radius: 6px;
-    background: #1a1d29;
-    border: 1px solid #2a2d3a;
+    background-color: rgba(128,128,128,0.05);
+    border: 1px solid var(--bs-border-color);
   }
 
   .status-label {
     font-size: 0.85rem;
-    color: #8b92a9;
+    color: #6c757d;
     margin-bottom: 10px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -684,6 +682,7 @@
     font-size: 1.6rem;
     font-weight: 600;
     margin: 10px 0;
+    color: var(--bs-heading-color);
   }
 
   .status-subtitle {
@@ -692,8 +691,8 @@
     margin-top: 5px;
   }
 
-  .status-online { color: #28a745; }
-  .status-offline { color: #dc3545; }
+  .status-online { color: #28a745 !important; }
+  .status-offline { color: #dc3545 !important; }
 
   .current-location {
     display: flex;
@@ -724,7 +723,7 @@
     height: 18px;
     background: #007bff;
     border-radius: 50%;
-    border: 3px solid #1a1d29;
+    border: 3px solid #ffffff;
     box-shadow: 0 2px 6px rgba(0, 123, 255, 0.5);
     transform: translateX(-50%);
     transition: left 0.3s ease;
@@ -737,8 +736,8 @@
   }
 
   .location-card {
-    background: #1a1d29;
-    border: 1px solid #2a2d3a;
+    background-color: rgba(128,128,128,0.05);
+    border: 1px solid var(--bs-border-color);
     border-radius: 6px;
     padding: 15px;
     transition: all 0.3s;
@@ -756,13 +755,13 @@
     align-items: center;
     margin-bottom: 12px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #2a2d3a;
+    border-bottom: 1px solid var(--bs-border-color);
   }
 
   .location-name {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--bs-heading-color);
   }
 
   .location-badge {
@@ -789,7 +788,7 @@
     gap: 8px;
     margin-bottom: 12px;
     font-size: 0.85rem;
-    color: #8b92a9;
+    color: #6c757d;
   }
 
   .location-details > div {
@@ -834,19 +833,19 @@
     display: flex;
     justify-content: space-between;
     padding: 12px 15px;
-    background: #1a1d29;
+    background-color: rgba(128,128,128,0.05);
     border-radius: 6px;
-    border: 1px solid #2a2d3a;
+    border: 1px solid var(--bs-border-color);
   }
 
   .coordinate-label {
-    color: #8b92a9;
+    color: #6c757d;
     font-size: 0.9rem;
   }
 
   .coordinate-value {
     font-weight: 600;
-    color: #ffffff;
+    color: var(--bs-heading-color);
     font-size: 0.95rem;
   }
 
@@ -907,7 +906,8 @@
   }
 
   .btn:disabled {
-    background: #495057;
+    background: #e9ecef;
+    color: #6c757d;
     cursor: not-allowed;
     opacity: 0.6;
   }
@@ -919,7 +919,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.95);
+    background: rgba(0, 0, 0, 0.8);
     z-index: 10000;
     justify-content: center;
     align-items: center;
@@ -930,16 +930,17 @@
   }
 
   .camera-container {
-    background: #262936;
+    background-color: var(--bs-body-bg);
     border-radius: 12px;
     padding: 30px;
     max-width: 600px;
     width: 90%;
     text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   }
 
   .camera-container h3 {
-    color: #ffffff;
+    color: var(--bs-heading-color);
     margin-bottom: 20px;
     font-size: 1.4rem;
   }
@@ -1005,7 +1006,7 @@
 
   .btn-retake {
     background: #ffc107;
-    color: #212529;
+    color: var(--bs-heading-color);
   }
 
   .btn-submit {
@@ -1020,12 +1021,12 @@
   }
 
   .log-table th {
-    background: #1a1d29;
-    color: #8b92a9;
+    background-color: rgba(128,128,128,0.05);
+    color: var(--bs-body-color);
     padding: 12px 15px;
     text-align: left;
     font-weight: 500;
-    border-bottom: 1px solid #2a2d3a;
+    border-bottom: 1px solid var(--bs-border-color);
     text-transform: uppercase;
     font-size: 0.85rem;
     letter-spacing: 0.5px;
@@ -1033,8 +1034,8 @@
 
   .log-table td {
     padding: 12px 15px;
-    border-bottom: 1px solid #2a2d3a;
-    color: #ffffff;
+    border-bottom: 1px solid var(--bs-border-color);
+    color: var(--bs-heading-color);
     font-size: 0.9rem;
   }
 
@@ -1049,7 +1050,7 @@
     padding: 15px 20px;
     border-radius: 6px;
     color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 10000;
     opacity: 0;
     transform: translateX(100%);
@@ -1071,27 +1072,27 @@
   .accuracy-info, .location-info {
     margin-top: 10px;
     padding: 10px;
-    background: #1a1d29;
+    background-color: rgba(128,128,128,0.05);
     border-radius: 6px;
     font-size: 0.85rem;
-    color: #8b92a9;
+    color: #6c757d;
   }
   .office-header-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
-}
+  }
 
-.office-header-row h2 {
+  .office-header-row h2 {
     margin: 0;
-}
+  }
 
-.office-header-row .map-button {
+  .office-header-row .map-button {
     padding: 8px 14px;
     font-size: 14px;
     width:auto;
-}
+  }
 
 
   @media (max-width: 768px) {

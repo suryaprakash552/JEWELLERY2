@@ -1,16 +1,16 @@
 {{ header }}
 {{ column_left }}
 <div id="content">
-	<div class="page-header">
-		<div class="container-fluid"><div class="float-end">
-		<button class="btn btn-success radius-0" data-original-title="{{ text_original_title }}" data-bs-toggle="modal" id="massPrintbarcode" data-bs-target="#massprint"><i class="fa fa-print"></i> {{ button_massbarcodeprint }}</button>
-		<a href="{{ add }}" data-bs-toggle="tooltip" title="{{ button_add }}" class="btn btn-primary"><i class="fa fa-plus"></i></a>
-        <button type="button" form="form-product" formaction="{{ delete }}" data-bs-toggle="tooltip" title="{{ button_delete }}" class="btn btn-danger" onclick="confirm('{{ text_confirm }}') ? $('#form-product').submit() : false;"><i class="fa-regular fa-trash-can"></i></button>
-      </div>
-			<h1>{{ heading_title }}</h1>
-			<ul class="breadcrumb">
+	<div class="page-header" style="padding-top: 24px; padding-bottom: 24px; margin-bottom: 0;">
+		<div class="container-fluid d-flex justify-content-between align-items-center">
+			<h2 style="margin: 0; font-size: 20px; font-weight: 600; line-height: 28px; color: var(--bs-heading-color) !important; font-family: 'Outfit', 'Inter', sans-serif;">{{ heading_title }}</h2>
+			<ul class="breadcrumb" style="margin: 0; padding: 0; --bs-breadcrumb-divider: '>';">
 				{% for breadcrumb in breadcrumbs %}
-				<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				  {% if loop.last %}
+				    <li class="breadcrumb-item active" style="color: var(--bs-heading-color) !important;">{{ breadcrumb.text }}</li>
+				  {% else %}
+				    <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}" style="color: #64748b !important; text-decoration: none;">{{ breadcrumb.text }}</a></li>
+				  {% endif %}
 				{% endfor %}
 			</ul>
 		</div>
@@ -26,115 +26,43 @@
 			<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 		</div>
 		{% endif %}
-		<div class="panel panel-default card">
-			<div class="panel-heading">
-				<h3 class="panel-title card-header"><i class="fa fa-list"></i> {{ text_list }}</h3>
+		<div class="card">
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<span style="color: var(--bs-heading-color) !important; font-weight: 600; font-family: 'Outfit', 'Inter', sans-serif; font-size: 15px; display: inline-flex; align-items: center;"><i class="fa fa-list" style="margin-right: 8px;"></i> {{ text_list }}</span>
+				<div class="d-flex gap-2 align-items-center">
+					<button type="button" data-bs-toggle="modal" data-bs-target="#modal-filter-posproduct" class="btn btn-custom-filter-white"><i class="fa-solid fa-sliders"></i> Filter</button>
+					<button class="btn btn-custom-print" data-original-title="{{ text_original_title }}" data-bs-toggle="modal" id="massPrintbarcode" data-bs-target="#massprint"><i class="fa-solid fa-print"></i> {{ button_massbarcodeprint }}</button>
+					<a href="{{ add }}" class="btn btn-primary btn-custom-add"><i class="fa-solid fa-plus"></i> Add Product</a>
+					<button type="button" form="form-product" formaction="{{ delete }}" class="btn btn-danger btn-custom-delete" onclick="if ($('input[name*=\'selected\']:checked').length == 0) { alert('Please select at least one item to delete.'); return false; } if (confirm('{{ text_confirm }}')) { $('#form-product').submit(); }"><i class="fa-solid fa-trash-can text-white"></i> Delete</button>
+				</div>
 			</div>
 			<div class="panel-body card-body">
-				<div class="filter-row">
-        
-            <div class="filter-item">
-                {#<label for="input-name">{{ entry_name }}</label>#}
-                <input type="text" name="filter_name" value="{{ filter_name }}"
-                       placeholder="{{ entry_name }}"
-                       id="input-name"
-                       data-oc-target="autocomplete-name"
-                       class="form-control">
-                <ul id="autocomplete-name" class="dropdown-menu"></ul>
-            </div>
-        
-            <div class="filter-item">
-                {#<label for="input-model">{{ entry_model }}</label>#}
-                <input type="text" name="filter_model" value="{{ filter_model }}"
-                       placeholder="{{ entry_model }}"
-                       id="input-model"
-                       data-oc-target="autocomplete-model"
-                       class="form-control">
-                <ul id="autocomplete-model" class="dropdown-menu"></ul>
-            </div>
-        
-            <div class="filter-item">
-                {#<label for="input-price">{{ entry_price }}</label>#}
-                <input type="text" name="filter_price" value="{{ filter_price }}"
-                       placeholder="{{ entry_price }}"
-                       id="input-price"
-                       class="form-control">
-            </div>
-            <div class="filter-item">
-                {#<label for="input-quantity">{{ entry_quantity }}</label>#}
-                <input type="text"
-                   name="filter_box_id"
-                   value="{{ filter_box_id }}"
-                   placeholder="Box ID"
-                   data-oc-target="autocomplete-box-id"
-                   id="input-box-id"
-                   class="form-control">
-                   <ul id="autocomplete-box-id" class="dropdown-menu"></ul>
-            </div>
-            <div class="filter-item">
-                {#<label>Rack Code</label>#}
-                <input type="text" name="filter_rack_code"
-                       value="{{ filter_rack_code }}"
-                       id="input-rack-code"
-                       placeholder="Rack code"
-                       data-oc-target="autocomplete-rack-code"
-                       class="form-control">
-                <ul id="autocomplete-rack-code" class="dropdown-menu"></ul>
-            </div>
-
-                {#<div class="filter-item">
-                    <label for="input-tag">{{ entry_prodcttag }}</label>
-                    <input type="text" name="filter_tag" value="{{ filter_tag }}"
-                           placeholder="{{ entry_prodcttag }}"
-                           id="input-tag"
-                           class="form-control">
-                </div>#}
-                <div class="filter-item">
-                    <input type="text"
-                           name="filter_barcode"
-                           value="{{ filter_barcode }}"
-                           id="input-barcode"
-                           placeholder="Barcode"
-                           class="form-control">
-                           <ul id="autocomplete-barcode" class="dropdown-menu"></ul>
-                </div>
-
-
-                <div class="filter-btn">
-                    <label>&nbsp;</label>
-                    <button type="button" id="button-filter" class="btn btn-primary">
-                        <i class="fa fa-filter"></i> {{ button_filter }}
-                    </button>
-                </div>
-                 <button type="reset"
-                  data-bs-toggle="tooltip"
-                  title="{{ button_reset }}"
-                  class="btn btn-outline-secondary btn-reset">
-            <i class="fa-solid fa-filter-circle-xmark"></i>
-          </button>
-            
-            </div>
-            			
-				</div>
+				<!-- (filter row migrated to modal popup) -->
 				<form action="{{ delete }}" method="post" enctype="multipart/form-data" id="form-product">
 					<div class="table-responsive">
-						<table class="table table-bordered table-hover">
+								<style>
+						#seller-product-table td,
+						#seller-product-table th {
+							text-align: center !important;
+							vertical-align: middle !important;
+						}
+					</style>
+					<table id="seller-product-table" class="table table-bordered table-hover">
 							<thead>
 								<tr>
 									<td style="width: 1px;" class="text-center"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', this.checked);" /></td>
 									<td class="text-center">{{ column_image }}</td>
 									<td class="text-center">Type</td>
 									<td class="text-center"><a href="{{ sort_box_id }}" {% if sort == 'p.box_id' %}class="{{ order|lower }}"{% endif %}>Box ID</td>
-									<td class="text-center">Rack</td>
+									<td class="text-center">{% if sort == 'p.rack_code' %}
+										<a href="{{ sort_rack_code }}" class="{{ order|lower }}">Rack</a>
+										{% else %}
+										<a href="{{ sort_rack_code }}">Rack</a>
+									{% endif %}</td>
 									<td class="text-start">{% if sort == 'pd.name' %}
 										<a href="{{ sort_name }}" class="{{ order|lower }}">{{ column_name }}</a>
 										{% else %}
 										<a href="{{ sort_name }}">{{ column_name }}</a>
-									{% endif %}</td>
-									<td class="text-start">{% if sort == 'p.model' %}
-										<a href="{{ sort_model }}" class="{{ order|lower }}">{{ column_model }}</a>
-										{% else %}
-										<a href="{{ sort_model }}">{{ column_model }}</a>
 									{% endif %}</td>
 									<td class="text-end">{% if sort == 'p.price' %}
 										<a href="{{ sort_price }}" class="{{ order|lower }}">{{ column_price }}</a>
@@ -142,12 +70,21 @@
 										<a href="{{ sort_price }}">{{ column_price }}</a>
 									{% endif %}</td>
 									<td class="text-center">{{ column_barcode }}</td>
-									<td class="text-end">{% if sort == 'p.quantity' %}
-										<a href="{{ sort_quantity }}" class="{{ order|lower }}">{{ column_quantity }}</a>
+									<td class="text-end">{% if sort == 'ppp.pos_quentity' %}
+										<a href="{{ sort_pos_quantity }}" class="{{ order|lower }}">{{ column_quantity }}</a>
 										{% else %}
-										<a href="{{ sort_quantity }}">{{ column_quantity }}</a>
+										<a href="{{ sort_pos_quantity }}">{{ column_quantity }}</a>
 									{% endif %}</td>
-									<th class="text-end">Box Quantity</th>
+									<th class="text-end">{% if sort == 'p.quantity' %}
+										<a href="{{ sort_unit_quantity }}" class="{{ order|lower }}">Box Quantity</a>
+										{% else %}
+										<a href="{{ sort_unit_quantity }}">Box Quantity</a>
+									{% endif %}</th>
+									<th class="text-end">{% if sort == 'p.quantity' %}
+										<a href="{{ sort_unit_quantity }}" class="{{ order|lower }}">Unit Quantity</a>
+										{% else %}
+										<a href="{{ sort_unit_quantity }}">Unit Quantity</a>
+									{% endif %}</th>
 									<td class="text-end">{% if sort == 'p.status' %}
 										<a href="{{ sort_status }}" class="{{ order|lower }}">{{ column_status }}</a>
 										{% else %}
@@ -194,12 +131,12 @@
                                     {{ product.rack_code ?: '-' }}
                                     </td>
 									<td class="barcodename text-start">{{ product.name }}</td>
-									<td class="text-start">{{ product.model }}</td>
+
 									<td class="text-end">{% if product.special %}
-										<span class="barcodeprice ptsc-sellprod-textdecor" style="color:gold;text-decoration: line-through;">{{ product.wholesale_price }}</span><br/>
+										<span class="barcodeprice ptsc-sellprod-textdecor" style="color:#333;text-decoration: line-through;">{{ product.wholesale_price }}</span><br/>
 										<div class="barcodespecialprice text-danger">{{ product.special }}</div>
 										{% else %}
-										<span class="barcodeprice ptsc-sellprod-textdecor"style="color:gold;">{{ product.wholesale_price }}</span>
+										<span class="barcodeprice ptsc-sellprod-textdecor" style="color:#333;">{{ product.wholesale_price }}</span>
 									{% endif %}</td>
 									<!--start barcode-->
 										<td class="text-center">								
@@ -235,15 +172,22 @@
 									<!--start barcode-->
 									<td class="text-end">
 										{% if product.quantity <= 0 %}
-										<span class="label label-warning" style="color:yellow;">{{ product.quantity }}</span>
+										<span class="label label-warning" style="color:#333;">{{ product.quantity }}</span>
 										{% elseif product.quantity <= 5 %}
-										<span class="label label-danger"style="color:yellow;">{{ product.quantity }}</span>
+										<span class="label label-danger" style="color:#333;">{{ product.quantity }}</span>
 										{% else %}
-										<span class="label label-success"style="color:yellow;">{{ product.quantity }}</span>
+										<span class="label label-success" style="color:#333;">{{ product.quantity }}</span>
 									{% endif %}</td>
 									<td class="text-end">
                                         {% if product.upc %}
-                                            {{ product.max_quantity }}
+                                            {{ product.unit_quantity }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        {% if not product.upc %}
+                                            {{ product.unit_quantity }}
                                         {% else %}
                                             -
                                         {% endif %}
@@ -252,11 +196,6 @@
 									<td class="text-start">{{ product.status }}</td>
 									<td class="text-end">
 
-                                    {% if product.box_code %}
-                                       
-                                        <button type="button" class="btn btn-secondary" disabled title="Barcode printing disabled for BOX"><i class="fa fa-print"></i></button>
-                                    {% else %}
-                                        {# UNIT â†’ Allow print #}
                                         <button type="button"
                                                 class="ptsbarcodeselect btn-success btn"
                                                 data-maxqty="{{ product.max_quantity }}"
@@ -269,13 +208,10 @@
                                                 data-productid="{{ product.product_id }}"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#mymodel"
-                                                {% if product.upc %}
-                                                    disabled
-                                                {% endif %}>
-                                            <i class="fa fa-print"></i>
+                                                style="background: #465fff; border: none; color: #fff; border-radius: 4px; width: auto; padding: 6px 12px; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: 600;">
+                                            <i class="fa-solid fa-print" style="margin-bottom: 2px;"></i>Print
                                         </button>
-                                    {% endif %}
-									<a href="{{ product.edit }}" data-bs-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary"><i class="fa fa-pencil fas fa-edit"></i></a></td>
+									<a href="{{ product.edit }}" data-bs-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary" style="background: #465fff; border: none; color: #fff; border-radius: 4px; width: auto; padding: 6px 12px; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; margin-left: 4px; text-decoration: none !important;"><i class="fa-solid fa-pencil" style="margin-bottom: 2px;"></i>Edit</a></td>
 								</tr>
 								{% endfor %}
 								{% else %}
@@ -288,15 +224,16 @@
 					</div>
 				</form>
 				<div class="row">
-					<div class="col-sm-6 text-start">{{ pagination }}</div>
-					<div class="col-sm-6 text-end">{{ results }}</div>
+					<div class="col-sm-6 text-start">{{ results }}</div>
+					<div class="col-sm-6 text-end">{{ pagination }}</div>
 				</div>
 			</div>
 		</div>
 	</div>
+</div>
 	<!-- Start barcode-->
 	<div class="modal" id="mymodel">
-     <div class="modal-dialog">
+     <div class="modal-dialog" style="max-width: 600px;">
 		 <div class="modal-content masspopup">
 			 <div class="modal-header">
 			
@@ -323,10 +260,10 @@
 						  <input type="number" class"form-control massinputpopup" style ="color:black" name="qty" required>
 						  
 					  </div>
-					  <div class="modal-footer">
-							<button type="button"class="btn btn-secondary"data-bs-dismiss="modal">{{ text_close }}</button>
-							<input type="submit" class="btn btn-success" value="Print">
-						</div>
+					  <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; flex-direction: row;">
+						<button type="button" class="btn" data-bs-dismiss="modal" style="background-color: #dc3545 !important; border: 1px solid #dc3545 !important; color: #fff !important; padding: 8px 18px !important; border-radius: 4px !important; font-weight: 600 !important;">{{ text_close }}</button>
+						<input type="submit" class="btn" value="Print" style="background-color: #465fff !important; border: 1px solid #465fff !important; color: #fff !important; padding: 8px 18px !important; border-radius: 4px !important; font-weight: 600 !important;">
+					</div>
 				 </form>				 
 			 </div>
 		 </div>
@@ -423,11 +360,9 @@
 			});
 	
 	</script>-->
-	<!-- end barcode-->
-	
-	<!-- Start mass barcode print-->
+	<!-- end bar	<!-- Start mass barcode print-->
 	<div class="modal" id="massprint">
-     <div class="modal-dialog">
+     <div class="modal-dialog" style="max-width: 600px;">
 		 <div class="modal-content masspopup">
 			 <div class="modal-header">
 				 <h4 class="modal-title">{{ text_masspopupheading }}</h4>
@@ -439,19 +374,65 @@
 						  <label class="masspopuplabel">{{ text_qty }}</label>
 						  <input type="hidden" class="form-control" id="massprintbarcode" name="massprintbarcode">						 
 						  <input type="number" class="form-control massinputpopup" name="qty" required>
-						  <input type="submit" class="btn btn-success" value="{{ text_printsall }}">
 					  </div>
-					  <div class="modal-footer">
-							<button type="button"
-									class="btn btn-secondary"
-									data-bs-dismiss="modal">
-							{{ text_close }}</button>
-						</div>
+					  <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; flex-direction: row;">
+						<button type="button" class="btn" data-bs-dismiss="modal" style="background-color: #dc3545 !important; border: 1px solid #dc3545 !important; color: #fff !important; padding: 8px 18px !important; border-radius: 4px !important; font-weight: 600 !important;">{{ text_close }}</button>
+						<input type="submit" class="btn" value="{{ text_printsall }}" style="background-color: #465fff !important; border: 1px solid #465fff !important; color: #fff !important; padding: 8px 18px !important; border-radius: 4px !important; font-weight: 600 !important;">
+					</div>
 				 </form>				 
 			 </div>
 		 </div>
 	 </div>
  </div>
+
+	<!-- Filter Modal -->
+	<div class="modal fade" id="modal-filter-posproduct" tabindex="-1" aria-labelledby="modal-filter-posproduct-label" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="modal-filter-posproduct-label"><i class="fa-solid fa-filter"></i> {{ button_filter }}</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<form id="form-filter">
+						<div class="mb-3 position-relative">
+							<label class="form-label" for="input-name">{{ entry_name }}</label>
+							<input type="text" name="filter_name" value="{{ filter_name }}" placeholder="{{ entry_name }}" id="input-name" data-oc-target="autocomplete-name" class="form-control" autocomplete="off">
+							<ul id="autocomplete-name" class="dropdown-menu w-100"></ul>
+						</div>
+						<div class="mb-3 position-relative">
+							<label class="form-label" for="input-model">{{ entry_model }}</label>
+							<input type="text" name="filter_model" value="{{ filter_model }}" placeholder="{{ entry_model }}" id="input-model" data-oc-target="autocomplete-model" class="form-control" autocomplete="off">
+							<ul id="autocomplete-model" class="dropdown-menu w-100"></ul>
+						</div>
+						<div class="mb-3">
+							<label class="form-label" for="input-price">{{ entry_price }}</label>
+							<input type="text" name="filter_price" value="{{ filter_price }}" placeholder="{{ entry_price }}" id="input-price" class="form-control">
+						</div>
+						<div class="mb-3 position-relative">
+							<label class="form-label" for="input-box-id">Box ID</label>
+							<input type="text" name="filter_box_id" value="{{ filter_box_id }}" placeholder="Box ID" data-oc-target="autocomplete-box-id" id="input-box-id" class="form-control" autocomplete="off">
+							<ul id="autocomplete-box-id" class="dropdown-menu w-100"></ul>
+						</div>
+						<div class="mb-3 position-relative">
+							<label class="form-label" for="input-rack-code">Rack Code</label>
+							<input type="text" name="filter_rack_code" value="{{ filter_rack_code }}" id="input-rack-code" placeholder="Rack code" data-oc-target="autocomplete-rack-code" class="form-control" autocomplete="off">
+							<ul id="autocomplete-rack-code" class="dropdown-menu w-100"></ul>
+						</div>
+						<div class="mb-3 position-relative">
+							<label class="form-label" for="input-barcode">Barcode</label>
+							<input type="text" name="filter_barcode" value="{{ filter_barcode }}" id="input-barcode" placeholder="Barcode" class="form-control" autocomplete="off">
+							<ul id="autocomplete-barcode" class="dropdown-menu w-100"></ul>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary btn-reset"><i class="fa-solid fa-filter-circle-xmark"></i> Reset</button>
+					<button type="button" id="button-filter" data-bs-dismiss="modal" class="btn btn-custom-filter-white"><i class="fa-solid fa-sliders"></i> Filter</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
 
 <script>
@@ -580,7 +561,7 @@ if (filter_box_id) {
 $(function () {
 
     function fieldWrapperFor(el) {
-        return $(el).closest('.form-group');
+        return $(el).closest('.form-group, .mb-3, .position-relative');
     }
 
     // PRODUCT NAME

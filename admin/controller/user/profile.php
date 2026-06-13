@@ -62,7 +62,7 @@ class Profile extends \Opencart\System\Engine\Controller {
 
 		// Image
 		if (!empty($user_info)) {
-			$data['image'] = $user_info['image'];
+			$data['image'] = isset($user_info['image']) ? $user_info['image'] : (isset($user_info['logoimage']) ? $user_info['logoimage'] : '');
 		} else {
 			$data['image'] = '';
 		}

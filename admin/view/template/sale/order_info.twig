@@ -3,7 +3,7 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
-          <button type="button" onclick="showInvoiceIframe({{ order_id }})" data-bs-toggle="tooltip" title="{{ button_invoice_print }}" class="btn btn-info{% if not order_id %} disabled{% endif %}"><i class="fa-solid fa-print"></i></button>
+          <button type="button" onclick="showInvoiceIframe({{ order_id }})" data-bs-toggle="tooltip" title="{{ button_invoice_print }}" class="btn btn-info btn-custom-print{% if not order_id %} disabled{% endif %}"><i class="fa-solid fa-print"></i> Print</button>
           <a href="{{ shipping }}" target="_blank" data-bs-toggle="tooltip" title="{{ button_shipping_print }}" class="btn btn-info{% if not shipping_method_code %} disabled{% endif %}"><i class="fa-solid fa-truck"></i></a>
           
         {#  <!-- NEW PAYMENT BUTTON -->#}
@@ -12,7 +12,7 @@
         {#    <i class="fa-solid fa-money-bill"></i> Payment#}
         {#</button>#}
           
-          <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+          <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-primary" style="background: #465fff; border: 1px solid #465fff; color: #fff; padding: 6px 12px; border-radius: 4px; font-weight: 600;"><i class="fa-solid fa-arrow-left" style="margin-right: 4px;"></i> Back</a>
         </div>
       <h1>{{ heading_title }}</h1>
       <ol class="breadcrumb">
@@ -66,7 +66,6 @@
             </div>
         </div>
     </div>
-</div>
       <div class="card-body">
 <div class="row mb-3 g-3">
 
@@ -80,13 +79,12 @@
     {#    </div>#}
     {#</div>#}
 
-    <!-- Customer -->
     <div class="col">
         <label class="custom-label">Customer</label>
         <div class="d-flex">
-            <div class="form-control"style="height:36px;background: #0f172a; border: 1px solid #334155; color: #fff; padding: 8px 10px;" >
+            <div class="form-control" style="background-color: transparent !important; min-height: 36px; padding: 8px 10px;">
                 {% if customer_id %}
-                <a href="{{ customer_edit }}" target="_blank">
+                <a href="{{ customer_edit }}" target="_blank" style="color: var(--bs-link-color); text-decoration: none; font-weight: 500;">
                     {{ firstname }} {{ lastname }}
                 </a>
                 {% else %}
@@ -97,83 +95,67 @@
             <button type="button" 
                     data-bs-toggle="modal" 
                     data-bs-target="#modal-customer" 
-                    class="btn btn-outline-primary btn-sm ms-2">
-                <i class="fa-solid fa-cog"></i>
+                    class="btn btn-outline-primary ms-2 rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 36px; height: 36px; flex-shrink: 0;">
+                <i class="fa-solid fa-user"></i>
             </button>
         </div>
     </div>
     <div class="col">
         <label class="custom-label">Payment Address</label>
         <div class="d-flex">
-            <div class="form-control"style="height:36px;background: #0f172a; border: 1px solid #334155; color: #fff; padding: 8px 10px;" >
+            <div class="form-control" style="background-color: transparent !important; min-height: 36px; padding: 8px 10px;">
                 {{ payment_firstname }} {{ payment_lastname }}
             </div>
 
             <button type="button" 
                     data-bs-toggle="modal" 
                     data-bs-target="#modal-payment-address" 
-                    class="btn btn-outline-primary btn-sm ms-2">
-                <i class="fa-solid fa-cog"></i>
+                    class="btn btn-outline-primary ms-2 rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 36px; height: 36px; flex-shrink: 0;">
+                <i class="fa-solid fa-indian-rupee-sign"></i>
             </button>
         </div>
     </div>
 
-    <!-- Store -->
     <div class="col">
         <label class="custom-label">Store</label>
-        <div class="form-control" style="height:36px;background:#0f172a;border:1px solid #334155;color:#fff;padding:8px 10px;">
-        <select id="input-store">
+        <select id="input-store" class="form-select w-100 shadow-none" style="background-color: transparent !important; min-height: 36px; width: 100%;">
             {% for store in stores %}
-                <option value="{{ store.store_id }}"
-                    {% if store.store_id == store_id %}selected{% endif %}
-                    style="background:#0f172a;color:#fff;">
+                <option value="{{ store.store_id }}" {% if store.store_id == store_id %}selected{% endif %}>
                     {{ store.name }}
                 </option>
             {% endfor %}
         </select>
     </div>
-    </div>
 
-    <!-- Language -->
     <div class="col">
         <label class="custom-label">Language</label>
-        <div class="form-control"style="height:36px;background: #0f172a; border: 1px solid #334155; color: #fff; padding: 8px 10px;" >
-            <select id="input-language">
-                {% for language in languages %}
-                    <option value="{{ language.code }}"
-                        {% if language.code == language_code %}selected{% endif %}
-                         style="background:#0f172a;color:#fff;">
-                        {{ language.name }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
+        <select id="input-language" class="form-select w-100 shadow-none" style="background-color: transparent !important; min-height: 36px; width: 100%;">
+            {% for language in languages %}
+                <option value="{{ language.code }}" {% if language.code == language_code %}selected{% endif %}>
+                    {{ language.name }}
+                </option>
+            {% endfor %}
+        </select>
     </div>
 
-    <!-- Currency -->
     <div class="col">
         <label class="custom-label">Currency</label>
-        <div class="form-control"style="background: #0f172a; border: 1px solid #334155; color: #fff; padding: 8px 10px;" >
-            <select id="input-currency">
-                {% for currency in currencies %}
-                    <option value="{{ currency.code }}"
-                        {% if currency.code == currency_code %}selected{% endif %}
-                        style="background:#0f172a;color:#fff;">
-                        {{ currency.title }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
+        <select id="input-currency" class="form-select w-100 shadow-none" style="background-color: transparent !important; min-height: 36px; width: 100%;">
+            {% for currency in currencies %}
+                <option value="{{ currency.code }}" {% if currency.code == currency_code %}selected{% endif %}>
+                    {{ currency.title }}
+                </option>
+            {% endfor %}
+        </select>
     </div>
 
     <!-- Payment Address -->
     {#<div class="col">#}
     {#    <label class="custom-label">Payment Address</label>#}
     {#    <div class="d-flex">#}
-    {#        <div class="form-control"style="height:36px;background: #0f172a; border: 1px solid #334155; color: #fff; padding: 8px 10px;" >#}
+    {#        <div class="form-control" >#}
     {#            {{ payment_firstname }} {{ payment_lastname }}#}
     {#        </div>#}
-
     {#        <button type="button" #}
     {#                data-bs-toggle="modal" #}
     {#                data-bs-target="#modal-payment-address" #}
@@ -186,187 +168,211 @@
     <!-- Payment Method -->
     <div class="col">
         <label class="custom-label">Credit Points</label>
-        <div class="d-flex">
-            <div class="form-control"style="height:36px;background: #0f172a; border: 1px solid #334155; color: #fff; padding: 8px 10px;" >
-               {{ invoice.credit_points }}
-            </div>
+        <div class="form-control" style="background-color: transparent !important; min-height: 36px; padding: 8px 10px;">
+           {{ invoice.credit_points }}
         </div>
     </div>
 
 </div>
 
          
-        <form id="form-cart">
-          <table class="table table-bordered">
-            <thead>
-              <tr>
-                <th>{{ column_product }}</th>
-                <th class="text-end">{{ column_quantity }}</th>
-                <th class="text-end">{{ column_price }}</th>
-                <th class="text-end">{{ column_total }}</th>
-                {#<th class="text-end" style="width: 1px;">{{ column_action }}</th>#}
-              </tr>
-            </thead>
-            <tbody id="order-product">
-              {% set order_product_row = 0 %}
-              {% if order_products %}
-                {% for order_product in order_products %}
-                  <tr>
-                    <td>
-                      <a href="{{ order_product.product_edit }}" target="_blank">{{ order_product.name }}</a>
-                      <div id="error-product-{{ order_product_row }}-product" class="invalid-feedback mt-0"></div>
-                      <ul class="list-unstyled mb-0">
-                        <li>
-                          <small> - {{ text_model }}: {{ order_product.model }}</small>
-                        </li>
-                        {% for option in order_product.option %}
-                          {% if option.type != 'file' %}
-                            <li>
-                              <small> - {{ option.name }}: {{ option.value }}</small>
-                              <div id="error-product-{{ order_product_row }}-option-{{ option.product_option_id }}" class="invalid-feedback mt-0"></div>
-                            </li>
-                          {% else %}
-                            <li>
-                              <small> - {{ option.name }}: <a href="{{ option.href }}">{{ option.filename }}</a></small>
-                              <div id="error-product-{{ order_product_row }}-option-{{ option.product_option_id }}" class="invalid-feedback mt-0"></div>
-                            </li>
-                          {% endif %}
-                        {% endfor %}
-                        {% if order_product.subscription_plan_id %}
-                          <li>
-                            <small> - {{ text_subscription }}: {% if order_product.subscription_edit %}<a href="{{ order_product.subscription_edit }}" target="_blank">{{ order_product.subscription_plan }}</a>{% else %}{{ order_product.subscription_plan }}{% endif %}</small>
-                            <div id="error-product-{{ order_product_row }}-subscription" class="invalid-feedback mt-0"></div>
-                          </li>
-                        {% endif %}
-                        {% if order_product.reward %}
-                          <li>
-                            <small> - {{ text_points }}: {{ order_product.reward }}</small>
-                          </li>
-                        {% endif %}
-                      </ul>
-                      <input type="hidden" name="product[{{ order_product_row }}][product_id]" value="{{ order_product.product_id }}"/> <input type="hidden" name="product[{{ order_product_row }}][quantity]" value="{{ order_product.quantity }}"/>
-                      {% for option in order_product.option %}
-                        {% if option.type == 'select' or option.type == 'radio' %}
-                          <input type="hidden" name="product[{{ order_product_row }}][option][{{ option.product_option_id }}]" value="{{ option.product_option_value_id }}"/>
-                        {% endif %}
-                        {% if option.type == 'checkbox' %}
-                          <input type="hidden" name="product[{{ order_product_row }}][option][{{ option.product_option_id }}][]" value="{{ option.product_option_value_id }}"/>
-                        {% endif %}
-                        {% if option.type == 'text' or option.type == 'textarea' or option.type == 'file' or option.type == 'date' or option.type == 'datetime' or option.type == 'time' %}
-                          <input type="hidden" name="product[{{ order_product_row }}][option][{{ option.product_option_id }}]" value="{{ option.value }}"/>
-                        {% endif %}
+        <div class="row g-4 mt-1">
+          <!-- Left Column: Product Table -->
+          <div class="col-lg-8 col-md-7 col-12">
+            <form id="form-cart">
+              <div class="table-responsive border rounded-3">
+                <table class="table table-bordered table-hover m-0 align-middle">
+                  <thead>
+                    <tr class="border-bottom" style="background-color: rgba(128, 128, 128, 0.05);">
+                      <th class="py-3 ps-3 text-secondary" style="font-size: 12px; font-weight: 700; letter-spacing: 0.5px;">PRODUCT</th>
+                      <th class="text-end py-3 text-secondary" style="font-size: 12px; font-weight: 700; letter-spacing: 0.5px;">QUANTITY</th>
+                      <th class="text-end py-3 text-secondary" style="font-size: 12px; font-weight: 700; letter-spacing: 0.5px;">UNIT PRICE</th>
+                      <th class="text-end py-3 text-secondary" style="font-size: 12px; font-weight: 700; letter-spacing: 0.5px;">TOTAL</th>
+                      <th class="text-center py-3 pe-3 text-secondary" style="font-size: 12px; font-weight: 700; letter-spacing: 0.5px; width: 80px;">ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody id="order-product">
+                    {% set order_product_row = 0 %}
+                    {% if order_products %}
+                      {% for order_product in order_products %}
+                        <tr class="border-bottom">
+                          <td class="py-3 ps-3">
+                            <a href="{{ order_product.product_edit }}" target="_blank" class="fw-bold text-decoration-none text-primary" style="font-size: 14px;">{{ order_product.name }}</a>
+                            <div id="error-product-{{ order_product_row }}-product" class="invalid-feedback mt-0"></div>
+                            <ul class="list-unstyled mb-0 text-muted mt-1" style="font-size: 12px;">
+                              <li>
+                                <span> - {{ text_model }}: {{ order_product.model }}</span>
+                              </li>
+                              {% for option in order_product.option %}
+                                {% if option.type != 'file' %}
+                                  <li>
+                                    <span> - {{ option.name }}: {{ option.value }}</span>
+                                    <div id="error-product-{{ order_product_row }}-option-{{ option.product_option_id }}" class="invalid-feedback mt-0"></div>
+                                  </li>
+                                {% else %}
+                                  <li>
+                                    <span> - {{ option.name }}: <a href="{{ option.href }}">{{ option.filename }}</a></span>
+                                    <div id="error-product-{{ order_product_row }}-option-{{ option.product_option_id }}" class="invalid-feedback mt-0"></div>
+                                  </li>
+                                {% endif %}
+                              {% endfor %}
+                              {% if order_product.subscription_plan_id %}
+                                <li>
+                                  <span> - {{ text_subscription }}: {% if order_product.subscription_edit %}<a href="{{ order_product.subscription_edit }}" target="_blank">{{ order_product.subscription_plan }}</a>{% else %}{{ order_product.subscription_plan }}{% endif %}</span>
+                                  <div id="error-product-{{ order_product_row }}-subscription" class="invalid-feedback mt-0"></div>
+                                </li>
+                              {% endif %}
+                              {% if order_product.reward %}
+                                <li>
+                                  <span> - {{ text_points }}: {{ order_product.reward }}</span>
+                                </li>
+                              {% endif %}
+                            </ul>
+                            <input type="hidden" name="product[{{ order_product_row }}][product_id]" value="{{ order_product.product_id }}"/> <input type="hidden" name="product[{{ order_product_row }}][quantity]" value="{{ order_product.quantity }}"/>
+                            {% for option in order_product.option %}
+                              {% if option.type == 'select' or option.type == 'radio' %}
+                                <input type="hidden" name="product[{{ order_product_row }}][option][{{ option.product_option_id }}]" value="{{ option.product_option_value_id }}"/>
+                              {% endif %}
+                              {% if option.type == 'checkbox' %}
+                                <input type="hidden" name="product[{{ order_product_row }}][option][{{ option.product_option_id }}][]" value="{{ option.product_option_value_id }}"/>
+                              {% endif %}
+                              {% if option.type == 'text' or option.type == 'textarea' or option.type == 'file' or option.type == 'date' or option.type == 'datetime' or option.type == 'time' %}
+                                <input type="hidden" name="product[{{ order_product_row }}][option][{{ option.product_option_id }}]" value="{{ option.value }}"/>
+                              {% endif %}
+                            {% endfor %}
+                            <input type="hidden" name="product[{{ order_product_row }}][subscription_plan_id]" value="{{ order_product.subscription_plan_id }}"/>
+                          </td>
+                          <td class="text-end py-3 fw-bold text-dark" style="font-size: 14px;">{{ order_product.quantity }}</td>
+                          <td class="text-end py-3 text-muted" style="font-size: 14px;">{{ order_product.price }}</td>
+                          <td class="text-end py-3 fw-bold text-dark" style="font-size: 14px;">{{ order_product.total }}</td>
+                          <td class="text-center py-3 pe-3">
+                              <button type="button" data-bs-toggle="tooltip" title="Cancel" class="btn btn-danger rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-sm button-product-cancel" data-order-product-id="{{ order_product.order_product_id }}" style="width: 30px; height: 30px; background-color: #dc3545; border-color: #dc3545;">
+                                  <i class="fa-solid fa-xmark text-white" style="font-size: 13px;"></i>
+                              </button>
+                          </td>
+                        </tr>
+                        {% set order_product_row = order_product_row + 1 %}
                       {% endfor %}
-                      <input type="hidden" name="product[{{ order_product_row }}][subscription_plan_id]" value="{{ order_product.subscription_plan_id }}"/>
-                    </td>
-                    <td class="text-end">{{ order_product.quantity }}</td>
-                    <td class="text-end">{{ order_product.price }}</td>
-                    <td class="text-end">{{ order_product.total }}</td>
-                    {#<td class="text-end"><button type="button" data-bs-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button></td>#}
-                  </tr>
-                  {% set order_product_row = order_product_row + 1 %}
-                {% endfor %}
-              {% else %}
-                <tr>
-                  <td colspan="5" class="text-center">{{ text_no_results }}</td>
-                </tr>
-              {% endif %}
-            </tbody>
-            <tfoot>
-              <tr>
-                {#<td class="text-end"><button type="button" data-bs-toggle="modal" data-bs-target="#modal-product" class="btn btn-primary"><i class="fa-solid fa-plus-circle"></i></button></td>#}
-              </tr>
-            </tfoot>
+                    {% else %}
+                      <tr>
+                        <td colspan="5" class="text-center text-muted py-4">{{ text_no_results }}</td>
+                      </tr>
+                    {% endif %}
+                  </tbody>
+                  <tfoot>
+                    <tr class="border-top" style="background-color: rgba(128, 128, 128, 0.05);">
+                      <td colspan="5" class="py-3 px-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <div style="font-size: 13px; color: #64748b; font-weight: 500;">
+                              Showing 1 to {{ order_products|length }} of {{ order_products|length }} products
+                          </div>
+                          <nav>
+                              <ul class="pagination pagination-sm m-0">
+                                  <li class="page-item disabled"><span class="page-link" style="border-radius: 4px 0 0 4px; border-color: #e2e8f0; color: #94a3b8;"><i class="fa-solid fa-chevron-left"></i></span></li>
+                                  <li class="page-item active"><span class="page-link" style="background-color: #3b82f6; border-color: #3b82f6; font-weight: 600; padding-left: 12px; padding-right: 12px;">1</span></li>
+                                  <li class="page-item disabled"><span class="page-link" style="border-radius: 0 4px 4px 0; border-color: #e2e8f0; color: #94a3b8;"><i class="fa-solid fa-chevron-right"></i></span></li>
+                              </ul>
+                          </nav>
+                        </div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </form>
+
+            {% if not invoice and order_totals %}
+            <div class="card shadow-sm border mt-3" style="border-radius: 8px; overflow: hidden;">
+                <div class="card-body p-0">
+                    <table class="table table-hover m-0 align-middle">
+                      <tbody id="order-total">
+                        {% for order_total in order_totals %}
+                          <tr class="border-bottom">
+                            <td class="ps-3 py-2 text-secondary"><strong>{{ order_total.title }}</strong></td>
+                            <td class="pe-3 py-2 text-end" style="width: 1px;">{{ order_total.text }}</td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Right Column: Subtotals / Summary -->
+          <div class="col-lg-4 col-md-5 col-12">
             {% if invoice %}
-<tr>
-  <!-- Empty cells to push invoice under Total column -->
-  <td style="border:none !important; padding:0; margin:0;"></td>
-<td style="border:none !important; padding:0; margin:0;"></td>
-<td style="border:none !important; padding:0; margin:0;"></td>
+            <div class="card shadow-sm border" style="border-radius: 8px; overflow: hidden;">
+                <div class="card-body p-0">
+                    <table class="table table-hover m-0 align-middle">
+                      <tbody>
+                        <tr class="border-bottom">
+                          <td class="ps-3 py-3 text-secondary" style="font-size: 13px; font-weight: 500;">Subtotal</td>
+                          <td class="pe-3 py-3 text-end fw-bold text-dark" style="font-size: 14px;">₹ {{ invoice.sub_total }}</td>
+                        </tr>
 
+                        <tr class="border-bottom">
+                          <td class="ps-3 py-2 text-secondary" style="font-size: 13px;">Discount</td>
+                          <td class="pe-3 py-2 text-end text-dark" style="font-size: 14px;">₹ {{ invoice.discount }}</td>
+                        </tr>
 
-  <!-- Invoice Table starts under Total column -->
-  <td colspan="2" style="vertical-align: top; padding:0;">
+                        <tr class="border-bottom" style="background-color: rgba(128, 128, 128, 0.05);">
+                          <td class="ps-3 py-2 text-secondary" style="font-size: 13px; font-weight: 600;">Subtotal After Discount</td>
+                          <td class="pe-3 py-2 text-end" style="font-size: 14px; font-weight: 600; color: var(--bs-body-color);">
+                            ₹ {{ invoice.sub_total - invoice.discount }}
+                          </td>
+                        </tr>
 
-    <table class="table table-bordered" style="margin:0; width:100%;">
-  <tbody>
-    <tr>
-      <td><strong>Subtotal</strong></td>
-      <td style="text-align:right;"><strong>₹ {{ invoice.sub_total }}</strong></td>
-    </tr>
+                        <tr class="border-bottom">
+                          <td class="ps-3 py-2 text-secondary" style="font-size: 13px;">Total Tax</td>
+                          <td class="pe-3 py-2 text-end" style="font-size: 14px; color: var(--bs-body-color);">
+                            ₹ {{ invoice.total_tax }}
+                          </td>
+                        </tr>
 
-    <tr>
-      <td>Discount</td>
-      <td style="text-align:right;">₹ {{ invoice.discount }}</td>
-    </tr>
+                        <tr class="border-bottom" style="background-color: rgba(128, 128, 128, 0.05);">
+                          <th class="ps-3 py-3 text-primary" style="font-size: 14px; font-weight: 700;">Total Amount</th>
+                          <th class="pe-3 py-3 text-end text-primary" style="font-size: 15px; font-weight: 700;">₹ {{ invoice.total_received }}</th>
+                        </tr>
 
-    <tr>
-      <td style="font-weight:700; color:#6c757d;">Subtotal After Discount</td>
-      <td style="text-align:right; font-weight:700; color:#6c757d;">
-        ₹ {{ invoice.sub_total - invoice.discount }}
-      </td>
-    </tr>
+                        <tr class="border-bottom">
+                          <td class="ps-3 py-2 text-secondary" style="font-size: 13px;">Cash Amount</td>
+                          <td class="pe-3 py-2 text-end text-dark" style="font-size: 14px;">₹ {{ invoice.cash_amount }}</td>
+                        </tr>
 
-    <tr>
-      <td style="color:#6c757d;">Total Tax</td>
-      <td style="text-align:right; color:#6c757d;">
-        ₹ {{ invoice.total_tax }}
-      </td>
-    </tr>
+                        <tr class="border-bottom">
+                          <td class="ps-3 py-2 text-secondary" style="font-size: 13px;">UPI Amount</td>
+                          <td class="pe-3 py-2 text-end text-dark" style="font-size: 14px;">₹ {{ invoice.upi_amount }}</td>
+                        </tr>
 
-    <tr>
-      <th>Total Amount</th>
-      <th style="text-align:right;">₹ {{ invoice.total_received }}</th>
-    </tr>
+                        <tr class="border-bottom">
+                          <td class="ps-3 py-2 text-secondary" style="font-size: 13px;">UPI Ref</td>
+                          <td class="pe-3 py-2 text-end text-dark" style="font-size: 14px;">{{ invoice.upi_ref ?: '-' }}</td> 
+                        </tr>
 
-    <tr>
-      <td>Cash Amount</td>
-      <td style="text-align:right;">₹ {{ invoice.cash_amount }}</td>
-    </tr>
+                        <tr class="border-bottom">
+                          <td class="ps-3 py-2 text-secondary" style="font-size: 13px;">Coupon</td>
+                          <td class="pe-3 py-2 text-end text-dark" style="font-size: 14px;">{{ invoice.coupon ?: '-' }}</td>
+                        </tr>
 
-    <tr>
-      <td>UPI Amount</td>
-      <td style="text-align:right;">₹ {{ invoice.upi_amount }}</td>
-    </tr>
-
-    <tr>
-      <td>UPI Ref</td>
-      <td style="text-align:right;">{{ invoice.upi_ref }}</td> 
-    </tr>
-
-    <tr>
-      <td>Coupon</td>
-      <td style="text-align:right;">{{ invoice.coupon }}</td>
-    </tr>
-
-    <tr>
-      <td style="font-weight:700; color:{% if invoice.pending_amount > 0 %}red{% else %}green{% endif %};">
-        Due Amount
-      </td>
-      <td style="text-align:right; font-weight:700;
-          color:{% if invoice.pending_amount > 0 %}red{% else %}green{% endif %};">
-        ₹ {{ invoice.pending_amount }}
-      </td>
-    </tr>
-  </tbody>
-</table>
-  </td>
-</tr>
-{% endif %}
-          </table>
-        </form>
-        <table class="table table-bordered">
-          <tbody id="order-total">
-            {% for order_total in order_totals %}
-              <tr>
-                <td class="text-end"><strong style="color:black">{{ order_total.title }}</strong></td>
-                <td class="text-end" style="width: 1px;">{{ order_total.text }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        <!-- Invoice iframe -->
-        <div id="invoiceBox" class="mt-4">
-            <iframe id="invoiceFrame" style="width:100%; height:900px; border:1px solid #ddd; display:none;"></iframe>
+                        <tr>
+                          <td class="ps-3 py-3 fw-bold {% if invoice.pending_amount > 0 %}text-danger{% else %}text-success{% endif %}" style="font-size: 14px;">
+                            Due Amount
+                          </td>
+                          <td class="pe-3 py-3 text-end fw-bold {% if invoice.pending_amount > 0 %}text-danger{% else %}text-success{% endif %}" style="font-size: 15px;">
+                            ₹ {{ invoice.pending_amount }}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        <!-- Invoice iframe (off-screen, used only for printing) -->
+        <div id="invoiceBox">
+            <iframe id="invoiceFrame" style="position:fixed; left:-9999px; top:-9999px; width:800px; height:900px; border:none; display:block;"></iframe>
         </div>
       </div>
     </div>
@@ -386,26 +392,227 @@
               <legend>{{ text_history }}</legend>
               <div id="history">{{ history }}</div>
             </fieldset>
+            
+            <!-- Order Tracking -->
+            {% set current_step = 1 %}
+            {% if order_status_id == 1 %} {% set current_step = 1 %} {% endif %}
+            {% if order_status_id == 2 %} {% set current_step = 2 %} {% endif %}
+            {% if order_status_id == 3 %} {% set current_step = 3 %} {% endif %}
+            {% if order_status_id == 15 %} {% set current_step = 4 %} {% endif %}
+            {% if order_status_id >= 5 and order_status_id != 15 %} {% set current_step = 5 %} {% endif %}
+
+            {% set progress_width = ((current_step - 1) * 25) ~ '%' %}
+
+            {% set next_status_id = '' %}
+            {% set next_status_name = '' %}
+            {% if current_step == 1 %}
+                {% set next_status_id = 2 %}
+                {% set next_status_name = 'Packed' %}
+            {% elseif current_step == 2 %}
+                {% set next_status_id = 3 %}
+                {% set next_status_name = 'Shipped' %}
+            {% elseif current_step == 3 %}
+                {% set next_status_id = 15 %}
+                {% set next_status_name = 'Delivered' %}
+            {% elseif current_step == 4 %}
+                {% set next_status_id = 5 %}
+                {% set next_status_name = 'Completed' %}
+            {% endif %}
+
+            <fieldset class="mb-4 mt-2">
+                <div class="card shadow-sm">
+                    <div class="card-header fw-bold" style="padding: 12px 20px;">
+                        <i class="fa-solid fa-truck text-primary me-2"></i> Order Tracking
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Stepper -->
+                        <div class="position-relative mb-4 mt-2">
+                            <!-- Progress Line -->
+                            <div class="progress position-absolute" style="height: 4px; top: 18px; left: 10%; right: 10%; z-index: 1;">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ progress_width }};" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            
+                            <!-- Steps -->
+                            <div class="d-flex justify-content-between position-relative" style="z-index: 2;">
+                            {% set steps = [
+                                {id: 1, name: 'Order Placed'},
+                                {id: 2, name: 'Packed'},
+                                {id: 3, name: 'Shipped'},
+                                {id: 4, name: 'Delivered'},
+                                {id: 5, name: 'Completed'}
+                            ] %}
+                            {% for step in steps %}
+                                <div class="text-center" style="width: 20%;">
+                                {% if current_step > step.id %}
+                                    <!-- Completed Step -->
+                                    <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle mb-2 shadow-sm" style="width: 40px; height: 40px;">
+                                        <i class="fa-solid fa-check" style="color: #ffffff !important; fill: #ffffff !important;"></i>
+                                    </div>
+                                    <div style="font-size: 13px; font-weight: bold; color: #0d6efd;">{{ step.name }}</div>
+                                {% elseif current_step == step.id %}
+                                    <!-- Current Step -->
+                                    <div class="d-inline-flex align-items-center justify-content-center bg-transparent border border-primary rounded-circle mb-2 shadow-sm" style="width: 40px; height: 40px; border-width: 3px !important;">
+                                        <div class="bg-primary rounded-circle" style="width: 14px; height: 14px;"></div>
+                                    </div>
+                                    <div style="font-size: 13px; font-weight: bold; color: #0d6efd;">{{ step.name }}</div>
+                                {% else %}
+                                    <!-- Future Step -->
+                                    <div class="d-inline-flex align-items-center justify-content-center bg-transparent border border-secondary rounded-circle mb-2" style="width: 40px; height: 40px; border-width: 2px !important;">
+                                    </div>
+                                    <div style="font-size: 13px; font-weight: 500; color: #6c757d;">{{ step.name }}</div>
+                                {% endif %}
+                                </div>
+                            {% endfor %}
+                            </div>
+                        </div>
+
+                        {% if next_status_id %}
+                        <!-- Next Step Box -->
+                        <div class="d-flex align-items-center justify-content-between p-3 mt-4 rounded border" style="background-color: rgba(128, 128, 128, 0.05);">
+                            <div class="d-flex align-items-center">
+                                <div class="d-inline-flex align-items-center justify-content-center text-white rounded-circle me-3" style="width: 40px; height: 40px; background-color: #465fff;">
+                                    <i class="fa-solid fa-sync" style="color: #ffffff !important; fill: #ffffff !important;"></i>
+                                </div>
+                                <div>
+                                    <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Next step</div>
+                                    <div style="font-size: 15px; font-weight: bold; margin-top: 2px; color: var(--bs-heading-color);">Mark as {{ next_status_name }}</div>
+                                </div>
+                            </div>
+                            <button type="button" id="button-update-tracker" class="btn btn-primary px-4 fw-bold shadow-sm" onclick="updateOrderStatus({{ next_status_id }});">Update</button>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-success mt-4 mb-0 fw-bold"><i class="fa-solid fa-check-circle me-2"></i> This order is Completed.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </fieldset>
+
+            <script>
+            function updateOrderStatus(status_id) {
+                // Set the hidden order status dropdown to the new status
+                $('#input-order-status').val(status_id);
+                
+                // Trigger the history form submit via AJAX using OpenCart 4 API call method
+                $.ajax({
+                    url: 'index.php?route=sale/order.call&user_token={{ user_token }}&order_id={{ order_id }}&store_id={{ store_id }}&call=history_add',
+                    type: 'post',
+                    dataType: 'json',
+                    data: $('#form-history').serialize(),
+                    beforeSend: function() {
+                        $('#button-update-tracker').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Updating...');
+                    },
+                    success: function(json) {
+                        if (json['error']) {
+                            alert(json['error']);
+                            $('#button-update-tracker').prop('disabled', false).html('Update');
+                        }
+                        if (json['success']) {
+                            // Reload the current page to update the tracker and history table in place
+                            window.location.reload();
+                        }
+                    },
+                    error: function(xhr, ajaxOptions, thrownError) {
+                        alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+                        $('#button-update-tracker').prop('disabled', false).html('Update');
+                    }
+                });
+            }
+
+            $(document).on('click', '#button-history', function(e) {
+                e.preventDefault();
+                $.ajax({
+                    url: 'index.php?route=sale/order.call&user_token={{ user_token }}&order_id={{ order_id }}&store_id={{ store_id }}&call=history_add',
+                    type: 'post',
+                    dataType: 'json',
+                    data: $('#form-history').serialize(),
+                    beforeSend: function() {
+                        $('#button-history').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Submitting...');
+                    },
+                    success: function(json) {
+                        if (json['error']) {
+                            alert(json['error']);
+                            $('#button-history').prop('disabled', false).html('Submit');
+                        }
+                        if (json['success']) {
+                            window.location.reload();
+                        }
+                    },
+                    error: function(xhr, ajaxOptions, thrownError) {
+                        alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+                        $('#button-history').prop('disabled', false).html('Submit');
+                    }
+                });
+            });
+
+            $(document).on('click', '.button-product-cancel', function(e) {
+                e.preventDefault();
+                var order_product_id = $(this).attr('data-order-product-id');
+                var button_el = $(this);
+                
+                if (confirm('Are you sure you want to cancel this product from the order?')) {
+                    $.ajax({
+                        url: 'index.php?route=sale/order.cancelProduct&user_token={{ user_token }}',
+                        type: 'post',
+                        dataType: 'json',
+                        data: {
+                            order_id: '{{ order_id }}',
+                            order_product_id: order_product_id
+                        },
+                        beforeSend: function() {
+                            button_el.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin text-white"></i>');
+                        },
+                        success: function(json) {
+                            if (json['error']) {
+                                alert(json['error']);
+                                button_el.prop('disabled', false).html('<i class="fa-solid fa-xmark text-white" style="font-size: 13px;"></i>');
+                            }
+                            if (json['success']) {
+                                window.location.reload();
+                            }
+                        },
+                        error: function(xhr, ajaxOptions, thrownError) {
+                            alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+                            button_el.prop('disabled', false).html('<i class="fa-solid fa-xmark text-white" style="font-size: 13px;"></i>');
+                        }
+                    });
+                }
+            });
+            </script>
+
             <form id="form-history">
               <fieldset>
                 <legend>{{ text_history_add }}</legend>
                <div class="row mb-3 align-items-center" style="display:flex; gap:25px; flex-wrap:nowrap;">
 
-    <!-- Order Status -->
-    <div class="col-auto">
-        <label for="input-order-status" style="font-weight: bold; color:white; display:block; margin-bottom:5px;">
-            {{ entry_order_status }}
-        </label>
-        <select name="order_status_id"
-                id="input-order-status"
-                class="form-select"
-                style="height: 45px; font-size: 13px; color:black; background:white; width:350px;">
+    <!-- Order Status (Hidden) -->
+    <div class="col-auto d-none">
+        <select name="order_status_id" id="input-order-status" class="form-select">
             {% for order_status in order_statuses %}
                 <option value="{{ order_status.order_status_id }}"
                     {% if order_status.order_status_id == order_status_id %} selected{% endif %}>
                     {{ order_status.name }}
                 </option>
             {% endfor %}
+        </select>
+    </div>
+
+    <!-- Delivery Boy -->
+    <div class="col-auto">
+        <label for="input-delivery-boy" style="font-weight: bold;  display:block; margin-bottom:5px;">
+            Delivery Boy <span style="color:red">*</span>
+        </label>
+        <select name="delivery_boy_id"
+                id="input-delivery-boy"
+                class="form-select shadow-sm"
+                style="height: 45px; font-size: 13px; width:200px;">
+            <option value="" >-- Select Delivery Boy --</option>
+            {% if delivery_boys %}
+                {% for delivery_boy in delivery_boys %}
+                    <option value="{{ delivery_boy.delivery_boy_id }}"  {% if delivery_boy.delivery_boy_id == delivery_boy_id %}selected{% endif %}>
+                        {{ delivery_boy.name }}
+                    </option>
+                {% endfor %}
+            {% endif %}
         </select>
     </div>
 
@@ -439,7 +646,7 @@
     </div>
         <!-- Add Button -->
         <div class="col-auto">
-        <button type="submit" id="button-history" class="btn btn-primary" style="margin-top:25px;">
+        <button type="button" id="button-history" class="btn btn-primary" style="margin-top:25px;">
             Submit
         </button>
          </div>
@@ -496,44 +703,44 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"style="color:black;">{{ text_customer }}</h5>
+        <h5 class="modal-title">{{ text_customer }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <form id="form-customer" data-oc-target="#section-customer">
           <div class="mb-3">
-            <label for="input-customer" class="form-label" style="color:black;">{{ entry_customer }}</label>
+            <label for="input-customer" class="form-label" >{{ entry_customer }}</label>
             <div class="input-group">
-              <input type="text" value="{{ firstname }} {{ lastname }}" placeholder="{{ entry_customer }}" id="input-customer" data-oc-target="autocomplete-customer" class="form-control" autocomplete="off"/> <a href="{{ customer_add }}" target="_blank" data-bs-toggle="tooltip" title="{{ button_customer_add }}" class="btn btn-outline-secondary" style="background:black"><i class="fa-solid fa-user-plus"></i></a>
+              <input type="text" value="{{ firstname }} {{ lastname }}" placeholder="{{ entry_customer }}" id="input-customer" data-oc-target="autocomplete-customer" class="form-control" autocomplete="off"/> <a href="{{ customer_add }}" target="_blank" data-bs-toggle="tooltip" title="{{ button_customer_add }}" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i></a>
             </div>
             <input type="hidden" name="customer_id" value="{{ customer_id }}" id="input-customer-id"/>
             <ul id="autocomplete-customer" class="dropdown-menu"></ul>
           </div>
           <div class="mb-3">
-            <label for="input-customer-group" class="form-label"style="color:black;">{{ entry_customer_group }}</label> <select name="customer_group_id" id="input-customer-group" class="form-select">
+            <label for="input-customer-group" class="form-label">{{ entry_customer_group }}</label> <select name="customer_group_id" id="input-customer-group" class="form-select">
               {% for customer_group in customer_groups %}
-                <option value="{{ customer_group.customer_group_id }}"{% if customer_group.customer_group_id == customer_group_id %} selected{% endif %}style="color:black;">{{ customer_group.name }}</option>
+                <option value="{{ customer_group.customer_group_id }}"{% if customer_group.customer_group_id == customer_group_id %} selected{% endif %}>{{ customer_group.name }}</option>
               {% endfor %}
             </select>
             <div id="error-customer-group" class="invalid-feedback"></div>
           </div>
           <div class="mb-3 required">
-            <label for="input-firstname" class="form-label"style="color:black;">{{ entry_firstname }}</label> <input type="text" name="firstname" value="{{ firstname }}" placeholder="{{ entry_firstname }}" id="input-firstname" class="form-control"/>
+            <label for="input-firstname" class="form-label">{{ entry_firstname }}</label> <input type="text" name="firstname" value="{{ firstname }}" placeholder="{{ entry_firstname }}" id="input-firstname" class="form-control"/>
             <div id="error-firstname" class="invalid-feedback"></div>
           </div>
           <div class="mb-3 required">
-            <label for="input-lastname" class="form-label"style="color:black;">{{ entry_lastname }}</label> <input type="text" name="lastname" value="{{ lastname }}" placeholder="{{ entry_lastname }}" id="input-lastname" class="form-control"/>
+            <label for="input-lastname" class="form-label">{{ entry_lastname }}</label> <input type="text" name="lastname" value="{{ lastname }}" placeholder="{{ entry_lastname }}" id="input-lastname" class="form-control"/>
             <div id="error-lastname" class="invalid-feedback"></div>
           </div>
           <div class="mb-3 required">
-            <label for="input-email" class="form-label"style="color:black;">{{ entry_email }}</label>
+            <label for="input-email" class="form-label">{{ entry_email }}</label>
             <div class="input-group">
-              <input type="text" name="email" value="{{ email }}" placeholder="{{ entry_email }}" id="input-email" class="form-control"/><a href="mailto:{{ email }}" class="btn btn-outline-secondary"style="background:black"><i class="fa-solid fa-envelope"></i></a>
+              <input type="text" name="email" value="{{ email }}" placeholder="{{ entry_email }}" id="input-email" class="form-control"/><a href="mailto:{{ email }}" class="btn btn-primary"><i class="fa-solid fa-envelope"></i></a>
             </div>
             <div id="error-email" class="invalid-feedback"></div>
           </div>
           <div class="mb-3{% if config_telephone_required %} required{% endif %}">
-            <label for="input-telephone" class="form-label"style="color:black;">{{ entry_telephone }}</label> <input type="text" name="telephone" value="{{ telephone }}" placeholder="{{ entry_telephone }}" id="input-telephone" class="form-control"/>
+            <label for="input-telephone" class="form-label">{{ entry_telephone }}</label> <input type="text" name="telephone" value="{{ telephone }}" placeholder="{{ entry_telephone }}" id="input-telephone" class="form-control"/>
             <div id="error-telephone" class="invalid-feedback"></div>
           </div>
 
@@ -644,61 +851,60 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"style="color:black;">{{ text_payment_address }}</h5>
+        <h5 class="modal-title">{{ text_payment_address }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <div class="modal-body">
         <form id="form-payment-address">
           <div class="mb-3 required">
-            <label for="input-payment-firstname" class="form-label" style="color:black;">{{ entry_firstname }}</label>
+            <label for="input-payment-firstname" class="form-label" >{{ entry_firstname }}</label>
             <input type="text" name="payment_firstname" value="{{ payment_firstname }}" placeholder="{{ entry_firstname }}" id="input-payment-firstname" class="form-control"/>
             <div id="error-payment-firstname" class="invalid-feedback"></div>
           </div>
           <div class="mb-3 required">
-            <label for="input-payment-lastname" class="form-label" style="color:black;">{{ entry_lastname }}</label>
+            <label for="input-payment-lastname" class="form-label" >{{ entry_lastname }}</label>
             <input type="text" name="payment_lastname" value="{{ payment_lastname }}" placeholder="{{ entry_lastname }}" id="input-payment-lastname" class="form-control"/>
             <div id="error-payment-lastname" class="invalid-feedback"></div>
           </div>
           <div class="mb-3">
-            <label for="input-payment-company" class="form-label" style="color:black;">{{ entry_company }}</label>
+            <label for="input-payment-company" class="form-label" >{{ entry_company }}</label>
             <input type="text" name="payment_company" value="{{ payment_company }}" placeholder="{{ entry_company }}" id="input-payment-company" class="form-control"/>
           </div>
           <div class="mb-3 required">
-            <label for="input-payment-address-1" class="form-label" style="color:black;">{{ entry_address_1 }}</label>
+            <label for="input-payment-address-1" class="form-label" >{{ entry_address_1 }}</label>
             <input type="text" name="payment_address_1" value="{{ payment_address_1 }}" placeholder="{{ entry_address_1 }}" id="input-payment-address-1" class="form-control"/>
             <div id="error-payment-address-1" class="invalid-feedback"></div>
           </div>
           <div class="mb-3">
-            <label for="input-payment-address-2" class="form-label" style="color:black;">{{ entry_address_2 }}</label>
+            <label for="input-payment-address-2" class="form-label" >{{ entry_address_2 }}</label>
             <input type="text" name="payment_address_2" value="{{ payment_address_2 }}" placeholder="{{ entry_address_2 }}" id="input-payment-address-2" class="form-control"/>
           </div>
           <div class="mb-3 required">
-            <label for="input-payment-city" class="form-label" style="color:black;">{{ entry_city }}</label>
+            <label for="input-payment-city" class="form-label" >{{ entry_city }}</label>
             <input type="text" name="payment_city" value="{{ payment_city }}" placeholder="{{ entry_city }}" id="input-payment-city" class="form-control"/>
             <div id="error-payment-city" class="invalid-feedback"></div>
           </div>
           <div class="mb-3 required">
-            <label for="input-payment-postcode" class="form-label" style="color:black;">{{ entry_postcode }}</label>
+            <label for="input-payment-postcode" class="form-label" >{{ entry_postcode }}</label>
             <input type="text" name="payment_postcode" value="{{ payment_postcode }}" placeholder="{{ entry_postcode }}" id="input-payment-postcode" class="form-control"/>
             <div id="error-payment-postcode" class="invalid-feedback"></div>
           </div>
           <div class="mb-3 required">
-            <label for="input-payment-country" class="form-label" style="color:black;">{{ entry_country }}</label>
+            <label for="input-payment-country" class="form-label" >{{ entry_country }}</label>
             <select name="payment_country_id" id="input-payment-country" class="form-select">
               <option value="">{{ text_select }}</option>
               {% for country in countries %}
-                <option value="{{ country.country_id }}"{% if country.country_id == payment_country_id %} selected{% endif %} style="color:black;">{{ country.name }}</option>
+                <option value="{{ country.country_id }}"{% if country.country_id == payment_country_id %} selected{% endif %} >{{ country.name }}</option>
               {% endfor %}
             </select>
             <div id="error-payment-country" class="invalid-feedback"></div>
           </div>
           <div class="mb-3 required">
-            <label for="input-payment-zone" class="form-label" style="color:black;">{{ entry_zone }}</label>
+            <label for="input-payment-zone" class="form-label" >{{ entry_zone }}</label>
             <select name="payment_zone_id" id="input-payment-zone" class="form-select">
               <option value="">{{ text_select }}</option>
               {% for zone in payment_zones %}
-                <option value="{{ zone.zone_id }}"{% if zone.zone_id == payment_zone_id %} selected{% endif %} style="color:black;">{{ zone.name }}</option>
+                <option value="{{ zone.zone_id }}"{% if zone.zone_id == payment_zone_id %} selected{% endif %} >{{ zone.name }}</option>
               {% endfor %}
             </select>
             <div id="error-payment-zone" class="invalid-feedback"></div>
@@ -708,11 +914,11 @@
             {% if custom_field.location == 'address' %}
               {% if custom_field.type == 'select' %}
                 <div class="mb-3 custom-field custom-field-{{ custom_field.custom_field_id }}">
-                  <label for="input-payment-custom-field-{{ custom_field.custom_field_id }}" class="form-label" style="color:black;">{{ custom_field.name }}</label>
+                  <label for="input-payment-custom-field-{{ custom_field.custom_field_id }}" class="form-label" >{{ custom_field.name }}</label>
                   <select name="payment_custom_field[{{ custom_field.custom_field_id }}]" id="input-payment-custom-field-{{ custom_field.custom_field_id }}" class="form-select">
                     <option value="">{{ text_select }}</option>
                     {% for custom_field_value in custom_field.custom_field_value %}
-                      <option value="{{ custom_field_value.custom_field_value_id }}"{% if payment_custom_field[custom_field.custom_field_id] and custom_field_value.custom_field_value_id == payment_custom_field[custom_field.custom_field_id] %} selected{% endif %} style="color:black;">{{ custom_field_value.name }}</option>
+                      <option value="{{ custom_field_value.custom_field_value_id }}"{% if payment_custom_field[custom_field.custom_field_id] and custom_field_value.custom_field_value_id == payment_custom_field[custom_field.custom_field_id] %} selected{% endif %} >{{ custom_field_value.name }}</option>
                     {% endfor %}
                   </select>
                   <div id="error-payment-custom-field-{{ custom_field.custom_field_id }}" class="invalid-feedback"></div>
@@ -721,7 +927,7 @@
               
               {% if custom_field.type == 'text' %}
                 <div class="mb-3 custom-field custom-field-{{ custom_field.custom_field_id }}">
-                  <label for="input-payment-custom-field-{{ custom_field.custom_field_id }}" class="form-label" style="color:black;">{{ custom_field.name }}</label>
+                  <label for="input-payment-custom-field-{{ custom_field.custom_field_id }}" class="form-label" >{{ custom_field.name }}</label>
                   <input type="text" name="payment_custom_field[{{ custom_field.custom_field_id }}]" value="{{ payment_custom_field[custom_field.custom_field_id] ? payment_custom_field[custom_field.custom_field_id] : custom_field.value }}" placeholder="{{ custom_field.name }}" id="input-payment-custom-field-{{ custom_field.custom_field_id }}" class="form-control"/>
                   <div id="error-payment-custom-field-{{ custom_field.custom_field_id }}" class="invalid-feedback"></div>
                 </div>
@@ -736,24 +942,35 @@
       </div>
     </div>
   </div>
+</div>
 <script type="text/javascript"><!--
 // All your existing JavaScript remains exactly the same until the bottom functions
 
 let printedOnce = false;
 
+function closeInvoiceIframe() {
+    var iframe = document.getElementById('invoiceFrame');
+    iframe.style.left = '-9999px';
+    iframe.style.top = '-9999px';
+    iframe.src = 'about:blank';
+    printedOnce = false;
+}
+
 function showInvoiceIframe(orderId) {
     printedOnce = false;
     var iframe = document.getElementById('invoiceFrame');
     var url = 'index.php?route=sale/order.invoice&order_id=' + orderId + '&user_token={{ user_token }}';
-    iframe.style.display = "block";
-    iframe.height = "900";
+    // Keep off-screen so it is invisible on page but still printable
+    iframe.style.left = '-9999px';
+    iframe.style.top = '-9999px';
     iframe.src = url;
     iframe.onload = function () {
         if (printedOnce) return;
         printedOnce = true;
-        const win = iframe.contentWindow;
+        var win = iframe.contentWindow;
         win.focus();
         win.print();
+        // onafterprint fires on both Cancel and Save
         win.onafterprint = function () {
             closeInvoiceIframe();
         };
@@ -820,75 +1037,26 @@ function closeInvoiceIframe() {
 </script>
 
 <style>
+/* Override global dark mode input backgrounds to seamlessly blend into cards/modals on this page */
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select {
+    background-color: transparent !important;
+}
 
+/* Specific POS Print button styling if needed */
+.btn-custom-print {
+   font-weight: 600;
+}
 .custom-label {
-    font-size: 12px;
-    font-weight: bold;
-    color: white !important;
-    margin-bottom: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bs-secondary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
     display: block;
 }
 
-.custom-box {
-    background: white !important;
-    color: black !important;
-    border-radius: 8px;
-    font-size: 13px;
-    padding: 8px 10px;
-}
-
-.custom-box a {
-    color: black !important;
-}
-
-.input-select {
-    background: transparent !important;
-    border: none !important;
-    font-size: 13px;
-    height: auto;
-    padding: 0;
-}
-
-#input-store,#input-language,#input-currency {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background: transparent !important;
-    border: none;
-    outline: none;
-    color: #fff;
-    width: 100%;
-    font-size: 14px;
-    padding: 0;
-    cursor: pointer;
-}
-
-#input-store::-ms-expand,#input-language::-ms-expand,#input-currency::-ms-expand {
-    display: none;
-}
-
-#input-store option,#input-language option,#input-currency option {
-    background: #0f172a !important;
-    color: #fff !important;
-}
-
-.dropdown-menu,
-.dropdown-menu.show {
-    background: #1e293b !important;
-    color: white !important;
-    border: 1px solid #334155 !important;
-}
-
-.dropdown-item {
-    color: white !important;
-    background: transparent !important;
-}
-
-.dropdown-item:hover,
-.dropdown-item:focus {
-    background: #334155 !important;
-    color: white !important;
-}
 
 /* Payment button styling */
 .btn-primary {
@@ -905,6 +1073,16 @@ function closeInvoiceIframe() {
 .btn-primary:disabled {
     opacity: 0.65;
     cursor: not-allowed;
+}
+
+.text-white.rounded-circle i,
+.text-white.rounded-circle i::before,
+.text-white.rounded-circle i::after,
+.text-white.rounded-circle svg,
+.text-white.rounded-circle svg path {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+    stroke: #ffffff !important;
 }
 </style>
 

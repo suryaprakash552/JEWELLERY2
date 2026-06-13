@@ -678,7 +678,13 @@ class Product extends \Opencart\System\Engine\Controller {
 		}
 
 		$data['save'] = $this->url->link('catalog/product.save', 'user_token=' . $this->session->data['user_token']);
-		$data['back'] = $this->url->link('catalog/product', 'user_token=' . $this->session->data['user_token'] . $url);
+
+		// If opened from POS Products page, back button should return to POS Products
+		if (isset($this->request->get['pos_product']) && $this->request->get['pos_product'] == '1') {
+			$data['back'] = $this->url->link('extension/purpletree_pos/pos/posproduct', 'user_token=' . $this->session->data['user_token']);
+		} else {
+			$data['back'] = $this->url->link('catalog/product', 'user_token=' . $this->session->data['user_token'] . $url);
+		}
 		$data['upload'] = $this->url->link('tool/upload.upload', 'user_token=' . $this->session->data['user_token']);
 
 		if (isset($this->request->get['product_id'])) {
@@ -726,7 +732,7 @@ class Product extends \Opencart\System\Engine\Controller {
 		} else {
 			$data['model'] = '';
 		}
-		if (!empty($product_info)) {
+        if (!empty($product_info)) {
             $data['sku'] = $product_info['sku'];
         } else {
             $data['sku'] = '';
@@ -735,6 +741,11 @@ class Product extends \Opencart\System\Engine\Controller {
             $data['upc'] = $product_info['upc'];
         } else {
             $data['upc'] = '';
+        }
+        if (!empty($product_info)) {
+            $data['barcode_type'] = $product_info['barcode_type'];
+        } else {
+            $data['barcode_type'] = 'unit';
         }
         if (!empty($product_info)) {
             $data['box_id'] = $product_info['box_id'];
@@ -826,9 +837,9 @@ class Product extends \Opencart\System\Engine\Controller {
 			$data['w_tag'] = '';
 		}
 		if (!empty($product_info['rack_code'])) {
-            $data['rack_number'] = preg_replace('/[^0-9]/', '', $product_info['rack_code']);
+            $data['rack_code'] = $product_info['rack_code'];
         } else {
-            $data['rack_number'] = '';
+            $data['rack_code'] = '';
         }
 
 
@@ -1354,6 +1365,13 @@ class Product extends \Opencart\System\Engine\Controller {
 		];
 
 		$post_info = $this->request->post + $required;
+
+		if (!empty($post_info['batch_number'])) {
+			if (isset($post_info['barcode_type']) && $post_info['barcode_type'] == 'unit') {
+				$post_info['upc'] = $post_info['sku'];
+			}
+			$post_info['sku'] = $post_info['batch_number'];
+		}
 		
 		if (empty($post_info['image'])) {
             $post_info['image'] = 'no_image.png';
@@ -1375,9 +1393,7 @@ class Product extends \Opencart\System\Engine\Controller {
         $rack_input = $post_info['rack_code'] ?? '';
 
         if ($rack_input !== '') {
-            $rack_number = preg_replace('/[^0-9]/', '', $rack_input);
-            $rack_number = str_pad((int)$rack_number, 2, '0', STR_PAD_LEFT);
-            $post_info['rack_code'] = 'RACK-' . $rack_number;
+            $post_info['rack_code'] = trim($rack_input);
         } else {
             $post_info['rack_code'] = '';
         }

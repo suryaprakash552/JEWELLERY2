@@ -41,6 +41,8 @@ $data['festival_add'] = $this->url->link(
 );
 		// General
 		$data['config_description'] = (array)$this->config->get('config_description');
+		$data['config_wp_add_pct'] = $this->config->get('config_wp_add_pct') !== null ? $this->config->get('config_wp_add_pct') : 25;
+		$data['config_rp_add_pct'] = $this->config->get('config_rp_add_pct') !== null ? $this->config->get('config_rp_add_pct') : 35;
 
 		// Store Details
 		$data['config_name'] = $this->config->get('config_name');

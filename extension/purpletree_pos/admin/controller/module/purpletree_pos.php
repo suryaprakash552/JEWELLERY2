@@ -488,7 +488,7 @@ if (version_compare(VERSION, '4.1.0.0', '>=')) {
 			
 			$data['action'] = $this->url->link('extension/purpletree_pos/module/purpletree_pos', 'user_token=' . $this->session->data['user_token'], true);
 			
-			$data['cancel'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=module', true);
+			$data['cancel'] = $this->url->link('extension/purpletree_pos/module/purpletree_pos', 'user_token=' . $this->session->data['user_token'] . '&type=module', true);
 			
 			
 			if (isset($this->request->post['module_purpletree_pos_status'])) {

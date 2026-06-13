@@ -1294,23 +1294,28 @@ class Posproduct extends \Opencart\System\Engine\Model
 
     $term = $this->db->escape($term);
 
-    $sql = "SELECT p.product_id,
-                   CASE
-                     WHEN p.upc = '" . $term . "' THEN 1
-                     WHEN p.sku = '" . $term . "' THEN 2
-                     WHEN pd.name LIKE '%" . $term . "%' THEN 3
-                     ELSE 4
-                   END AS match_priority
-            FROM " . DB_PREFIX . "product p
-            LEFT JOIN " . DB_PREFIX . "product_description pd 
-                ON (p.product_id = pd.product_id)
-            WHERE 
-                p.upc = '" . $term . "'
-                OR p.sku = '" . $term . "'
-                OR pd.name LIKE '%" . $term . "%'
-            GROUP BY p.product_id
-            ORDER BY match_priority ASC, p.product_id DESC
-            LIMIT 20";
+        $language_id = (int)$this->config->get('config_language_id');
+
+        $sql = "SELECT p.product_id,
+                       CASE
+                         WHEN p.upc = '" . $term . "' THEN 1
+                         WHEN p.sku = '" . $term . "' THEN 2
+                         WHEN pd.name LIKE '%" . $term . "%' THEN 3
+                         ELSE 4
+                       END AS match_priority
+                FROM " . DB_PREFIX . "product p
+                INNER JOIN " . DB_PREFIX . "pts_pos_product ppp
+                    ON (p.product_id = ppp.product_id AND ppp.pos_status = 1)
+                LEFT JOIN " . DB_PREFIX . "product_description pd
+                    ON (p.product_id = pd.product_id AND pd.language_id = '" . $language_id . "')
+                WHERE p.status = 1
+                  AND (
+                    p.upc = '" . $term . "'
+                    OR p.sku = '" . $term . "'
+                    OR pd.name LIKE '%" . $term . "%'
+                  )
+                ORDER BY match_priority ASC, p.product_id DESC
+                LIMIT 20";
 
     $query = $this->db->query($sql);
     return $query->rows;

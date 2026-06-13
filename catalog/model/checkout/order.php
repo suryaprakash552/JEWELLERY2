@@ -197,73 +197,6 @@ foreach ($data['products'] as $product) {
 
     $order_id = (int)$this->db->getLastId();
 
-        $this->load->model('catalog/product');
-        
-        foreach ($data['products'] as $product) {
-        
-            $product_id = (int)($product['product_id'] ?? 0);
-            $qty        = (int)($product['quantity'] ?? 1);
-        
-            if ($product_id <= 0 || $qty <= 0) continue;
-        
-            // Find box_id for this product
-            $box = $this->db->query("SELECT box_id FROM `" . DB_PREFIX . "product` WHERE product_id = '" . $product_id . "'AND box_id IS NOT NULL AND box_id != '' LIMIT 1");
-        
-            if ($box->num_rows) {
-                $box_product_id = (int)$box->row['box_id'];
-        
-                $this->model_checkout_order->decreaseBoxQuantity($box_product_id, $qty);
-            }
-        }
-$posQtyMap = [];
-
-foreach ($data['products'] as $product) {
-    $pid = (int)($product['product_id'] ?? 0);
-    $qty = (int)($product['quantity'] ?? 0);
-
-    if ($pid <= 0 || $qty <= 0) continue;
-
-    $posQtyMap[$pid] = ($posQtyMap[$pid] ?? 0) + $qty;
-}
-
-foreach ($posQtyMap as $product_id => $qty) {
-
-    $info = $this->db->query("
-        SELECT product_id, box_id, upc
-        FROM `" . DB_PREFIX . "product`
-        WHERE product_id = '" . (int)$product_id . "'
-        LIMIT 1
-    ");
-
-    if (!$info->num_rows) continue;
-
-    $is_box = !empty($info->row['upc']);
-    $box_id = (int)$info->row['box_id'];
-
-    if ($is_box) {
-
-        // Box POS → 0
-        $this->db->query("
-            UPDATE `" . DB_PREFIX . "pts_pos_product`
-            SET pos_quentity = 0
-            WHERE product_id = '" . (int)$product_id . "'
-        ");
-
-        // All child products POS → 0
-        $this->db->query("
-            UPDATE `" . DB_PREFIX . "pts_pos_product`
-            SET pos_quentity = 0
-            WHERE product_id IN (
-                SELECT product_id
-                FROM `" . DB_PREFIX . "product`
-                WHERE box_id = '" . (int)$product_id . "'
-            )
-        ");
-    }
-
-
-}
-
 
     if ($order_id === 0) return 0;
 
@@ -308,24 +241,24 @@ foreach ($posQtyMap as $product_id => $qty) {
         $this->db->query("INSERT INTO `" . DB_PREFIX . "order_invoice` SET
                                                                         `order_id`           = '" . (int)$order_id . "',
                                                                         `customer_group_id`  = '" . (int)($invoice_extra['customer_group_id'] ?? 0) . "',
-                                                                        `cash_amount`        = '" . (float)$invoice_extra['cash_amount'] . "',
-                                                                        `upi_amount`         = '" . (float)$invoice_extra['upi_amount'] . "',
-                                                                        `takeaway_amount`    = '" . (float)$invoice_extra['takeaway_amount'] . "',
-                                                                        `coupon`             = '" . $this->db->escape($invoice_extra['coupon']) . "',
-                                                                        `credit_points`      = '" . (float)$invoice_extra['credit_points'] . "',
-                                                                        `rewards`      = '" . (float)$invoice_extra['creditpointsused'] . "',
-                                                                        `discount`           = '" . (float)$invoice_extra['discount'] . "',
-                                                                        `number_of_items`    = '" . (int)$invoice_extra['number_of_items'] . "',
-                                                                        `quantity_of_items`  = '" . (int)$invoice_extra['quantity_of_items'] . "',
-                                                                        `sub_total`          = '" . (float)$invoice_extra['sub_total'] . "',
-                                                                        `total_tax`          = '" . (float)$invoice_extra['total_tax'] . "',
-                                                                        `roundoff_amount`    = '" . (float)$invoice_extra['roundoff_amount'] . "',
-                                                                        `amount_through`     = '" . $this->db->escape($invoice_extra['amount_through']) . "',
-                                                                        `pending_amount`     = '" . (float)$invoice_extra['pending_amount'] . "',
+                                                                        `cash_amount`        = '" . (float)($invoice_extra['cash_amount'] ?? 0) . "',
+                                                                        `upi_amount`         = '" . (float)($invoice_extra['upi_amount'] ?? 0) . "',
+                                                                        `takeaway_amount`    = '" . (float)($invoice_extra['takeaway_amount'] ?? 0) . "',
+                                                                        `coupon`             = '" . $this->db->escape($invoice_extra['coupon'] ?? '') . "',
+                                                                        `credit_points`      = '" . (float)($invoice_extra['credit_points'] ?? 0) . "',
+                                                                        `rewards`            = '" . (float)($invoice_extra['creditpointsused'] ?? 0) . "',
+                                                                        `discount`           = '" . (float)($invoice_extra['discount'] ?? 0) . "',
+                                                                        `number_of_items`    = '" . (int)($invoice_extra['number_of_items'] ?? 0) . "',
+                                                                        `quantity_of_items`  = '" . (int)($invoice_extra['quantity_of_items'] ?? 0) . "',
+                                                                        `sub_total`          = '" . (float)($invoice_extra['sub_total'] ?? 0) . "',
+                                                                        `total_tax`          = '" . (float)($invoice_extra['total_tax'] ?? 0) . "',
+                                                                        `roundoff_amount`    = '" . (float)($invoice_extra['roundoff_amount'] ?? 0) . "',
+                                                                        `amount_through`     = '" . $this->db->escape($invoice_extra['amount_through'] ?? '') . "',
+                                                                        `pending_amount`     = '" . (float)($invoice_extra['pending_amount'] ?? 0) . "',
                                                                         `returnable_balance` = '" . $returnable_balance . "',
-                                                                        `advance_used` = '" . (float)($invoice_extra['advance_used'] ?? 0) . "',
-                                                                        `total_received`     = '" . (float)$invoice_extra['total_received'] . "',
-                                                                        `balance`            = '" . (float)$invoice_extra['balance'] . "',
+                                                                        `advance_used`       = '" . (float)($invoice_extra['advance_used'] ?? 0) . "',
+                                                                        `total_received`     = '" . (float)($invoice_extra['total_received'] ?? 0) . "',
+                                                                        `balance`            = '" . (float)($invoice_extra['balance'] ?? 0) . "',
                                                                         `date_added`         = NOW()");
     }
     
@@ -346,24 +279,7 @@ foreach ($posQtyMap as $product_id => $qty) {
     
 }
 
-foreach ($posQtyMap as $product_id => $qty) {
 
-    $info = $this->db->query("SELECT upc
-                                FROM `" . DB_PREFIX . "product`
-                                WHERE product_id = '" . (int)$product_id . "'
-                                LIMIT 1
-    ");
-
-    if (!$info->num_rows) continue;
-
-    if (!empty($info->row['upc'])) {
-
-        $this->db->query(" UPDATE `" . DB_PREFIX . "pts_pos_product`
-                                                    SET pos_quentity = 1
-                                                    WHERE product_id = '" . (int)$product_id . "'
-        ");
-    }
-}
 
 
     return $order_id;

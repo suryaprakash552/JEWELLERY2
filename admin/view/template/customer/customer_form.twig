@@ -1,15 +1,132 @@
 {{ header }}{{ column_left }}
+<style>
+/* Dark Mode Overrides for Inputs and Tabs */
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select {
+    background-color: transparent !important;
+}
+[data-bs-theme="dark"] .nav-tabs .nav-link {
+    color: var(--bs-body-color) !important;
+}
+[data-bs-theme="dark"] .nav-tabs .nav-link.active {
+    background-color: transparent !important;
+    color: var(--bs-primary) !important;
+    border-color: var(--bs-border-color) var(--bs-border-color) transparent !important;
+}
+
+/* Custom Save and Back button styles */
+.btn-custom-save {
+    background-color: #465fff !important;
+    border-color: #465fff !important;
+    color: #ffffff !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 500 !important;
+    height: 38px !important;
+    padding: 0 16px !important;
+    font-size: 14px !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
+    line-height: normal !important;
+    width: auto !important;
+}
+.btn-custom-save:hover {
+    background-color: #3b50db !important;
+    border-color: #3b50db !important;
+    color: #ffffff !important;
+}
+.btn-custom-save i {
+    margin-right: 8px !important;
+    color: #ffffff !important;
+}
+
+.btn-custom-back {
+    background-color: #465fff !important;
+    border-color: #465fff !important;
+    color: #ffffff !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 500 !important;
+    height: 38px !important;
+    padding: 0 16px !important;
+    font-size: 14px !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
+    line-height: normal !important;
+    width: auto !important;
+}
+.btn-custom-back:hover {
+    background-color: #3b50db !important;
+    border-color: #3b50db !important;
+    color: #ffffff !important;
+}
+.btn-custom-back *,
+.btn-custom-back i,
+.btn-custom-back svg,
+.btn-custom-back svg path,
+.btn-custom-back i::before,
+.btn-custom-back i::after {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+    stroke: #ffffff !important;
+}
+.btn-custom-back i {
+    margin-right: 8px !important;
+}
+
+.btn-custom-orders {
+    background-color: #465fff !important;
+    border-color: #465fff !important;
+    color: #ffffff !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 500 !important;
+    height: 38px !important;
+    padding: 0 16px !important;
+    font-size: 14px !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
+    line-height: normal !important;
+    width: auto !important;
+}
+.btn-custom-orders:hover {
+    background-color: #3b50db !important;
+    border-color: #3b50db !important;
+    color: #ffffff !important;
+}
+.btn-custom-orders *,
+.btn-custom-orders i,
+.btn-custom-orders svg,
+.btn-custom-orders svg path,
+.btn-custom-orders i::before,
+.btn-custom-orders i::after {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+    stroke: #ffffff !important;
+}
+.btn-custom-orders i {
+    margin-right: 8px !important;
+}
+</style>
 <div id="content">
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
         {% if orders %}
-          <a href="{{ orders }}" data-bs-toggle="tooltip" title="{{ button_order }}" class="btn btn-warning"><i class="fa-solid fa-receipt"></i></a>
+          <a href="{{ orders }}" data-bs-toggle="tooltip" title="{{ button_order }}" class="btn btn-warning btn-custom-orders"><i class="fa-solid fa-receipt"></i> {{ button_order }}</a>
         {% endif %}
-        <button type="submit" id="button-save" form="form-customer" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
-        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+        <button type="submit" id="button-save" form="form-customer" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary btn-custom-save"><i class="fa-solid fa-floppy-disk"></i> {{ button_save }}</button>
+        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light btn-custom-back"><i class="fa-solid fa-arrow-left"></i> {{ button_back }}</a>
         </div>
-       <h1 style="color:white">{{ heading_title }}</h1>
+       <h1>{{ heading_title }}</h1>
      <ol class="breadcrumb">
         {% for breadcrumb in breadcrumbs %}
           <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
@@ -327,7 +444,7 @@
               <div class="row mb-3">
                 <label for="input-history" class="col-sm-2 col-form-label">{{ entry_comment }}</label>
                 <div class="col-sm-10">
-                  <textarea name="comment" rows="8" placeholder="{{ entry_comment }}" id="input-history" class="form-control"></textarea>
+                  <textarea name="comment" rows="8" id="input-history" class="form-control"></textarea>
                 </div>
               </div>
               <div class="text-end">
@@ -616,7 +733,7 @@
             <fieldset>  
                 <div class="row mb-12" style="row-gap: 20px;margin-left:100px">
                     <div class="col-sm-5">
-                    <label for="input-package" class="col-form-label" style="color:white">Package Name</label>
+                    <label for="input-package" class="col-form-label">Package Name</label>
                     <select name="packagename" id="input-package" class="form-select">
                     <option value="">Select Package</option>
                     {% for package in packages %}

@@ -1,237 +1,222 @@
 {{ header }}{{ column_left }}
 <div id="content">
-  <div class="page-header">
-    <div class="container-fluid">
-      <div class="float-end">
-        <button type="button" data-bs-toggle="tooltip" title="{{ button_filter }}" onclick="$('#filter-customer').toggleClass('d-none');" class="btn btn-light d-lg-none"><i class="fa fa-filter"></i></button>
-		<a href="javascript:void(0)" data-bs-toggle="tooltip" onClick="print_report();" title="{{ button_print}}" class="btn btn-primary"><i class="fa fa-print"></i></a>
-      </div>
-      <h1>{{ heading_title }}</h1>
-      <ul class="breadcrumb">
+  <div class="page-header" style="padding-top: 24px; padding-bottom: 24px; margin-bottom: 0;">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 600; line-height: 28px; color: var(--bs-heading-color) !important; font-family: 'Outfit', 'Inter', sans-serif;">{{ heading_title }}</h2>
+      <ol class="breadcrumb" style="margin: 0; padding: 0; --bs-breadcrumb-divider: '>';">
         {% for breadcrumb in breadcrumbs %}
-        <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+          {% if loop.last %}
+            <li class="breadcrumb-item active" style="color: var(--bs-heading-color) !important;">{{ breadcrumb.text }}</li>
+          {% else %}
+            <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}" style="color: #64748b !important; text-decoration: none;">{{ breadcrumb.text }}</a></li>
+          {% endif %}
         {% endfor %}
-      </ul>
+      </ol>
     </div>
   </div>
-  <div class="container-fluid">{% if error_warning %}
-    <div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    {% endif %}
-    {% if success %}
-    <div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> {{ success }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    {% endif %}
-    <div class="row">
-      <div class="col-md-9 col-md-pull-3 col-sm-12">
-        <div class="panel panel-default card">
-          <div class="panel-heading">
-            <h3 class="panel-title card-header"><i class="fa fa-list"></i> {{ text_list }}</h3>
-          </div>
-          <div class="panel-body card-body">
-        <div id="print_report" class="table-responsive">
-          <table class="table table-bordered">
-            <thead>
-                <td class="text-start">{{ column_date_start }}</td>
-                <td class="text-start">{{ column_date_end }}</td>
-                <td class="text-end">{{ column_no_order }}</td>
-                <td class="text-end">{{ column_no_products }}</td>
-                <td class="text-end">{{ column_tax }}</td>
-                <td class="text-end">{{ column_total }}</td>
-              </tr>
-            </thead>
-            <tbody>
-            
-            {% if orders %}
-            {% for order in orders %}
-            <tr>
-              <td class="text-start">{{ order.date_start }}</td>
-              <td class="text-start">{{ order.date_end }}</td>
-              <td class="text-end">{{ order.orders }}</td>
-              <td class="text-end">{{ order.products }}</td>
-              <td class="text-end">{{ order.tax }}</td>
-              <td class="text-end">{{ order.total }}</td>
-            </tr>
-            {% endfor %}
-			  <tr>
-              <td class="text-end" colspan="5">{{ column_grand_total }}</td>
-              <td class="text-end">{{ grand_total }}</td>
-            </tr>
-            {% else %}
-            <tr>
-              <td class="text-center" colspan="6">{{ text_no_results }}</td>
-            </tr>
-            {% endif %}
-            </tbody>
-            
-          </table>
-        </div>
-            </form>
-          </div>
-        </div>
-      </div>
-	  
-	   <div id="filter-customer" class="col-md-3 col-md-push-9 col-sm-12 d-none d-lg-block">
-        <div class="panel panel-default card">
-          <div class="panel-heading">
-            <h3 class="panel-title card-header"><i class="fa fa-filter"></i> {{ text_filter }}</h3>
-          </div>
-          <div class="panel-body card-body">
-		  <div class="mb-3">
-              <label class="form-label" for="input-date-added">{{ entry_date_start }}</label>
-              <div class="input-group date">
-			  {% if version4100 %}
-			  	<input type="date" name="filter_date_added" value="" placeholder="{{ entry_date_start }}" data-date-format="YYYY-MM-DD" id="input-date-added" class="form-control" />
-			  {% else %}
-                <input type="text" name="filter_date_added" value="" placeholder="{{ entry_date_start }}" data-date-format="YYYY-MM-DD" id="input-date-added" class="form-control" />
-                <span class="input-group-btn">
-                <button type="button" class="btn btn-light"><i class="fa fa-calendar"></i></button>
-                </span>
-				{% endif %}
-              </div>
-            </div>
-			
-			<div class="mb-3">
-              <label class="form-label" for="input-date-added">{{ entry_date_end }}</label>
-              <div class="input-group date">
-			   {% if version4100 %}
-			  	<input type="date" name="filter_date_ended" value="{{ filter_date_ended }}" placeholder="{{ entry_date_end }}" data-date-format="YYYY-MM-DD" id="input-date-ended" class="form-control" />
-			  {% else %}
-                <input type="text" name="filter_date_ended" value="{{ filter_date_ended }}" placeholder="{{ entry_date_end }}" data-date-format="YYYY-MM-DD" id="input-date-ended" class="form-control" />
-                <span class="input-group-btn">
-                <button type="button" class="btn btn-light"><i class="fa fa-calendar"></i></button>
-                </span>
-				{% endif %}
-              </div>
-            </div>
-			
-            <div class="mb-3">
-              <label class="form-label" for="input-name">{{ entry_agent }}</label>
-              <input type="text" name="filter_name" value="{{ filter_name }}" placeholder="{{ entry_agent }}" id="input-name" class="form-control" />
-              <input type="hidden" name="filter_customer_id" value="{{ filter_customer_id }}"  id="input-customer-id" />
-            </div>
-            <div class="form-group text-end">
-              <button type="button" id="button-filter" class="btn btn-light"style=color:white;background-color:#1872a2;border-color:#0b3349;><i class="fa fa-filter"></i> {{ button_filter }}</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <script type="text/javascript"><!--
-  $('.table-responsive').on('shown.bs.dropdown', function (e) {
-    var t = $(this),
-      m = $(e.target).find('.dropdown-menu'),
-      tb = t.offset().top + t.height(),
-      mb = m.offset().top + m.outerHeight(true),
-      d = 20;
-    if (t[0].scrollWidth > t.innerWidth()) {
-      if (mb + d > tb) {
-        t.css('padding-bottom', ((mb + d) - tb));
-      }
-    } else {
-      t.css('overflow', 'visible');
-    }
-  }).on('hidden.bs.dropdown', function () {
-    $(this).css({'padding-bottom': '', 'overflow': ''});
-  });
-  //--></script>
-  <script type="text/javascript"><!--
-  $('#button-filter').on('click', function() {
-    url = 'index.php?route=extension/purpletree_pos/pos/sale_report&user_token={{ user_token }}';
-	
-    var filter_date_added = $('input[name=\'filter_date_added\']').val();
-    if (filter_date_added) {
-      url += '&filter_date_added=' + encodeURIComponent(filter_date_added);
-    }  
-	
-	var filter_date_ended = $('input[name=\'filter_date_ended\']').val();
-    if (filter_date_ended) {
-      url += '&filter_date_ended=' + encodeURIComponent(filter_date_ended);
-    }
-	
-	 var filter_customer_id = $('input[name=\'filter_customer_id\']').val();
-    if (filter_customer_id) {
-      url += '&filter_customer_id=' + encodeURIComponent(filter_customer_id);
-    }
-	
-    location = url;
-  });
-  //--></script>
-  <script type="text/javascript"><!--
-  $('input[name=\'filter_name\']').autocomplete({
-    'source': function(request, response) {
-      $.ajax({
-        url: 'index.php?route=extension/purpletree_pos/sale_report|autocomplete&user_token={{ user_token }}&filter_name=' +  encodeURIComponent(request),
-        dataType: 'json',
-        success: function(json) {
-          response($.map(json, function(item) {
-            return {
-              label: item['name'],
-              value: item['customer_id']
-            }
-          }));
-        }
-      });
-    },
-    'select': function(item) {
-      $('input[name=\'filter_customer_id\']').val(item['value']);
-      $('input[name=\'filter_name\']').val(item['label']);
-    }
-  });
 
-function print_report(){
-	var printContents = '<div class="col-sm-12 text-center"><h1>Sales Report</h1> </div>';
-     printContents += document.getElementById('print_report').innerHTML;
-	 console.log(printContents);
-     var originalContents = document.body.innerHTML;
-     document.body.innerHTML = printContents;
-     window.print();	 	 
-     //document.body.onfocus = doneyet;
-     document.body.innerHTML = originalContents;
-	 
-	   
+  <div class="container-fluid">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span style="color: var(--bs-heading-color) !important; font-weight: 600; font-family: 'Outfit', 'Inter', sans-serif; font-size: 15px; display: inline-flex; align-items: center;">
+            <i class="fa fa-list" style="margin-right: 8px;"></i> {{ text_list }}
+          </span>
+          <div class="d-flex gap-2 align-items-center">
+            <button type="button" data-bs-toggle="modal" data-bs-target="#modal-filter-sale-report" class="btn btn-custom-filter-white">
+              <i class="fa-solid fa-sliders"></i> {{ button_filter }}
+            </button>
+            <a href="javascript:void(0)" onclick="print_report();" class="btn btn-primary btn-custom-add">
+              <i class="fa fa-print"></i> Print
+            </a>
+          </div>
+        </div>
+        <div class="card-body">
+          {% if error_warning %}
+          <div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+          {% endif %}
+          {% if success %}
+          <div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> {{ success }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+          {% endif %}
+
+          <div id="print_report" class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+              <thead>
+                <tr>
+                  <td class="text-center">{{ column_date_start }}</td>
+                  <td class="text-center">{{ column_date_end }}</td>
+                  <td class="text-center">{{ column_no_order }}</td>
+                  <td class="text-center">{{ column_no_products }}</td>
+                  <td class="text-center">{{ column_tax }}</td>
+                  <td class="text-center">{{ column_total }}</td>
+                </tr>
+              </thead>
+              <tbody>
+                {% if orders %}
+                  {% for order in orders %}
+                  <tr>
+                    <td class="text-center">{{ order.date_start }}</td>
+                    <td class="text-center">{{ order.date_end }}</td>
+                    <td class="text-center">{{ order.orders }}</td>
+                    <td class="text-center">{{ order.products }}</td>
+                    <td class="text-center">{{ order.tax }}</td>
+                    <td class="text-center">{{ order.total }}</td>
+                  </tr>
+                  {% endfor %}
+                  <tr>
+                    <td class="text-center" colspan="5">{{ column_grand_total }}</td>
+                    <td class="text-center">{{ grand_total }}</td>
+                  </tr>
+                {% else %}
+                <tr>
+                  <td class="text-center" colspan="6">{{ text_no_results }}</td>
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+          <div class="row" style="margin-top: 15px;">
+            <div class="col-sm-6 text-start">{{ results }}</div>
+            <div class="col-sm-6 text-end">{{ pagination }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Modal -->
+<div class="modal fade" id="modal-filter-sale-report" tabindex="-1" aria-labelledby="modal-filter-sale-report-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-filter-sale-report-label"><i class="fa-solid fa-filter"></i> {{ text_filter }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-filter">
+          <div class="mb-3">
+            <label class="form-label" for="input-date-added">{{ entry_date_start }}</label>
+            {% if version4100 %}
+              <input type="date" name="filter_date_added" value="{{ filter_date_added }}" placeholder="{{ entry_date_start }}" id="input-date-added" class="form-control" />
+            {% else %}
+              <input type="text" name="filter_date_added" value="{{ filter_date_added }}" placeholder="{{ entry_date_start }}" id="input-date-added" class="form-control" />
+            {% endif %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="input-date-ended">{{ entry_date_end }}</label>
+            {% if version4100 %}
+              <input type="date" name="filter_date_ended" value="{{ filter_date_ended }}" placeholder="{{ entry_date_end }}" id="input-date-ended" class="form-control" />
+            {% else %}
+              <input type="text" name="filter_date_ended" value="{{ filter_date_ended }}" placeholder="{{ entry_date_end }}" id="input-date-ended" class="form-control" />
+            {% endif %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="input-name">{{ entry_agent }}</label>
+            <input type="text" name="filter_name" value="{{ filter_name }}" placeholder="{{ entry_agent }}" id="input-name" class="form-control" />
+            <input type="hidden" name="filter_customer_id" value="{{ filter_customer_id }}" id="input-customer-id" />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="button-reset" class="btn btn-outline-secondary"><i class="fa-solid fa-filter-circle-xmark"></i> Reset</button>
+        <button type="button" id="button-filter" data-bs-dismiss="modal" class="btn btn-custom-filter-white"><i class="fa-solid fa-sliders"></i> {{ button_filter }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript"><!--
+$('#button-filter').on('click', function() {
+  var url = 'index.php?route=extension/purpletree_pos/pos/sale_report&user_token={{ user_token }}';
+
+  var filter_date_added = $('input[name=\'filter_date_added\']').val();
+  if (filter_date_added) {
+    url += '&filter_date_added=' + encodeURIComponent(filter_date_added);
+  }
+
+  var filter_date_ended = $('input[name=\'filter_date_ended\']').val();
+  if (filter_date_ended) {
+    url += '&filter_date_ended=' + encodeURIComponent(filter_date_ended);
+  }
+
+  var filter_customer_id = $('input[name=\'filter_customer_id\']').val();
+  if (filter_customer_id) {
+    url += '&filter_customer_id=' + encodeURIComponent(filter_customer_id);
+  }
+
+  location = url;
+});
+
+$('#button-reset').on('click', function() {
+  $('input[name=\'filter_date_added\']').val('');
+  $('input[name=\'filter_date_ended\']').val('');
+  $('input[name=\'filter_name\']').val('');
+  $('input[name=\'filter_customer_id\']').val('');
+  $('#modal-filter-sale-report').modal('hide');
+  location = 'index.php?route=extension/purpletree_pos/pos/sale_report&user_token={{ user_token }}';
+});
+
+$('input[name=\'filter_name\']').autocomplete({
+  'source': function(request, response) {
+    $.ajax({
+      url: 'index.php?route=extension/purpletree_pos/sale_report|autocomplete&user_token={{ user_token }}&filter_name=' + encodeURIComponent(request),
+      dataType: 'json',
+      success: function(json) {
+        response($.map(json, function(item) {
+          return {
+            label: item['name'],
+            value: item['customer_id']
+          }
+        }));
+      }
+    });
+  },
+  'select': function(item) {
+    $('input[name=\'filter_customer_id\']').val(item['value']);
+    $('input[name=\'filter_name\']').val(item['label']);
+  }
+});
+
+function print_report() {
+  var printContents = '<div class="col-sm-12 text-center"><h1>Sales Report</h1></div>';
+  printContents += document.getElementById('print_report').innerHTML;
+  var originalContents = document.body.innerHTML;
+  document.body.innerHTML = printContents;
+  window.print();
+  document.body.innerHTML = originalContents;
 }
 
-  //--></script>
-  <script type="text/javascript"><!--
-  $(function() {
+$(function() {
   $('input[name="filter_date_added"]').daterangepicker({
-      autoUpdateInput: false,
-	  singleDatePicker: true,
-	  showDropdowns: true,
-      locale: {
-          cancelLabel: 'Clear'
-      }
+    autoUpdateInput: false,
+    singleDatePicker: true,
+    showDropdowns: true,
+    locale: { cancelLabel: 'Clear' }
   });
-
   $('input[name="filter_date_added"]').on('apply.daterangepicker', function(ev, picker) {
-      $(this).val(picker.startDate.format('YYYY-MM-DD'));
+    $(this).val(picker.startDate.format('YYYY-MM-DD'));
   });
-
   $('input[name="filter_date_added"]').on('cancel.daterangepicker', function(ev, picker) {
-      $(this).val('');
+    $(this).val('');
   });
-  
+
   $('input[name="filter_date_ended"]').daterangepicker({
-      autoUpdateInput: false,
-	  singleDatePicker: true,
-	  showDropdowns: true,
-      locale: {
-          cancelLabel: 'Clear'
-      }
+    autoUpdateInput: false,
+    singleDatePicker: true,
+    showDropdowns: true,
+    locale: { cancelLabel: 'Clear' }
   });
-
   $('input[name="filter_date_ended"]').on('apply.daterangepicker', function(ev, picker) {
-      $(this).val(picker.startDate.format('YYYY-MM-DD'));
+    $(this).val(picker.startDate.format('YYYY-MM-DD'));
   });
-
   $('input[name="filter_date_ended"]').on('cancel.daterangepicker', function(ev, picker) {
-      $(this).val('');
+    $(this).val('');
   });
 });
-  //--></script>
-</div>
+//--></script>
 {{ footer }}

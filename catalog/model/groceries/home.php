@@ -81,24 +81,7 @@ foreach ($data['products'] as $product) {
 
     $order_id = (int)$this->db->getLastId();
 
-        $this->load->model('catalog/product');
-        
-        foreach ($data['products'] as $product) {
-        
-            $product_id = (int)($product['product_id'] ?? 0);
-            $qty        = (int)($product['quantity'] ?? 1);
-        
-            if ($product_id <= 0 || $qty <= 0) continue;
-        
-            // Find box_id for this product
-            $box = $this->db->query("SELECT box_id FROM `" . DB_PREFIX . "product` WHERE product_id = '" . $product_id . "'AND box_id IS NOT NULL AND box_id != '' LIMIT 1");
-        
-            if ($box->num_rows) {
-                $box_product_id = (int)$box->row['box_id'];
-        
-                $this->model_checkout_order->decreaseBoxQuantity($box_product_id, $qty);
-            }
-        }
+
 $posQtyMap = [];
 
 foreach ($data['products'] as $product) {
@@ -110,43 +93,7 @@ foreach ($data['products'] as $product) {
     $posQtyMap[$pid] = ($posQtyMap[$pid] ?? 0) + $qty;
 }
 
-foreach ($posQtyMap as $product_id => $qty) {
 
-    $info = $this->db->query("
-        SELECT product_id, box_id, upc
-        FROM `" . DB_PREFIX . "product`
-        WHERE product_id = '" . (int)$product_id . "'
-        LIMIT 1
-    ");
-
-    if (!$info->num_rows) continue;
-
-    $is_box = !empty($info->row['upc']);
-    $box_id = (int)$info->row['box_id'];
-
-    if ($is_box) {
-
-        // Box POS → 0
-        $this->db->query("
-            UPDATE `" . DB_PREFIX . "pts_pos_product`
-            SET pos_quentity = 0
-            WHERE product_id = '" . (int)$product_id . "'
-        ");
-
-        // All child products POS → 0
-        $this->db->query("
-            UPDATE `" . DB_PREFIX . "pts_pos_product`
-            SET pos_quentity = 0
-            WHERE product_id IN (
-                SELECT product_id
-                FROM `" . DB_PREFIX . "product`
-                WHERE box_id = '" . (int)$product_id . "'
-            )
-        ");
-    }
-
-
-}
 
 
     if ($order_id === 0) return 0;
@@ -229,24 +176,7 @@ foreach ($posQtyMap as $product_id => $qty) {
     
 }
 
-foreach ($posQtyMap as $product_id => $qty) {
 
-    $info = $this->db->query("SELECT upc
-                                FROM `" . DB_PREFIX . "product`
-                                WHERE product_id = '" . (int)$product_id . "'
-                                LIMIT 1
-    ");
-
-    if (!$info->num_rows) continue;
-
-    if (!empty($info->row['upc'])) {
-
-        $this->db->query(" UPDATE `" . DB_PREFIX . "pts_pos_product`
-                                                    SET pos_quentity = 1
-                                                    WHERE product_id = '" . (int)$product_id . "'
-        ");
-    }
-}
 
 
     return $order_id;

@@ -497,13 +497,25 @@ class Customer extends \Opencart\System\Engine\Controller {
 			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])
 		];
 
-		$data['breadcrumbs'][] = [
-			'text' => $this->language->get('heading_title'),
-			'href' => $this->url->link('customer/customer', 'user_token=' . $this->session->data['user_token'] . $url)
-		];
+		if (isset($this->request->get['posagent']) && $this->request->get['posagent'] == '1') {
+			$data['breadcrumbs'][] = [
+				'text' => 'POS Agents',
+				'href' => $this->url->link('extension/purpletree_pos/pos/posagent', 'user_token=' . $this->session->data['user_token'])
+			];
+		} else {
+			$data['breadcrumbs'][] = [
+				'text' => $this->language->get('heading_title'),
+				'href' => $this->url->link('customer/customer', 'user_token=' . $this->session->data['user_token'] . $url)
+			];
+		}
 
 		$data['save'] = $this->url->link('customer/customer.save', 'user_token=' . $this->session->data['user_token']);
-		$data['back'] = $this->url->link('customer/customer', 'user_token=' . $this->session->data['user_token'] . $url);
+		
+		if (isset($this->request->get['posagent']) && $this->request->get['posagent'] == '1') {
+			$data['back'] = $this->url->link('extension/purpletree_pos/pos/posagent', 'user_token=' . $this->session->data['user_token']);
+		} else {
+			$data['back'] = $this->url->link('customer/customer', 'user_token=' . $this->session->data['user_token'] . $url);
+		}
 		$data['upload'] = $this->url->link('tool/upload.upload', 'user_token=' . $this->session->data['user_token']);
 
 		if (isset($this->request->get['customer_id'])) {

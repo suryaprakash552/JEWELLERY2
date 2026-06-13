@@ -84,11 +84,12 @@ class Header extends \Opencart\System\Engine\Controller {
 			$data['register'] = $this->url->link('account/register', 'language=' . $this->config->get('config_language'));
 			$data['login'] = $this->url->link('account/login', 'language=' . $this->config->get('config_language'));
 		} else {
-			$data['account'] = $this->url->link('account/account', 'language=' . $this->config->get('config_language') . '&customer_token=' . $this->session->data['customer_token']);
-			$data['order'] = $this->url->link('account/order', 'language=' . $this->config->get('config_language') . '&customer_token=' . $this->session->data['customer_token']);
-			$data['transaction'] = $this->url->link('account/transaction', 'language=' . $this->config->get('config_language') . '&customer_token=' . $this->session->data['customer_token']);
-			$data['download'] = $this->url->link('account/download', 'language=' . $this->config->get('config_language') . '&customer_token=' . $this->session->data['customer_token']);
-			$data['logout'] = $this->url->link('account/logout', 'language=' . $this->config->get('config_language'));
+			$customer_token = isset($this->session->data['customer_token']) ? $this->session->data['customer_token'] : '';
+			$data['account'] = $this->url->link('account/account', 'language=' . $this->config->get('config_language') . ($customer_token ? '&customer_token=' . $customer_token : ''));
+			$data['order'] = $this->url->link('account/order', 'language=' . $this->config->get('config_language') . ($customer_token ? '&customer_token=' . $customer_token : ''));
+			$data['transaction'] = $this->url->link('account/transaction', 'language=' . $this->config->get('config_language') . ($customer_token ? '&customer_token=' . $customer_token : ''));
+			$data['download'] = $this->url->link('account/download', 'language=' . $this->config->get('config_language') . ($customer_token ? '&customer_token=' . $customer_token : ''));
+			$data['logout'] = $this->url->link('account/logout', 'language=' . $this->config->get('config_language') . ($customer_token ? '&customer_token=' . $customer_token : ''));
 		}
 
 		$data['shopping_cart'] = $this->url->link('checkout/cart', 'language=' . $this->config->get('config_language'));

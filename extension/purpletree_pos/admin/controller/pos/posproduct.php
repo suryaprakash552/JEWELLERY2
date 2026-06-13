@@ -294,6 +294,11 @@ public function posMassPrintBarcode(): void {
 				} else {
 				$filter_rack_code = null;
 			}
+			if (isset($this->request->get['filter_sku'])) {
+				$filter_sku = $this->request->get['filter_sku'];
+				} else {
+				$filter_sku = null;
+			}
 			if (isset($this->request->get['filter_box_id'])) {
 				$filter_box_id = $this->request->get['filter_box_id'];
 				} else {
@@ -358,6 +363,9 @@ public function posMassPrintBarcode(): void {
 			if (isset($this->request->get['filter_box_id'])) {
 				$url .= '&filter_box_id=' . $this->request->get['filter_box_id'];
 			}
+			if (isset($this->request->get['filter_sku'])) {
+				$url .= '&filter_sku=' . $this->request->get['filter_sku'];
+			}
 			if (isset($this->request->get['filter_price'])) {
 				$url .= '&filter_price=' . $this->request->get['filter_price'];
 			}
@@ -410,6 +418,7 @@ public function posMassPrintBarcode(): void {
 			'filter_model'	  => $filter_model,
 			'filter_rack_code'	  => $filter_rack_code,
 			'filter_box_id' => $filter_box_id,
+			'filter_sku' => $filter_sku,
 			'filter_barcode'     => $filter_barcode,
 			'filter_price'	  => $filter_price,
 			'filter_quantity' => $filter_quantity,
@@ -468,6 +477,7 @@ public function posMassPrintBarcode(): void {
                 'max_quantity' => $result['max_quantity'],
 				'sku'      => $result['sku'],
 				'short_code' => $result['short_code'],
+				'barcode_type'=> $result['barcode_type'],
 				'upc'      => $result['upc'],
 				'ean'      => $result['ean'],
 				'jan'      => $result['jan'],
@@ -475,6 +485,7 @@ public function posMassPrintBarcode(): void {
 				'mpn'      => $result['mpn'],
 				'special'    => $special,
 				'quantity'   => $result['pos_quentity'],
+				'unit_quantity' => $result['quantity'],
 				'status'     => $result['product_status'] ? $this->language->get('text_enabled') : $this->language->get('text_disabled'),				
 				'edit'       => $edit
 				);
@@ -607,6 +618,9 @@ public function posMassPrintBarcode(): void {
 			$data['sort_status'] = $this->url->link('extension/purpletree_pos/pos/posproduct', 'user_token=' . $this->session->data['user_token'] . '&sort=p.status' . $url, true);
 			$data['sort_order'] = $this->url->link('extension/purpletree_pos/pos/posproduct', 'user_token=' . $this->session->data['user_token'] . '&sort=p.sort_order' . $url, true);
 			$data['sort_box_id'] = $this->url->link('extension/purpletree_pos/pos/posproduct', 'user_token=' . $this->session->data['user_token'] . '&sort=p.box_id' . $url, true);
+			$data['sort_rack_code'] = $this->url->link('extension/purpletree_pos/pos/posproduct', 'user_token=' . $this->session->data['user_token'] . '&sort=p.rack_code' . $url, true);
+			$data['sort_pos_quantity'] = $this->url->link('extension/purpletree_pos/pos/posproduct', 'user_token=' . $this->session->data['user_token'] . '&sort=ppp.pos_quentity' . $url, true);
+			$data['sort_unit_quantity'] = $this->url->link('extension/purpletree_pos/pos/posproduct', 'user_token=' . $this->session->data['user_token'] . '&sort=p.quantity' . $url, true);
 			
 			$url = '';
 			
@@ -616,6 +630,10 @@ public function posMassPrintBarcode(): void {
 			
 			if (isset($this->request->get['filter_model'])) {
 				$url .= '&filter_model=' . urlencode(html_entity_decode($this->request->get['filter_model'], ENT_QUOTES, 'UTF-8'));
+			}
+			
+			if (isset($this->request->get['filter_sku'])) {
+				$url .= '&filter_sku=' . $this->request->get['filter_sku'];
 			}
 			
 			if (isset($this->request->get['filter_price'])) {
@@ -666,6 +684,7 @@ public function posMassPrintBarcode(): void {
 			$data['filter_model'] = $filter_model;
 			$data['filter_rack_code'] = $filter_rack_code;
 			$data['filter_box_id'] = $filter_box_id;
+			$data['filter_sku'] = $filter_sku;
 			$data['filter_price'] = $filter_price;
 			$data['filter_quantity'] = $filter_quantity;
 			$data['filter_status'] = $filter_status;
@@ -708,6 +727,10 @@ public function posMassPrintBarcode(): void {
 				$url .= '&filter_model=' . urlencode(html_entity_decode($this->request->get['filter_model'], ENT_QUOTES, 'UTF-8'));
 			}
 
+			if (isset($this->request->get['filter_sku'])) {
+				$url .= '&filter_sku=' . $this->request->get['filter_sku'];
+			}
+
 			if (isset($this->request->get['filter_price'])) {
 				$url .= '&filter_price=' . $this->request->get['filter_price'];
 			}
@@ -732,13 +755,13 @@ public function posMassPrintBarcode(): void {
 				$url .= '&page=' . $this->request->get['page'];
 			}
 
-			$this->response->redirect($this->url->link('extension/purpletree_pos/posproduct', 'user_token=' . $this->session->data['user_token'] . $url, true));
+			$this->response->redirect($this->url->link('extension/purpletree_pos/pos/posproduct', 'user_token=' . $this->session->data['user_token'] . $url, true));
 		}
 
 		$this->getList();
 	}
 	protected function validateDelete() {
-		if (!$this->user->hasPermission('modify', 'extension/purpletree_pos/posproduct')) {
+		if (!$this->user->hasPermission('modify', 'extension/purpletree_pos/pos/posproduct')) {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
 
@@ -839,39 +862,44 @@ public function posMassPrintBarcode(): void {
         $pdf->AddPage();
         $pdf->setCellPaddings(0, 0, 0, 0);
 
+        $is_long = (strlen($barcode) > 10);
+        $barcode_width = $is_long ? 30 : 42;
+        $barcode_thickness = $is_long ? 0.2 : 0.25;
+        $font_spacing = $is_long ? 0.1 : 1;
+        $textX = $is_long ? 35 : 18;
+
         $pdf->write1DBarcode(
             $barcode,
             'C128',
             4,     // X
             2.6,     // Y
-            42,    // WIDTH
+            $barcode_width,    // WIDTH
             7,     // HEIGHT
-            0.25,  // THICKNESS
+            $barcode_thickness,  // THICKNESS
             $barcodeStyle,
             'N'
         );
         if (!empty($rack_code)) {
             $pdf->SetFont('helvetica', 'B', 4.2);
             $pdf->SetXY(10, 0.5);   // slightly above barcode
-            $pdf->Cell(42, 2, $rack_code, 0, 0, 'L');
+            $pdf->Cell($barcode_width, 2, $rack_code, 0, 0, 'L');
         }
         
         $pdf->SetFont('helvetica', 'B', 6);
-        $pdf->setFontSpacing(1);   
+        $pdf->setFontSpacing($font_spacing);   
         $pdf->SetXY(6, 9.6);
-        $pdf->Cell(42, 2, $barcode, 0, 0, 'L');
+        $pdf->Cell($barcode_width, 2, $barcode, 0, 0, 'L');
         $pdf->setFontSpacing(0.2);      // reset spacing
 
         $current    = ($i % $maxQty) + 1;   // reset after max
         $sgcCenter = 'SGC-B' . $box_product_id;
         $sgcCorner  = $current . '/' . $maxQty;
 
-        $textX = 18;
         $textW = 40;
 
         /* Row 1: SGC (center) + 1/4 (right) */
         $fitTextCell($pdf, $textX, 2.0, $textW, 2.6, $sgcCenter, 'helvetica', 'B', 6, 5, 'C');
-        $fitTextCell($pdf, 9, 2.0, $textW, 2.6, $sgcCorner, 'helvetica', 'B', 6, 5, 'R');
+        $fitTextCell($pdf, $is_long ? 26 : 9, 2.0, $textW, 2.6, $sgcCorner, 'helvetica', 'B', 6, 5, 'R');
         
         /* Row 2: Product Name */
         $fitTextCell($pdf, $textX, 4.8, $textW, 2.6, $name, 'helvetica', 'B', 6, 5, 'C');

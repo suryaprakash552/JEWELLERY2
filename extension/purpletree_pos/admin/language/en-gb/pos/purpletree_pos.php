@@ -67,3 +67,4 @@ $_['text_pos_setting'] = 'Settings';
 $_['text_pos_agent'] = 'POS Users';
 $_['manage_products'] = 'Products';
 $_['sale_report'] = 'Sales Report';
+$_['text_pos_batch_no'] = 'POS Batch No';

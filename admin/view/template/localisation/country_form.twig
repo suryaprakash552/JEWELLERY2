@@ -1,9 +1,77 @@
 {{ header }}{{ column_left }}
+<style>
+/* Custom Save and Back button styles */
+.btn-custom-save {
+    background-color: #465fff !important;
+    border-color: #465fff !important;
+    color: #ffffff !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 500 !important;
+    height: 38px !important;
+    padding: 0 16px !important;
+    font-size: 14px !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
+    line-height: normal !important;
+    width: auto !important;
+}
+.btn-custom-save:hover {
+    background-color: #3b50db !important;
+    border-color: #3b50db !important;
+    color: #ffffff !important;
+}
+.btn-custom-save i {
+    margin-right: 8px !important;
+    color: #ffffff !important;
+}
+
+.btn-custom-back {
+    background-color: #465fff !important;
+    border-color: #465fff !important;
+    color: #ffffff !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 500 !important;
+    height: 38px !important;
+    padding: 0 16px !important;
+    font-size: 14px !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
+    line-height: normal !important;
+    width: auto !important;
+}
+.btn-custom-back:hover {
+    background-color: #3b50db !important;
+    border-color: #3b50db !important;
+    color: #ffffff !important;
+}
+.btn-custom-back *,
+.btn-custom-back i,
+.btn-custom-back svg,
+.btn-custom-back svg path,
+.btn-custom-back i::before,
+.btn-custom-back i::after {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+    stroke: #ffffff !important;
+}
+.btn-custom-back i {
+    margin-right: 8px !important;
+}
+</style>
 <div id="content">
   <div class="page-header">
     <div class="container-fluid">
-      <div class="float-end"><button type="submit" form="form-country" formaction="{{ save }}" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
-        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a></div>
+      <div class="float-end">
+        <button type="submit" form="form-country" formaction="{{ save }}" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary btn-custom-save"><i class="fa-solid fa-floppy-disk"></i> {{ button_save }}</button>
+        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light btn-custom-back"><i class="fa-solid fa-arrow-left"></i> {{ button_back }}</a>
+      </div>
       <h1>{{ heading_title }}</h1>
       <ol class="breadcrumb">
         {% for breadcrumb in breadcrumbs %}

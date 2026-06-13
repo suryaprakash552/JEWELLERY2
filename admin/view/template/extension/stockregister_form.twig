@@ -1,271 +1,211 @@
-{{ header }}{{ column_left }}
-<div id="content" style="background: #0f172a; min-height: 100vh;">
-  <div class="page-header" style="background: #1e293b; border-bottom: 1px solid #334155; padding: 20px 30px;">
-    <div class="d-flex justify-content-between align-items-center">
-      <div>
-        <h1 style="color: #fff; margin: 0; font-size: 24px; font-weight: 600;">
-          <i class="fa fa-arrow-right"></i> {{ text_form }}
-        </h1>
-        <ol class="breadcrumb" style="background: transparent; padding: 5px 0; margin: 5px 0;">
-          {% for breadcrumb in breadcrumbs %}
-            <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}" style="color: #3b82f6;">{{ breadcrumb.text }}</a></li>
-          {% endfor %}
-        </ol>
-      </div>
+<div class="card panel panel-default" style="margin-top: 20px;">
+  <div class="card-header panel-heading d-flex justify-content-between align-items-center" style="background: #fff;">
+    <h3 class="card-title panel-title m-0" style="font-size: 16px; font-weight: 600;"><i class="fa fa-barcode"></i> Product Create Page - Batch: {{ selected_batch }}</h3>
+    <div style="font-size: 12px; font-weight: 600; color: #64748b; display: inline-flex; align-items: center; gap: 8px;">
+      SETTINGS: WP-Add % <input type="text" value="20" style="width: 40px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 2px;"> 
+      RP-Add % <input type="text" value="20" style="width: 40px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 2px; margin-right: 10px;">
+      <button type="button" data-toggle="tooltip" title="Delete" class="btn btn-danger btn-custom-delete" onclick="deleteSelectedProducts()"><i class="fa-solid fa-trash-can text-white"></i> Delete</button>
     </div>
   </div>
-
-  <div class="container-fluid" style="padding: 20px 30px;">
-    {% if error_warning %}
-      <div class="alert alert-danger alert-dismissible" style="background: #ef4444; color: #fff; border: none; border-radius: 6px; margin-bottom: 20px;">
-        <i class="fa fa-exclamation-circle"></i> {{ error_warning }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
-    {% endif %}
-
-    <form action="{{ save }}" method="post" id="form-stock-usage">
-      {# Stock Information - Single Row #}
-      <div class="card" style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; margin-bottom: 20px;">
-        <div class="card-header" style="background: #0f172a; border-bottom: 1px solid #334155; padding: 15px 20px;">
-          <h3 style="color: #fff; margin: 0; font-size: 18px;"><i class="fa fa-info-circle"></i> Stock Information</h3>
-        </div>
-        <div class="card-body" style="padding: 20px;">
-          <div class="row g-3">
-            <div class="col-md-2">
-              <label style="color: #94a3b8; font-size: 12px; margin-bottom: 5px; display: block;">PO Number</label>
-              <div style="color: #3b82f6; font-size: 16px; font-weight: 600;">{{ po_number }}</div>
-            </div>
-            {#<div class="col-md-2">#}
-            {#  <label style="color: #94a3b8; font-size: 12px; margin-bottom: 5px; display: block;">Current Store</label>#}
-            {#  <div style="color: #10b981; font-size: 14px; font-weight: 600;">{{ current_store }}</div>#}
-            {#</div>#}
-            <div class="col-md-3">
-              <label style="color: #94a3b8; font-size: 12px; margin-bottom: 5px; display: block;">Product</label>
-              <div style="color: #fff; font-size: 14px; font-weight: 600;">{{ product_name }}</div>
-            </div>
-            <div class="col-md-2">
-              <label style="color: #94a3b8; font-size: 12px; margin-bottom: 5px; display: block;">Supplier</label>
-              <div style="color: #fff; font-size: 14px;">{{ supplier_name }}</div>
-            </div>
-            <div class="col-md-3">
-              <label style="color: #94a3b8; font-size: 12px; margin-bottom: 5px; display: block;">Created Time</label>
-              <div style="color: #fff; font-size: 14px;"><i class="fa fa-clock-o"></i> {{ createdtime }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {# Current Stock Status - Single Row #}
-      <div class="card" style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; margin-bottom: 20px;">
-        <div class="card-header" style="background: #0f172a; border-bottom: 1px solid #334155; padding: 15px 20px;">
-          <h3 style="color: #fff; margin: 0; font-size: 18px;"><i class="fa fa-cubes"></i> Current Stock Status</h3>
-        </div>
-        <div class="card-body" style="padding: 20px;">
-          <div class="row g-3">
-            <div class="col-md-3">
-              <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 20px; border-radius: 8px; text-align: center;">
-                <div style="color: rgba(255,255,255,0.9); font-size: 12px; margin-bottom: 5px;">Received Qty</div>
-                <div style="color: #fff; font-size: 28px; font-weight: 700;">{{ received_qty }}</div>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); padding: 20px; border-radius: 8px; text-align: center;">
-                <div style="color: rgba(255,255,255,0.9); font-size: 12px; margin-bottom: 5px;">Unit Price</div>
-                <div style="color: #fff; font-size: 28px; font-weight: 700;">₹{{ unit_price }}</div>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div style="background: linear-gradient(135deg, #ef4444, #dc2626); padding: 20px; border-radius: 8px; text-align: center;">
-                <div style="color: rgba(255,255,255,0.9); font-size: 12px; margin-bottom: 5px;">Total Used</div>
-                <div style="color: #fff; font-size: 28px; font-weight: 700;">{{ total_used }}</div>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 20px; border-radius: 8px; text-align: center;">
-                <div style="color: rgba(255,255,255,0.9); font-size: 12px; margin-bottom: 5px;">Available</div>
-                <div style="color: #fff; font-size: 28px; font-weight: 700;" id="current-balance">{{ balance_qty }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {# Send Stock - Single Row #}
-      <div class="card" style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; margin-bottom: 20px;">
-        <div class="card-header" style="background: #0f172a; border-bottom: 1px solid #334155; padding: 15px 20px;">
-          <h3 style="color: #fff; margin: 0; font-size: 18px;"><i class="fa fa-arrow-right"></i> Send Stock</h3>
-        </div>
-        <div class="card-body" style="padding: 20px;">
-          <div class="row g-3 align-items-end">
-            <div class="col-md-3">
-              <label style="color: #94a3b8; font-size: 13px; margin-bottom: 8px; display: block;">
-                Quantity to Send <span style="color: #ef4444;">*</span>
-              </label>
-              <input type="number" name="used_qty" id="input-used-qty" value="{{ used_qty }}" step="0.01" min="0.01" max="{{ balance_qty }}" class="form-control" style="background: #0f172a; border: 1px solid {% if error_used_qty %}#ef4444{% else %}#334155{% endif %}; color: #fff; padding: 12px 15px; font-size: 16px; border-radius: 6px; font-weight: 600;" placeholder="Enter quantity">
-              {% if error_used_qty %}
-                <small style="color: #ef4444; display: block; margin-top: 5px; font-size: 11px;">
-                  <i class="fa fa-exclamation-circle"></i> {{ error_used_qty }}
-                </small>
-              {% endif %}
-            </div>
-
-            <div class="col-md-3">
-              <label style="color: #94a3b8; font-size: 13px; margin-bottom: 8px; display: block;">
-                Destination Store <span style="color: #ef4444;">*</span>
-              </label>
-              <select name="destination_store" id="destination-store" class="form-control" style="background: #0f172a; border: 1px solid {% if error_destination_store %}#ef4444{% else %}#334155{% endif %}; color: #fff; padding: 12px 15px; font-size: 14px; border-radius: 6px;">
-                <option value="">-- Select Store --</option>
-                {% for store in stores %}
-                  <option value="{{ store.store_id }}" {% if destination_store == store.store_id %}selected{% endif %}>{{ store.name }}</option>
-                {% endfor %}
-              </select>
-              {% if error_destination_store %}
-                <small style="color: #ef4444; display: block; margin-top: 5px; font-size: 11px;">
-                  <i class="fa fa-exclamation-circle"></i> {{ error_destination_store }}
-                </small>
-              {% endif %}
-            </div>
-
-            <div class="col-md-2">
-              <label style="color: #94a3b8; font-size: 13px; margin-bottom: 8px; display: block;">Will Be Sent</label>
-              <div style="background: rgba(239, 68, 68, 0.1); border: 2px solid #ef4444; padding: 12px; border-radius: 6px; text-align: center;">
-                <div style="color: #ef4444; font-size: 24px; font-weight: 700;" id="qty-to-send">0.00</div>
-              </div>
-            </div>
-
-            <div class="col-md-2">
-              <label style="color: #94a3b8; font-size: 13px; margin-bottom: 8px; display: block;">Will Remain</label>
-              <div style="background: rgba(16, 185, 129, 0.1); border: 2px solid #10b981; padding: 12px; border-radius: 6px; text-align: center;">
-                <div style="color: #10b981; font-size: 24px; font-weight: 700;" id="new-balance">{{ balance_qty }}</div>
-              </div>
-            </div>
-
-            <div class="col-md-2">
-              <button type="submit" class="btn w-100" style="background: #10b981; border: none; padding: 14px; border-radius: 6px; font-size: 14px; font-weight: 600; color: #fff;">
-                <i class="fa fa-check"></i> Confirm & Send
+  
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover" style="margin-bottom: 0; background: #fff;">
+      <thead style="background: #f8f9fa;">
+        <tr>
+          <td style="width: 1px; text-align: center;"><input type="checkbox" onclick="$('input[name*=\'selected_products\']').prop('checked', this.checked);" /></td>
+          <td class="text-center font-bold">SRNO</td>
+          <td class="text-center font-bold">Batch No</td>
+          <td class="text-center font-bold">Box ID / Product Name</td>
+          <td class="text-center font-bold">Image</td>
+          <td class="text-center font-bold">Type / Received Price</td>
+          <td class="text-center font-bold">WP / SWP</td>
+          <td class="text-center font-bold">RP / SRP</td>
+          <td class="text-center font-bold">Quantity</td>
+          <td class="text-center font-bold">Barcode</td>
+          <td class="text-center font-bold">Rack</td>
+          <td class="text-center font-bold">Creation Date</td>
+          <td class="text-center font-bold">Action</td>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Add Form Row -->
+        <tr style="background: #fff;">
+          <form action="{{ action }}" method="post" id="form-product">
+            <td class="text-center" style="vertical-align: middle;">+</td>
+            <td class="text-center" style="vertical-align: middle;">+</td>
+            <td class="text-center" style="vertical-align: middle;">{{ selected_batch }}</td>
+            <td style="vertical-align: middle;">
+              <input type="text" name="box_id" placeholder="Box ID" class="form-control form-control-sm mb-1" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+              <input type="text" name="name" placeholder="Product Name" class="form-control form-control-sm" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;" required>
+            </td>
+            <td class="text-center" style="vertical-align: middle;">
+              <button type="button" class="btn" style="background: #1e293b; color: #fff; border-radius: 6px; padding: 10px 5px; font-size: 11px; font-weight: 600; width: 60px; line-height: 1.2;">
+                <i class="fa fa-upload" style="font-size: 14px; margin-bottom: 3px;"></i><br>Upload<br>Image
               </button>
-            </div>
-          </div>
-          
-          <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; padding: 12px 15px; border-radius: 6px; margin-top: 15px;">
-            <div style="color: #3b82f6; font-size: 12px;">
-              <i class="fa fa-info-circle"></i> <strong>Note:</strong> This transaction will be recorded in the stock history with the destination store name.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {# Back Button #}
-      <div style="text-align: center;">
-        <a href="{{ back }}" class="btn" style="background: #6b7280; border: none; padding: 12px 30px; border-radius: 6px; font-size: 14px; font-weight: 600; text-decoration: none; color: #fff;">
-          <i class="fa fa-arrow-left"></i> Back to List
-        </a>
-      </div>
-    </form>
+            </td>
+            <td style="vertical-align: middle;">
+              <select name="type" class="form-control form-control-sm mb-1" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+                <option value="Global">Global</option>
+                <option value="Manual">Manual</option>
+              </select>
+              <input type="text" name="received_price" placeholder="Rec Price" class="form-control form-control-sm" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+            </td>
+            <td style="vertical-align: middle;">
+              <input type="text" name="wp" placeholder="0.00" class="form-control form-control-sm mb-1" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+              <input type="text" name="swp" placeholder="SWP" class="form-control form-control-sm" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+            </td>
+            <td style="vertical-align: middle;">
+              <input type="text" name="rp" placeholder="0.00" class="form-control form-control-sm mb-1" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+              <input type="text" name="srp" placeholder="SRP" class="form-control form-control-sm" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+            </td>
+            <td style="vertical-align: middle;">
+              <input type="number" step="0.01" name="quantity" placeholder="Qty" class="form-control form-control-sm" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;" required>
+            </td>
+            <td style="vertical-align: middle;">
+              <select name="barcode_type" class="form-control form-control-sm mb-1" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+                <option value="Unit">Unit</option>
+              </select>
+              <div class="input-group input-group-sm">
+                <input type="text" name="barcode" placeholder="Barcode" class="form-control" style="border-radius: 4px 0 0 4px; border: 1px solid #3b82f6; color: #3b82f6;" required>
+                <button type="button" class="btn btn-primary" style="background: #3b82f6; border-color: #3b82f6;"><i class="fa-solid fa-arrows-rotate"></i> Gen</button>
+              </div>
+            </td>
+            <td style="vertical-align: middle;">
+              <input type="text" name="rack" placeholder="Rack" class="form-control form-control-sm" style="text-align: center; border-radius: 4px; border: 1px solid #3b82f6; color: #3b82f6;">
+            </td>
+            <td class="text-center" style="vertical-align: middle; font-size: 12px; color: #64748b;">Today</td>
+            <td class="text-center" style="vertical-align: middle;">
+              <button type="submit" class="btn btn-success btn-sm" style="width: 100%; border-radius: 4px; font-weight: 600;"><i class="fa-solid fa-floppy-disk" style="margin-right: 4px;"></i> Save</button>
+            </td>
+          </form>
+        </tr>
+        
+        <!-- Saved Products List -->
+        {% if batch_products %}
+          {% set p_srno = 1 %}
+          {% for product in batch_products %}
+            <tr>
+              <td class="text-center" style="vertical-align: middle;"><input type="checkbox" name="selected_products[]" value="{{ product.product_id }}" /></td>
+              <td class="text-center" style="vertical-align: middle;">{{ p_srno }}</td>
+              <td class="text-center" style="vertical-align: middle;">{{ selected_batch }}</td>
+              <td class="text-center" style="vertical-align: middle;">
+                <div style="font-size: 12px; margin-bottom: 4px;">1</div>
+                <div style="font-size: 13px; font-weight: 600;">{{ product.name }}</div>
+              </td>
+              <td class="text-center" style="vertical-align: middle;">
+                <div style="width: 40px; height: 40px; background: #000; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+                  <span style="color: #d4af37; font-size: 18px;"><i class="fa fa-certificate"></i></span>
+                </div>
+              </td>
+              <td class="text-center" style="vertical-align: middle;">
+                <div style="font-size: 12px; margin-bottom: 4px;">Global</div>
+                <div style="font-size: 12px; font-weight: 600; color: #64748b;">₹10.00</div>
+              </td>
+              <td class="text-center" style="vertical-align: middle;">
+                <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">₹12.00</div>
+                <div style="font-size: 12px; color: #64748b;">S: ₹0.00</div>
+              </td>
+              <td class="text-center" style="vertical-align: middle;">
+                <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">₹12.00</div>
+                <div style="font-size: 12px; color: #64748b;">S: ₹0.00</div>
+              </td>
+              <td class="text-center" style="vertical-align: middle; font-weight: 600;">{{ product.quantity }}</td>
+              <td class="text-center" style="vertical-align: middle;">
+                <div style="font-size: 10px; font-weight: bold;">UNIT</div>
+                <img src="https://barcode.orcascan.com/?type=code128&data={{ product.barcode }}" style="height: 20px; max-width: 100px;">
+                <div style="font-size: 11px; font-weight: bold;">{{ product.barcode }}</div>
+              </td>
+              <td class="text-center" style="vertical-align: middle;">11</td>
+              <td class="text-center" style="vertical-align: middle; font-size: 12px;">27-May-2026</td>
+              <td class="text-center" style="vertical-align: middle;">
+                <div class="d-flex justify-content-center" style="gap: 5px;">
+                  <button type="button" class="btn btn-info btn-sm" onclick="printBarcode('{{ product.barcode }}', '{{ product.name }}')" style="background: #38bdf8; border: none; color: #fff; border-radius: 4px; padding: 4px 8px; font-size: 12px;"><i class="fa-solid fa-print"></i> Print</button>
+                  <button type="button" class="btn btn-warning btn-sm" style="background: #f59e0b; border: none; color: #fff; border-radius: 4px; padding: 4px 8px; font-size: 12px;"><i class="fa-solid fa-pencil"></i> Edit</button>
+                  <button type="button" class="btn btn-danger btn-sm" style="background: #ef4444; border: none; border-radius: 4px; padding: 4px 8px; font-size: 12px;"><i class="fa-solid fa-trash-can"></i> Delete</button>
+                </div>
+              </td>
+            </tr>
+            {% set p_srno = p_srno + 1 %}
+          {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
   </div>
 </div>
 
-<style>
-.btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  transition: all 0.2s;
+{# Print Barcode Modal #}
+<div class="modal fade" id="modal-print-barcode" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Print Barcode</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center" id="print-area">
+        <h6 id="print-name" style="margin-bottom: 10px; font-weight: bold;"></h6>
+        <div id="print-barcode-container" style="display: flex; justify-content: center;">
+          <img id="print-img" src="" alt="Barcode" style="max-width: 150px; height: auto;">
+        </div>
+        <div id="print-number" style="margin-top: 5px; letter-spacing: 2px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="window.print()">Print</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function printBarcode(barcode, name) {
+    document.getElementById('print-name').innerText = name;
+    document.getElementById('print-number').innerText = barcode;
+    document.getElementById('print-img').src = 'https://barcode.orcascan.com/?type=code128&data=' + encodeURIComponent(barcode);
+    var modal = new bootstrap.Modal(document.getElementById('modal-print-barcode'));
+    modal.show();
 }
 
-.form-control:focus, select:focus {
-  outline: none;
-  border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-::-webkit-scrollbar {
-  width: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0f172a;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #475569;
-  border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
-}
-
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  opacity: 1;
-}
-
-select {
-  cursor: pointer;
-}
-
-select option {
-  background: #1e293b;
-  color: #fff;
-}
-</style>
-
-<script type="text/javascript">
-$(document).ready(function() {
-  var availableBalance = parseFloat('{{ balance_qty }}'.replace(/,/g, ''));
-  
-  $('#input-used-qty').on('input', function() {
-    var usedQty = parseFloat($(this).val()) || 0;
-    var newBalance = Math.max(0, availableBalance - usedQty);
-    
-    $('#qty-to-send').text(usedQty.toFixed(2));
-    $('#new-balance').text(newBalance.toFixed(2));
-    
-    if (usedQty > availableBalance) {
-      $(this).css('border-color', '#ef4444');
-      $('#new-balance').css('color', '#ef4444');
-    } else if (usedQty <= 0) {
-      $(this).css('border-color', '#f59e0b');
-    } else {
-      $(this).css('border-color', '#10b981');
-      $('#new-balance').css('color', '#10b981');
+function deleteSelectedProducts() {
+    var checked = $('input[name*=\'selected_products\']:checked');
+    if (checked.length == 0) {
+        alert('Please select at least one item to delete.');
+        return false;
     }
-  });
-  
-  $('#form-stock-usage').on('submit', function(e) {
-    var usedQty = parseFloat($('#input-used-qty').val()) || 0;
-    var destinationStore = $('#destination-store').val();
-    
-    if (!destinationStore) {
-      e.preventDefault();
-      alert('Please select a destination store!');
-      $('#destination-store').focus();
-      return false;
+    if (confirm('Are you sure?')) {
+        $.ajax({
+            url: 'index.php?route=extension/stockregister.deleteBatchProduct&user_token={{ user_token }}',
+            type: 'post',
+            data: checked.serialize(),
+            dataType: 'json',
+            success: function(json) {
+                if (json['error']) {
+                    alert(json['error']);
+                }
+                if (json['success']) {
+                    if ($('.active-batch-link').length) {
+                        $('.active-batch-link').click();
+                    } else {
+                        location.reload();
+                    }
+                }
+            }
+        });
     }
-    
-    if (usedQty <= 0) {
-      e.preventDefault();
-      alert('Quantity to send must be greater than 0!');
-      $('#input-used-qty').focus();
-      return false;
-    }
-    
-    if (usedQty > availableBalance) {
-      e.preventDefault();
-      alert('Quantity to send cannot exceed available balance (' + availableBalance.toFixed(2) + ')!');
-      $('#input-used-qty').focus();
-      return false;
-    }
-    
-    var storeName = $('#destination-store option:selected').text();
-    var confirmMsg = 'Are you sure you want to send ' + usedQty.toFixed(2) + ' units to ' + storeName + '?';
-    
-    if (!confirm(confirmMsg)) {
-      e.preventDefault();
-      return false;
-    }
-  });
-});
+}
 </script>
 
-{{ footer }}
+<style>
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #print-area, #print-area * {
+        visibility: visible;
+    }
+    #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+}

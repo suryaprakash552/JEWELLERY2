@@ -12,13 +12,77 @@
     background-color: #fff;
 }
 
+/* Custom Save and Back button styles */
+.btn-custom-save {
+    background-color: #465fff !important;
+    border-color: #465fff !important;
+    color: #ffffff !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 500 !important;
+    height: 38px !important;
+    padding: 0 16px !important;
+    font-size: 14px !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
+    line-height: normal !important;
+    width: auto !important;
+}
+.btn-custom-save:hover {
+    background-color: #3b50db !important;
+    border-color: #3b50db !important;
+    color: #ffffff !important;
+}
+.btn-custom-save i {
+    margin-right: 8px !important;
+    color: #ffffff !important;
+}
+
+.btn-custom-back {
+    background-color: #465fff !important;
+    border-color: #465fff !important;
+    color: #ffffff !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 500 !important;
+    height: 38px !important;
+    padding: 0 16px !important;
+    font-size: 14px !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
+    line-height: normal !important;
+    width: auto !important;
+}
+.btn-custom-back:hover {
+    background-color: #3b50db !important;
+    border-color: #3b50db !important;
+    color: #ffffff !important;
+}
+.btn-custom-back *,
+.btn-custom-back i,
+.btn-custom-back svg,
+.btn-custom-back svg path,
+.btn-custom-back i::before,
+.btn-custom-back i::after {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+    stroke: #ffffff !important;
+}
+.btn-custom-back i {
+    margin-right: 8px !important;
+}
 </style>
 <div id="content">
   <div class="page-header">
     <div class="container-fluid">
       <div class="float-end">
-        <button type="submit" form="form-product" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
-        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a></div>
+        <button type="submit" form="form-product" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary btn-custom-save"><i class="fa-solid fa-floppy-disk"></i> {{ button_save }}</button>
+        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light btn-custom-back"><i class="fa-solid fa-arrow-left"></i> {{ button_back }}</a></div>
       <h1>{{ heading_title }}</h1>
       <ol class="breadcrumb">
         {% for breadcrumb in breadcrumbs %}
@@ -121,9 +185,9 @@
                             </div>
                             <div id="error-name-{{ language.language_id }}" class="invalid-feedback"></div>
                       </div>
-                        <div class="col-sm-2" style="display:none">
+                        <div class="col-sm-2">
                           <label class="col-form-label">Rack</label>
-                              <input type="text" name="rack_code" id="input-rack" class="form-control"value="RACK-{{ rack_number }}"placeholder="RACK-01"autocomplete="off"oninput="fixRackPrefix(this)"onkeydown="protectRackPrefix(event, this)">
+                              <input type="text" name="rack_code" id="input-rack" class="form-control" value="{{ rack_code }}" placeholder="Rack Number" autocomplete="off">
                         </div>
                     </div>
                     <div class="row mb-5">
@@ -1739,34 +1803,58 @@
                 <div class="row mb-3">
                     <div class="col-sm-3">
                     <label class="col-form-label">Batch Number</label>
-                    <input type="text" name="batch_number" id="input-batch-number"class="form-control" placeholder="Enter Batch Number">
+                    <input type="text" name="batch_number" id="input-batch-number" class="form-control" placeholder="Enter Batch Number" value="{{ sku }}">
                   </div>
                     <div class="col-sm-3">
-                  <label class="col-form-label">Purchase Price</label>
-                      <input type="text" name="received_price" value="{{ received_price }}" id="input-received_price" class="form-control"/>
+                  <label class="col-form-label">Purchase Price (Received)</label>
+                      <input type="text" name="received_price" value="{{ received_price }}" id="input-received_price" class="form-control" oninput="calcBatchTotals()"/>
                   </div>
                 
                 
                 <div class="col-sm-3">
                   <label class=" col-form-label">Purchase Quantity</label>
-                      <input type="text" name="r_tax" value="{{ r_tax }}" id="input-r_tax" class="form-control"/>
+                      <input type="text" name="quantity" value="{{ quantity }}" id="input-batch-quantity" class="form-control" oninput="calcBatchTotals()"/>
                   </div>
             
                   <div class="col-sm-3">
                     <label class="col-form-label">Total Purchase Price</label>
-                    <input type="text" name="total_received_price"id="input-total-received-price"class="form-control" readonly>
+                    <input type="text" name="total_received_price" id="input-total-received-price" class="form-control" readonly>
                   </div>
-            
-                  <div class="col-sm-3">
+
+                  <div class="col-sm-3 mt-3">
+                    <label class="col-form-label">Wholesale Price (WP)</label>
+                    <input type="text" value="{{ wholesale_price }}" id="input-batch-wp" class="form-control" readonly>
+                  </div>
+
+                  <div class="col-sm-3 mt-3">
                     <label class="col-form-label">Total Wholesale Price</label>
-                    <input type="text" name="total_wholesale_price"id="input-total-wholesale-price"class="form-control" readonly>
+                    <input type="text" name="total_wholesale_price" id="input-total-wholesale-price" class="form-control" readonly>
                   </div>
-            
-                  <div class="col-sm-3">
+
+                  <div class="col-sm-3 mt-3">
+                    <label class="col-form-label">Retail Price (RP)</label>
+                    <input type="text" value="{{ price }}" id="input-batch-rp" class="form-control" readonly>
+                  </div>
+
+                  <div class="col-sm-3 mt-3">
                     <label class="col-form-label">Total Retail Price</label>
-                    <input type="text" name="total_retail_price"id="input-total-retail-price"class="form-control" readonly>
+                    <input type="text" name="total_retail_price" id="input-total-retail-price" class="form-control" readonly>
                   </div>
                 </div>
+
+                <script>
+                function calcBatchTotals() {
+                    var qty = parseFloat(document.getElementById('input-batch-quantity').value) || 0;
+                    var rp_price = parseFloat(document.getElementById('input-received_price').value) || 0;
+                    var wp = parseFloat(document.getElementById('input-batch-wp').value) || 0;
+                    var rp = parseFloat(document.getElementById('input-batch-rp').value) || 0;
+                    document.getElementById('input-total-received-price').value = (qty * rp_price).toFixed(2);
+                    document.getElementById('input-total-wholesale-price').value = (qty * wp).toFixed(2);
+                    document.getElementById('input-total-retail-price').value = (qty * rp).toFixed(2);
+                }
+                // Run on page load
+                document.addEventListener('DOMContentLoaded', function() { calcBatchTotals(); });
+                </script>
             
               </fieldset>
             </div>
