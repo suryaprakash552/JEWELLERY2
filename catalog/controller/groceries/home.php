@@ -1042,6 +1042,9 @@ public function generateUpiQr() {
 
     try {
 
+        $this->load->model('groceries/categories');
+        $store_info = $this->model_groceries_categories->getStore();
+
         // Get amount from POST
         $amount = isset($this->request->post['amount'])
             ? (float)$this->request->post['amount']
@@ -1051,8 +1054,8 @@ public function generateUpiQr() {
             throw new \Exception('Invalid amount');
         }
 
-        $upi_id = "7075026338@ybl";
-        $name   = "Myteknoland";
+        $upi_id = $store_info['upi'];
+        $name   = $store_info['name'];
 
         $upi_url = "upi://pay?pa=" . $upi_id .
                    "&pn=" . urlencode($name) .
@@ -1090,6 +1093,8 @@ public function generateUpiQr() {
         $this->response->setOutput(json_encode([
             'status'   => 'success',
             'amount'   => $amount,
+            'vpa'     => $upi_id,
+            'name'    => $name,
             'upi_url'  => $upi_url,
             'qr_image' => $qr_url
         ]));
