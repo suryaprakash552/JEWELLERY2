@@ -79,6 +79,17 @@ Thumbs.db
 # =========================
 # Composer
 # =========================
+
+vendor/
+
+# =========================
+# Images (exclude user-generated content)
+# =========================
+
+image/catalog/banners/
+image/catalog/kyc/
+image/order_payments/
+image/pos_qr/
  
  
 # =========================

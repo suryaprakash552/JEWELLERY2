@@ -1,5 +1,8 @@
 <?php
 namespace Opencart\Catalog\Model\Groceries;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification;
 
 class Categories extends \Opencart\System\Engine\Model {
 
@@ -118,6 +121,65 @@ class Categories extends \Opencart\System\Engine\Model {
 
     return false;
 }
+private function sendAdminPushNotification(
+    $deviceToken,
+    $title,
+    $body,
+    $order_id
+){
+
+    $factory=(new Factory())
+    ->withServiceAccount(
+        DIR_STORAGE.'firebase/admin-service-account.json'
+    );
+
+    $messaging=$factory->createMessaging();
+
+    $message = CloudMessage::new()
+    ->withToken($deviceToken)
+    ->withNotification(
+        Notification::create(
+            $title,
+            $body
+        )
+    )
+    ->withData([
+        'order_id'=>(string)$order_id
+    ]);
+
+$messaging->send($message);
+}
+
+private function sendPushNotification(
+    $deviceToken,
+    $title,
+    $body,
+    $order_id,
+    $track_status_id
+){
+
+    $factory = (new Factory())
+        ->withServiceAccount(
+            DIR_STORAGE . 'firebase/service-account.json'
+        );
+
+    $messaging = $factory->createMessaging();
+
+    $message = CloudMessage::new()
+        ->withToken($deviceToken)
+        ->withNotification(
+            Notification::create(
+                $title,
+                $body
+            )
+        )
+        ->withData([
+            'order_id' => (string)$order_id,
+            'track_status_id' => (string)$track_status_id
+        ]);
+
+    return $messaging->send($message);
+}
 
     public function getMainCategories() {
 
@@ -138,6 +200,7 @@ public function getProductPieces($product_id): array {
             ps.piece,
             ptp.price,
             ptp.special_price,
+            ptp.piece_price,
             ptp.piece_default,
             ptp.is_combo,
             ptp.min_quantity,
@@ -548,6 +611,26 @@ public function logoutCustomer($token) {
     return true;
 }
 
+public function saveLoginToken($customer_id,$login_token){
+
+    $this->db->query("
+        UPDATE ".DB_PREFIX."customer
+        SET login_token='".$this->db->escape($login_token)."'
+        WHERE customer_id='".(int)$customer_id."'
+    ");
+
+}
+
+public function saveAdminFcmToken($user_id, $fcm_token)
+{
+    $this->db->query("
+        UPDATE `" . DB_PREFIX . "user`
+        SET fcm_token = '" . $this->db->escape($fcm_token) . "'
+        WHERE user_id = '" . (int)$user_id . "'
+    ");
+}
+
+
 public function addCategory($data): int {
 
 /* CATEGORY TABLE */
@@ -808,6 +891,17 @@ public function getFullOrderDetails(int $order_id) {
         FROM `" . DB_PREFIX . "order_invoice`
         WHERE order_id = '" . (int)$order_id . "'
     ")->row;
+    $tracking = $this->db->query("
+        SELECT
+            t.track_status_id,
+            ts.name,
+            t.status
+        FROM `" . DB_PREFIX . "track_order` t
+        LEFT JOIN `" . DB_PREFIX . "track_status` ts
+            ON ts.track_status_id = t.track_status_id
+        WHERE t.order_id = '" . (int)$order_id . "'
+        ORDER BY t.track_status_id ASC
+    ")->rows;
 
     // Tax
     $tax = $this->db->query("
@@ -834,6 +928,7 @@ public function getFullOrderDetails(int $order_id) {
         'products'    => $products,
         'totals'      => $totals,
         'invoice'     => $invoice,
+        'tracking'    => $tracking,
         'tax_details' => $tax,
         'history'     => $history
     ];
@@ -1965,22 +2060,47 @@ public function addBanner($data){
     $sql = "SELECT 
                 b.*,
                 bi.title,
-                bi.link,
+                bi.link AS category_id,
                 bi.image,
-                bi.sort_order
+                bi.sort_order,
+                cd.name AS category_name
+
             FROM " . DB_PREFIX . "banner b
-            LEFT JOIN " . DB_PREFIX . "banner_image bi 
+
+            LEFT JOIN " . DB_PREFIX . "banner_image bi
                 ON b.banner_id = bi.banner_id
+
+            LEFT JOIN " . DB_PREFIX . "category c
+                ON c.category_id = bi.link
+
+            LEFT JOIN " . DB_PREFIX . "category_description cd
+                ON cd.category_id = c.category_id
+
             WHERE b.status = 1
             AND b.type = 1
+            AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
             AND b.from_date IS NOT NULL
             AND b.to_date IS NOT NULL
             AND CURDATE() BETWEEN b.from_date AND b.to_date
+
             ORDER BY bi.sort_order ASC";
 
-    $query = $this->db->query($sql);
+    return $this->db->query($sql)->rows;
+}
 
-    return $query->rows;
+public function getCategory($category_id)
+{
+    $sql = "SELECT
+                c.category_id,
+                c.parent_id,
+                cd.name
+            FROM " . DB_PREFIX . "category c
+            JOIN " . DB_PREFIX . "category_description cd
+                ON c.category_id = cd.category_id
+            WHERE c.category_id = '" . (int)$category_id . "'
+            AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
+
+    return $this->db->query($sql)->row;
 }
 
 public function getAllBanners(){
@@ -1988,18 +2108,29 @@ public function getAllBanners(){
     $sql = "SELECT 
                 b.*,
                 bi.title,
-                bi.link,
+                bi.link AS category_id,
                 bi.image,
-                bi.sort_order
+                bi.sort_order,
+                cd.name AS category_name
+
             FROM " . DB_PREFIX . "banner b
-            LEFT JOIN " . DB_PREFIX . "banner_image bi 
+
+            LEFT JOIN " . DB_PREFIX . "banner_image bi
                 ON b.banner_id = bi.banner_id
+
+            LEFT JOIN " . DB_PREFIX . "category c
+                ON c.category_id = bi.link
+
+            LEFT JOIN " . DB_PREFIX . "category_description cd
+                ON cd.category_id = c.category_id
+
+            AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+
             WHERE b.type = 1
+
             ORDER BY bi.sort_order ASC";
 
-    $query = $this->db->query($sql);
-
-    return $query->rows;
+    return $this->db->query($sql)->rows;
 }
 
 public function updateBannerImage($data): void {
@@ -2091,23 +2222,32 @@ public function addRunningBanner($data){
     $sql = "SELECT 
                 b.*,
                 bi.title,
-                bi.link,
+                bi.link AS category_id,
                 bi.image,
-                bi.sort_order
+                bi.sort_order,
+                cd.name AS category_name
+
             FROM " . DB_PREFIX . "banner b
-            LEFT JOIN " . DB_PREFIX . "banner_image bi 
+
+            LEFT JOIN " . DB_PREFIX . "banner_image bi
                 ON b.banner_id = bi.banner_id
+
+            LEFT JOIN " . DB_PREFIX . "category c
+                ON c.category_id = bi.link
+
+            LEFT JOIN " . DB_PREFIX . "category_description cd
+                ON cd.category_id = c.category_id
+
             WHERE b.status = 1
             AND b.type = 2
+            AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
             AND b.from_date IS NOT NULL
             AND b.to_date IS NOT NULL
             AND CURDATE() BETWEEN b.from_date AND b.to_date
+
             ORDER BY bi.sort_order ASC";
 
-    $query = $this->db->query($sql);
-
-
-    return $query->rows;
+    return $this->db->query($sql)->rows;
 }
 
 public function getAllRunningBanners(){
@@ -2115,18 +2255,29 @@ public function getAllRunningBanners(){
     $sql = "SELECT 
                 b.*,
                 bi.title,
-                bi.link,
+                bi.link AS category_id,
                 bi.image,
-                bi.sort_order
+                bi.sort_order,
+                cd.name AS category_name
+
             FROM " . DB_PREFIX . "banner b
-            LEFT JOIN " . DB_PREFIX . "banner_image bi 
+
+            LEFT JOIN " . DB_PREFIX . "banner_image bi
                 ON b.banner_id = bi.banner_id
+
+            LEFT JOIN " . DB_PREFIX . "category c
+                ON c.category_id = bi.link
+
+            LEFT JOIN " . DB_PREFIX . "category_description cd
+                ON cd.category_id = c.category_id
+
+            AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+
             WHERE b.type = 2
+
             ORDER BY bi.sort_order ASC";
 
-    $query = $this->db->query($sql);
-
-    return $query->rows;
+    return $this->db->query($sql)->rows;
 }
 
 public function updateRunningBannerImage($data): void {
@@ -2219,23 +2370,32 @@ public function addBottomBanner($data){
     $sql = "SELECT 
                 b.*,
                 bi.title,
-                bi.link,
+                bi.link AS category_id,
                 bi.image,
-                bi.sort_order
+                bi.sort_order,
+                cd.name AS category_name
+
             FROM " . DB_PREFIX . "banner b
-            LEFT JOIN " . DB_PREFIX . "banner_image bi 
+
+            LEFT JOIN " . DB_PREFIX . "banner_image bi
                 ON b.banner_id = bi.banner_id
+
+            LEFT JOIN " . DB_PREFIX . "category c
+                ON c.category_id = bi.link
+
+            LEFT JOIN " . DB_PREFIX . "category_description cd
+                ON cd.category_id = c.category_id
+
             WHERE b.status = 1
             AND b.type = 3
+            AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
             AND b.from_date IS NOT NULL
             AND b.to_date IS NOT NULL
             AND CURDATE() BETWEEN b.from_date AND b.to_date
+
             ORDER BY bi.sort_order ASC";
 
-    $query = $this->db->query($sql);
-
-
-    return $query->rows;
+    return $this->db->query($sql)->rows;
 }
 
 public function getAllBottomBanners(){
@@ -2243,18 +2403,29 @@ public function getAllBottomBanners(){
     $sql = "SELECT 
                 b.*,
                 bi.title,
-                bi.link,
+                bi.link AS category_id,
                 bi.image,
-                bi.sort_order
+                bi.sort_order,
+                cd.name AS category_name
+
             FROM " . DB_PREFIX . "banner b
-            LEFT JOIN " . DB_PREFIX . "banner_image bi 
+
+            LEFT JOIN " . DB_PREFIX . "banner_image bi
                 ON b.banner_id = bi.banner_id
+
+            LEFT JOIN " . DB_PREFIX . "category c
+                ON c.category_id = bi.link
+
+            LEFT JOIN " . DB_PREFIX . "category_description cd
+                ON cd.category_id = c.category_id
+
+            AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+
             WHERE b.type = 3
+
             ORDER BY bi.sort_order ASC";
 
-    $query = $this->db->query($sql);
-
-    return $query->rows;
+    return $this->db->query($sql)->rows;
 }
 
 public function updateBottomBannerImage($data): void {
@@ -2518,6 +2689,14 @@ COALESCE(SUM(
 
     return $this->db->query($sql)->row;
 }
+public function updateDeliveryTime($order_id, $delivery_time)
+{
+    $this->db->query("
+        UPDATE `" . DB_PREFIX . "order_invoice`
+        SET delivary_time = '" . $this->db->escape($delivery_time) . "'
+        WHERE order_id = '" . (int)$order_id . "'
+    ");
+}
 
 public function insertOrderTracking($order_id){
 
@@ -2566,6 +2745,78 @@ public function insertOrderTracking($order_id){
 
     }
 
+    public function sendNewOrderNotification($order_id)
+{
+    // Get order details
+    $order = $this->db->query("
+        SELECT firstname, lastname
+        FROM `" . DB_PREFIX . "order`
+        WHERE order_id = '" . (int)$order_id . "'
+    ");
+
+    if (!$order->num_rows) {
+        return;
+    }
+
+    $customer_name = trim(
+        $order->row['firstname'] . ' ' . $order->row['lastname']
+    );
+
+    // Get all admins
+    $admins = $this->db->query("
+        SELECT user_id, fcm_token
+        FROM `" . DB_PREFIX . "user`
+        WHERE status = '1'
+        AND fcm_token IS NOT NULL
+        AND fcm_token <> ''
+    ");
+
+    foreach ($admins->rows as $admin) {
+
+        $this->sendAdminPushNotification(
+
+            $admin['fcm_token'],
+
+            "New Order",
+
+            $customer_name . " placed a new order (#" . $order_id . ")",
+
+            $order_id
+
+        );
+    }
+}
+
+public function sendCustomerOrderPlacedNotification($order_id)
+{
+    $order = $this->db->query("
+        SELECT o.customer_id,
+               o.firstname,
+               c.login_token
+        FROM `" . DB_PREFIX . "order` o
+        LEFT JOIN `" . DB_PREFIX . "customer` c
+            ON o.customer_id = c.customer_id
+        WHERE o.order_id = '" . (int)$order_id . "'
+    ");
+
+    if (!$order->num_rows) {
+        return;
+    }
+
+    if (empty($order->row['login_token'])) {
+        return;
+    }
+
+    $this->sendPushNotification(
+        $order->row['login_token'],
+        "Order Placed",
+        "Hi ".$order->row['firstname'].", your order has been placed successfully.",
+        $order_id,
+        0
+    );
+}
+    
+
     public function updateTrackStatus($order_id,$track_status_id){
 
     $this->db->query("
@@ -2574,8 +2825,52 @@ public function insertOrderTracking($order_id){
     WHERE order_id='".(int)$order_id."'
     AND track_status_id='".(int)$track_status_id."'
     ");
+        $this->sendTrackNotification(
+        $order_id,
+        $track_status_id
+    );
 
     }
+
+    public function sendTrackNotification($order_id, $track_status_id)
+{
+    $order = $this->db->query("
+        SELECT customer_id
+        FROM `" . DB_PREFIX . "order`
+        WHERE order_id = '" . (int)$order_id . "'
+    ");
+
+    if (!$order->num_rows) {
+        return;
+    }
+
+    $customer = $this->db->query("
+        SELECT login_token
+        FROM `" . DB_PREFIX . "customer`
+        WHERE customer_id = '" . (int)$order->row['customer_id'] . "'
+    ");
+
+    if (
+        !$customer->num_rows ||
+        empty($customer->row['login_token'])
+    ) {
+        return;
+    }
+
+    $status = $this->db->query("
+        SELECT name
+        FROM `" . DB_PREFIX . "track_status`
+        WHERE track_status_id = '" . (int)$track_status_id . "'
+    ");
+
+    $this->sendPushNotification(
+        $customer->row['login_token'],
+        "Order Update",
+        "Your order has been " . $status->row['name'],
+        $order_id,
+        $track_status_id
+    );
+}
 
     public function getProductStockReport($data = []) {
 

@@ -286,6 +286,88 @@ class Categories extends \Opencart\System\Engine\Controller {
         ]));
     }
 }
+
+public function saveLoginToken(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if(!$user || $user['type'] != 'customer'){
+
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>"Invalid Token"
+        ]));
+
+        return;
+    }
+
+    $login_token = $this->request->post['login_token'] ?? '';
+
+    if(empty($login_token)){
+
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>"Login Token Missing"
+        ]));
+
+        return;
+    }
+
+    $this->load->model('groceries/categories');
+
+    $this->model_groceries_categories->saveLoginToken(
+        $user['id'],
+        $login_token
+    );
+
+    $this->response->setOutput(json_encode([
+        "status"=>"success"
+    ]));
+
+}
+
+public function saveAdminFcmToken(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user || $user['type'] != 'admin') {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+
+        return;
+    }
+
+    $fcm_token = $this->request->post['fcm_token'] ?? '';
+
+    if (empty($fcm_token)) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "FCM Token Missing"
+        ]));
+
+        return;
+    }
+
+    $this->load->model('groceries/categories');
+
+    $this->model_groceries_categories->saveAdminFcmToken(
+        $user['id'],
+        $fcm_token
+    );
+
+    $this->response->setOutput(json_encode([
+        "status" => "success",
+        "message" => "FCM Token Saved"
+    ]));
+}
     public function sendWhatsAppOtp($data = []){
 
         file_put_contents(DIR_LOGS . 'whatsapp.log', "FUNCTION CALLED\n", FILE_APPEND);
@@ -3400,7 +3482,7 @@ public function addBanner(): void {
                 $this->model_groceries_categories->addBannerImage([
                     "banner_id"=>$banner_id,
                     "title"=>$img['title'] ?? '',
-                    "link"=>$img['link'] ?? '',
+                    "link"=>$img['category_id'] ?? '',
                     "image"=>$path,
                     "sort_order"=>$img['sort_order'] ?? 0
                 ]);
@@ -3460,7 +3542,7 @@ public function editBanner(): void {
                     $this->model_groceries_categories->updateBannerImage([
                         "banner_id"=>$banner_id,
                         "title"=>$img['title'] ?? '',
-                        "link"=>$img['link'] ?? '',
+                        "link"=>$img['category_id'] ?? '',
                         "image"=>$img['existing_image'],
                         "sort_order"=>$img['sort_order'] ?? 0
                     ]);
@@ -3469,7 +3551,7 @@ public function editBanner(): void {
                     $this->model_groceries_categories->addBannerImage([
                         "banner_id"=>$banner_id,
                         "title"=>$img['title'] ?? '',
-                        "link"=>$img['link'] ?? '',
+                        "link"=>$img['category_id'] ?? '',
                         "image"=>$path,
                         "sort_order"=>$img['sort_order'] ?? 0
                     ]);
@@ -3512,6 +3594,97 @@ public function getBanners(): void {
             "message" => $e->getMessage()
         ]));
     }
+}
+
+public function getBannerCategoryData(): void
+{
+    $this->response->addHeader('Content-Type: application/json');
+
+    if (!$this->validateToken()) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+
+        return;
+    }
+
+    $category_id = (int)($this->request->post['category_id'] ?? $this->request->get['category_id'] ?? 0);
+
+    if (!$category_id) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Category ID is required"
+        ]));
+
+        return;
+    }
+
+    $this->load->model('groceries/categories');
+
+    $category = $this->model_groceries_categories->getCategory($category_id);
+
+    if (!$category) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Category not found"
+        ]));
+
+        return;
+    }
+
+    // Banner linked to Main Category
+    if ($category['parent_id'] == 0) {
+
+        $products = $this->model_groceries_categories->getProductsOnly($category_id);
+
+        $subcategories = $this->model_groceries_categories->getSubCategories($category_id);
+
+        foreach ($subcategories as &$subcategory) {
+            $subcategory['products'] = $this->model_groceries_categories->getProductsOnly($subcategory['category_id']);
+        }
+
+        $response = [
+            "status" => "success",
+            "category_type" => "parent",
+            "main_category" => [
+                "category_id" => $category['category_id'],
+                "category_name" => $category['name']
+            ],
+            "products" => $products,
+            "subcategories" => $subcategories
+        ];
+
+    } else {
+
+        // Banner linked to Sub Category
+
+        $parentCategory = $this->model_groceries_categories->getCategory($category['parent_id']);
+
+        $products = $this->model_groceries_categories->getProductsOnly($category_id);
+
+        $subcategories = $this->model_groceries_categories->getSubCategories($parentCategory['category_id']);
+
+        $response = [
+            "status" => "success",
+            "category_type" => "subcategory",
+            "main_category" => [
+                "category_id" => $parentCategory['category_id'],
+                "category_name" => $parentCategory['name']
+            ],
+            "selected_subcategory" => [
+                "category_id" => $category['category_id'],
+                "category_name" => $category['name']
+            ],
+            "products" => $products,
+            "subcategories" => $subcategories
+        ];
+    }
+
+    $this->response->setOutput(json_encode($response));
 }
 
 public function getAllBanners(): void {
@@ -3579,7 +3752,7 @@ public function addRunningBanner(): void {
                 $this->model_groceries_categories->addRunningBannerImage([
                     "banner_id"=>$banner_id,
                     "title"=>$img['title'] ?? '',
-                    "link"=>$img['link'] ?? '',
+                    "link"=>$img['category_id'] ?? '',
                     "image"=>$path,
                     "sort_order"=>$img['sort_order'] ?? 0
                 ]);
@@ -3639,7 +3812,7 @@ public function editRunningBanner(): void {
                     $this->model_groceries_categories->updateRunningBannerImage([
                         "banner_id"=>$banner_id,
                         "title"=>$img['title'] ?? '',
-                        "link"=>$img['link'] ?? '',
+                        "link"=>$img['category_id'] ?? '',
                         "image"=>$img['existing_image'],
                         "sort_order"=>$img['sort_order'] ?? 0
                     ]);
@@ -3648,7 +3821,7 @@ public function editRunningBanner(): void {
                     $this->model_groceries_categories->addRunningBannerImage([
                         "banner_id"=>$banner_id,
                         "title"=>$img['title'] ?? '',
-                        "link"=>$img['link'] ?? '',
+                        "link"=>$img['category_id'] ?? '',
                         "image"=>$path,
                         "sort_order"=>$img['sort_order'] ?? 0
                     ]);
@@ -3758,7 +3931,7 @@ public function addBottomBanner(): void {
                 $this->model_groceries_categories->addBottomBannerImage([
                     "banner_id"=>$banner_id,
                     "title"=>$img['title'] ?? '',
-                    "link"=>$img['link'] ?? '',
+                    "link"=>$img['category_id'] ?? '',
                     "image"=>$path,
                     "sort_order"=>$img['sort_order'] ?? 0
                 ]);
@@ -3818,7 +3991,7 @@ public function editBottomBanner(): void {
                     $this->model_groceries_categories->updateBottomBannerImage([
                         "banner_id"=>$banner_id,
                         "title"=>$img['title'] ?? '',
-                        "link"=>$img['link'] ?? '',
+                        "link"=>$img['category_id'] ?? '',
                         "image"=>$img['existing_image'],
                         "sort_order"=>$img['sort_order'] ?? 0
                     ]);
@@ -3827,7 +4000,7 @@ public function editBottomBanner(): void {
                     $this->model_groceries_categories->addBottomBannerImage([
                         "banner_id"=>$banner_id,
                         "title"=>$img['title'] ?? '',
-                        "link"=>$img['link'] ?? '',
+                        "link"=>$img['category_id'] ?? '',
                         "image"=>$path,
                         "sort_order"=>$img['sort_order'] ?? 0
                     ]);
@@ -4088,6 +4261,48 @@ public function getAllProducts(): void {
             ]));
 
         }
+
+        public function updateDeliveryTime(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user || $user['type'] != 'admin') {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+
+        return;
+    }
+
+    $order_id = (int)($this->request->post['order_id'] ?? 0);
+    $delivery_time = trim($this->request->post['delivery_time'] ?? '');
+
+    if (!$order_id || $delivery_time == '') {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Order ID and Delivery Time are required"
+        ]));
+
+        return;
+    }
+
+    $this->load->model('groceries/categories');
+
+    $this->model_groceries_categories->updateDeliveryTime(
+        $order_id,
+        $delivery_time
+    );
+
+    $this->response->setOutput(json_encode([
+        "status" => "success",
+        "message" => "Delivery time updated successfully"
+    ]));
+}
 
         public function productStockReport(): void {
 

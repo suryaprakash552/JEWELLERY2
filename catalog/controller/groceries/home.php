@@ -17,6 +17,35 @@ class Home extends \Opencart\System\Engine\Controller {
 
     return $customer_id;
     }
+
+    private function saveUpiImage(string $imageString): string
+    {
+        if (empty($imageString)) {
+            return '';
+        }
+
+        $dir = DIR_IMAGE . 'order_payments/';
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+
+        $file = 'upi_' . date('YmdHis') . '_' . mt_rand(1000,9999) . '.jpg';
+
+        $filepath = $dir . $file;
+
+        $image = imagecreatefromstring(base64_decode($imageString));
+
+        if (!$image) {
+            throw new \Exception('Invalid payment screenshot');
+        }
+
+        imagejpeg($image, $filepath, 90);
+
+        imagedestroy($image);
+
+        return 'order_payments/' . $file;
+    }
     
     public function addorder()
     {
@@ -126,7 +155,12 @@ class Home extends \Opencart\System\Engine\Controller {
             $paymentThrough = $get($orderDetails, "PaymentThrough", "");
             $cash_amount = $money($get($orderDetails, "CashAmount", 0));
             $upi_amount = $money($get($orderDetails, "UPIAmount", 0));
+            $upi_image = '';
+            if (!empty($orderDetails['UPIImage'])) {
+                $upi_image = $this->saveUpiImage($orderDetails['UPIImage']);
+            }
             $takeaway_amount = $money($get($orderDetails, "TakeawayAmount", 0));
+            $delivary_time = "20 mins";
             $advance_used = $money($get($orderDetails, "AdvanceUsed", 0));
             $total_received = $money(
                 $get($orderDetails, "TotalReceivedAmount", 0)
@@ -199,7 +233,9 @@ class Home extends \Opencart\System\Engine\Controller {
                 "customer_group_id" => $agentId['id'],
                 "cash_amount" => $cash_amount,
                 "upi_amount" => $upi_amount,
+                "upi_image" => $upi_image,
                 "takeaway_amount" => $takeaway_amount,
+                "delivary_time" => $delivary_time,
                 "coupon" => $coupon_final,
                 "credit_points" => $reward_points,
                 "discount" => $discount,
@@ -246,6 +282,8 @@ class Home extends \Opencart\System\Engine\Controller {
             $this->load->model('groceries/categories');
 
             $this->model_groceries_categories->insertOrderTracking($order_id);
+            $this->model_groceries_categories->sendNewOrderNotification($order_id);
+            $this->model_groceries_categories->sendCustomerOrderPlacedNotification($order_id);    
 
 
             if (!$order_id) {

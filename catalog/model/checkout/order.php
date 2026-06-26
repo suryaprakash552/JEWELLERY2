@@ -335,7 +335,9 @@ foreach ($posQtyMap as $product_id => $qty) {
                                                                         `customer_group_id`  = '" . (int)($invoice_extra['customer_group_id'] ?? 0) . "',
                                                                         `cash_amount`        = '" . (float)$invoice_extra['cash_amount'] . "',
                                                                         `upi_amount`         = '" . (float)$invoice_extra['upi_amount'] . "',
+                                                                        `upi_image`          = '" . $this->db->escape($invoice_extra['upi_image']) . "',
                                                                         `takeaway_amount`    = '" . (float)$invoice_extra['takeaway_amount'] . "',
+                                                                        `delivary_time`       = '" . $this->db->escape($invoice_extra['delivary_time']) . "',
                                                                         `coupon`             = '" . $this->db->escape($invoice_extra['coupon']) . "',
                                                                         `credit_points`      = '" . (float)$invoice_extra['credit_points'] . "',
                                                                         `rewards`      = '" . (float)$invoice_extra['creditpointsused'] . "',
@@ -956,6 +958,17 @@ public function getFullOrderDetails(int $order_id) {
         FROM `" . DB_PREFIX . "order_invoice`
         WHERE order_id = '" . (int)$order_id . "'
     ")->row;
+    $tracking = $this->db->query("
+        SELECT
+            t.track_status_id,
+            ts.name,
+            t.status
+        FROM `" . DB_PREFIX . "track_order` t
+        LEFT JOIN `" . DB_PREFIX . "track_status` ts
+            ON ts.track_status_id = t.track_status_id
+        WHERE t.order_id = '" . (int)$order_id . "'
+        ORDER BY t.track_status_id ASC
+    ")->rows;
 
     // Tax
     $tax = $this->db->query("
@@ -982,6 +995,7 @@ public function getFullOrderDetails(int $order_id) {
         'products'    => $products,
         'totals'      => $totals,
         'invoice'     => $invoice,
+        'tracking'    => $tracking,
         'tax_details' => $tax,
         'history'     => $history
     ];
