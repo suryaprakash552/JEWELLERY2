@@ -2624,6 +2624,7 @@ public function searchProducts(): void {
             $url  = trim($post['url'] ?? '');
             $contact  = trim($post['contact'] ?? '');
             $min_order_value = trim($post['min_order_value'] ?? '');
+            $delivery_fee = trim($post['delivery_fee'] ?? '');
             $upi_id = trim($post['upi_id'] ?? '');
             $address = trim($post['address'] ?? '');
     
@@ -2645,6 +2646,7 @@ public function searchProducts(): void {
                 "logo"=>$logo,
                 "contact"=>$contact,
                 "min_order_value"=>$min_order_value,
+                "delivery_fee"=>$delivery_fee,
                 "upi_id"=>$upi_id,
                 "address"=>$address
             ]);
@@ -2701,6 +2703,7 @@ public function searchProducts(): void {
             $url  = trim($post['url'] ?? '');
             $contact  = trim($post['contact'] ?? '');
             $min_order_value = trim($post['min_order_value'] ?? '');
+            $delivery_fee = trim($post['delivery_fee'] ?? '');
             $upi_id = trim($post['upi_id'] ?? '');
             $address = trim($post['address'] ?? '');
 
@@ -2718,6 +2721,7 @@ public function searchProducts(): void {
                 "logo"=>$logo,
                 "contact"=>$contact,
                 "min_order_value"=>$min_order_value,
+                "delivery_fee"=>$delivery_fee,
                 "upi_id"=>$upi_id,
                 "address"=>$address
             ]);

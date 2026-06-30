@@ -1438,6 +1438,7 @@ public function getProductsCountByCategory($category_id){
                                                     logo = '" . $this->db->escape($data['logo']) . "',
                                                     contact = '" . $this->db->escape($data['contact']) . "',
                                                     min_order_value = '" . $this->db->escape($data['min_order_value']) . "',
+                                                    delivery_fee = '" . $this->db->escape($data['delivery_fee']) . "',
                                                     upi = '" . $this->db->escape($data['upi_id']) . "'
                                                 ");
 
@@ -1451,6 +1452,7 @@ public function getProductsCountByCategory($category_id){
             url  = '" . $this->db->escape($data['url']) . "',
             contact = '" . $this->db->escape($data['contact']) . "',
             min_order_value = '" . $this->db->escape($data['min_order_value']) . "',
+            delivery_fee = '" . $this->db->escape($data['delivery_fee']) . "',
             upi = '" . $this->db->escape($data['upi_id']) . "'";
     
         if(!empty($data['logo'])){
