@@ -66,16 +66,19 @@ class Addproducts extends \Opencart\System\Engine\Model {
                                                                                 product_id = '" . (int)$product_id . "',
                                                                                 language_id = '" . (int)$lang . "',
                                                                                 name = '" . $this->db->escape($val['name']) . "',
-                                                                                description = '',
+                                                                                description = '" . $this->db->escape($val['description']) . "',
                                                                                 meta_title = '" . $this->db->escape($val['name']) . "',
                                                                                 meta_description = '',
                                                                                 tag = '',
                                                                                 meta_keyword = ''");
         }
 
-            $this->db->query("INSERT INTO " . DB_PREFIX . "product_to_category SET
-                                                                                product_id='" . (int)$product_id . "',
-                                                                                category_id='" . (int)$data['category_id'] . "'");
+            foreach ($data['category_id'] as $category_id) {
+
+                $this->db->query("INSERT INTO " . DB_PREFIX . "product_to_category SET
+                                                                                product_id = '" . (int)$product_id . "',
+                                                                                category_id = '" . (int)$category_id . "'");
+            }
         
 
         return $product_id;
@@ -117,7 +120,7 @@ class Addproducts extends \Opencart\System\Engine\Model {
                                                                                 product_id = '" . (int)$product_id . "',
                                                                                 language_id = '" . (int)$lang . "',
                                                                                 name = '" . $this->db->escape($val['name']) . "',
-                                                                                description = '',
+                                                                                description = '" . $this->db->escape($val['description']) . "',
                                                                                 meta_title = '',
                                                                                 meta_description = '',
                                                                                 tag = '',
@@ -129,9 +132,12 @@ class Addproducts extends \Opencart\System\Engine\Model {
         $this->db->query("DELETE FROM " . DB_PREFIX . "product_to_category WHERE product_id = '" . (int)$product_id . "'");
 
 
-            $this->db->query("INSERT INTO " . DB_PREFIX . "product_to_category SET
-                product_id = '" . (int)$product_id . "',
-                category_id='" . (int)$data['category_id'] . "'");
+            foreach ($data['category_id'] as $category_id) {
+
+                $this->db->query("INSERT INTO " . DB_PREFIX . "product_to_category SET
+                                                                                product_id = '" . (int)$product_id . "',
+                                                                                category_id = '" . (int)$category_id . "'");
+            }
                 
                 
                 $this->db->query("DELETE FROM " . DB_PREFIX . "piece_to_product WHERE product_id = '" . (int)$product_id . "'");

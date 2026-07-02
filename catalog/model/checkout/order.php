@@ -1737,13 +1737,13 @@ public function getFullProductByBarcode($barcode) {
 }
 
 
-public function cancelOrderFull(int $order_id): void
+public function cancelOrderFull(int $order_id, string $reason = ''): void
 {
     $this->db->query("START TRANSACTION");
 
     try {
         $this->restorePosQuantity($order_id);
-        $this->markOrderCancelled($order_id);
+        $this->markOrderCancelled($order_id, $reason);
         $this->revertRewardPoints($order_id);
 
         $this->db->query("COMMIT");
@@ -1781,10 +1781,9 @@ private function restorePosQuantity(int $order_id): void
     $this->db->query("UPDATE `" . DB_PREFIX . "customer_transaction` SET description = CONCAT(description, ' (CANCELLED)')WHERE order_id = '" . (int)$order_id . "'");
 }*/
 
-private function markOrderCancelled(int $order_id): void
+private function markOrderCancelled(int $order_id, string $reason = ''): void
 {
-    // 7 = Cancelled (use your status id)
-    $this->db->query("UPDATE `" . DB_PREFIX . "order` SET order_status_id = 7, date_modified = NOW() WHERE order_id = '" . (int)$order_id . "'");
+    $this->db->query("UPDATE `" . DB_PREFIX . "order`SET order_status_id = 7, comment = '" . $this->db->escape($reason) . "', date_modified = NOW() WHERE order_id = '" . (int)$order_id . "'");
 
     $this->db->query("INSERT INTO `" . DB_PREFIX . "order_history` SET order_id = '" . (int)$order_id . "', order_status_id = 7,notify = 0,comment = 'Order cancelled via POS',date_added = NOW()");
 }

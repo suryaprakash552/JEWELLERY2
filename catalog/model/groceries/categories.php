@@ -228,7 +228,7 @@ public function getProductPieces($product_id): array {
                 p.is_combo,
                 p.special_price,
                 pd.name,
-                cd.name AS category_name,
+                pd.description,
                 pp.*
                 FROM `" . DB_PREFIX . "product` p
                 JOIN `" . DB_PREFIX . "product_description` pd
@@ -236,9 +236,6 @@ public function getProductPieces($product_id): array {
                 LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
                 ON p.product_id = pp.product_id
                 
-                LEFT JOIN " . DB_PREFIX . "product_to_category pc ON p.product_id = pc.product_id
-                LEFT JOIN " . DB_PREFIX . "category c ON pc.category_id = c.category_id
-                LEFT JOIN " . DB_PREFIX . "category_description cd ON c.category_id = cd.category_id
 
                 WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
 
@@ -249,15 +246,36 @@ public function getProductPieces($product_id): array {
         $sql .= " ORDER BY p.product_id DESC";
 
         $products = $this->db->query($sql)->rows;
+       foreach ($products as &$product) {
 
-        foreach ($products as &$product) {
+     $product['categories'] = $this->getProductCategories($product['product_id']);  
 
-            $product['pieces'] = $this->getProductPieces($product['product_id']);
-        }
+    $product['pieces'] = $this->getProductPieces($product['product_id']);
+
+}
 
         return $products;
 
         }
+
+        public function getProductCategories($product_id)
+{
+    $sql = "SELECT
+                c.category_id,
+                cd.name AS category_name
+            FROM " . DB_PREFIX . "product_to_category pc
+
+            JOIN " . DB_PREFIX . "category c
+                ON pc.category_id = c.category_id
+
+            JOIN " . DB_PREFIX . "category_description cd
+                ON c.category_id = cd.category_id
+
+            WHERE pc.product_id = '" . (int)$product_id . "'
+            AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
+
+    return $this->db->query($sql)->rows;
+}
 
     public function getSubCategories($category_id) {
 
@@ -292,6 +310,7 @@ public function getProductPieces($product_id): array {
         p.product_id,
         pc.category_id,
         pd.name,
+        pd.description,
         p.price,
         p.image
         
@@ -327,6 +346,7 @@ public function getProductPieces($product_id): array {
             p.featured,
             p.image,
             pd.name,
+            pd.description,
             c.category_id,
             cd.name AS category_name,
             c.gst,
@@ -496,6 +516,7 @@ public function getRelatedProducts($product_id){
             p.image,
             p.is_combo,
             pd.name,
+            pd.description,
             pp.*
 
             FROM `" . DB_PREFIX . "product_related` pr
@@ -726,9 +747,9 @@ public function getCategories(): array {
     $sql = "SELECT 
 
     cp.category_id,
-    c.image,
-    GROUP_CONCAT(cd.name ORDER BY cp.level SEPARATOR ' > ') AS name,
-    c.parent_id
+    c.*,
+    GROUP_CONCAT(cd.name ORDER BY cp.level SEPARATOR ' > ') AS name
+   
 
     FROM " . DB_PREFIX . "category_path cp
 
@@ -845,7 +866,79 @@ public function deleteCategory($category_id) {
     return true;
 }
 
+public function addCoupon($data)
+{
+    $this->db->query("INSERT INTO `" . DB_PREFIX . "coupon` SET
+        `name` = '" . $this->db->escape($data['name']) . "',
+        `code` = '" . $this->db->escape($data['code']) . "',
+        `discount` = '" . (float)$data['discount'] . "',
+        `type` = '" . $this->db->escape($data['type']) . "',
+        `total` = '" . (float)$data['total'] . "',
+        `minimum_total` = '" . (float)$data['minimum_total'] . "',
+        `logged` = '" . (int)($data['logged'] ?? 0) . "',
+        `shipping` = '" . (int)($data['shipping'] ?? 0) . "',
+        `date_start` = '" . $this->db->escape($data['date_start']) . "',
+        `date_end` = '" . $this->db->escape($data['date_end']) . "',
+        `uses_total` = '" . (int)($data['uses_total'] ?? 0) . "',
+        `uses_customer` = '" . (int)($data['uses_customer'] ?? 0) . "',
+        `status` = '" . (int)($data['status'] ?? 1) . "',
+        `date_added` = NOW()");
 
+    return $this->db->getLastId();
+}
+
+public function editCoupon($coupon_id, $data)
+{
+    $this->db->query("UPDATE `" . DB_PREFIX . "coupon` SET
+        `name` = '" . $this->db->escape($data['name']) . "',
+        `code` = '" . $this->db->escape($data['code']) . "',
+        `discount` = '" . (float)$data['discount'] . "',
+        `type` = '" . $this->db->escape($data['type']) . "',
+        `total` = '" . (float)$data['total'] . "',
+        `minimum_total` = '" . (float)$data['minimum_total'] . "',
+        `logged` = '" . (int)($data['logged'] ?? 0) . "',
+        `shipping` = '" . (int)($data['shipping'] ?? 0) . "',
+        `date_start` = '" . $this->db->escape($data['date_start']) . "',
+        `date_end` = '" . $this->db->escape($data['date_end']) . "',
+        `uses_total` = '" . (int)($data['uses_total'] ?? 0) . "',
+        `uses_customer` = '" . (int)($data['uses_customer'] ?? 0) . "',
+        `status` = '" . (int)($data['status'] ?? 1) . "'
+        WHERE coupon_id = '" . (int)$coupon_id . "'");
+}
+
+public function deleteCoupon($coupon_id)
+{
+    $this->db->query("DELETE FROM `" . DB_PREFIX . "coupon`
+        WHERE coupon_id = '" . (int)$coupon_id . "'");
+}
+
+public function getMostBoughtProducts($customer_id)
+{
+    $sql = "SELECT
+    op.product_id,
+    MAX(op.name) AS name,
+    p.image,
+    MAX(op.price) AS price,
+    COUNT(DISTINCT op.order_id) AS total_orders,
+    SUM(op.quantity) AS total_quantity
+FROM `" . DB_PREFIX . "order_product` op
+
+INNER JOIN `" . DB_PREFIX . "order` o
+ON o.order_id = op.order_id
+
+LEFT JOIN `" . DB_PREFIX . "product` p
+ON p.product_id = op.product_id
+
+WHERE o.customer_id = '" . (int)$customer_id . "'
+
+GROUP BY op.product_id
+
+HAVING SUM(op.quantity) >= 5
+
+ORDER BY total_quantity DESC, total_orders DESC";
+
+    return $this->db->query($sql)->rows;
+}
 public function getFullOrderDetails(int $order_id) {
 
     $order = $this->db->query("
@@ -1331,6 +1424,7 @@ public function getCoupon($customer_id){
     $sql = "SELECT 
             p.product_id,
             pd.name,
+            pd.description,
             p.price,
             p.special_price,
             p.image,
@@ -1388,6 +1482,7 @@ public function searchProducts($search){
     $sql = "SELECT 
             p.product_id,
             pd.name,
+            pd.description,
             p.price,
             p.special_price,
             p.image,
@@ -1437,6 +1532,7 @@ public function getProductsCountByCategory($category_id){
                                                     url  = '" . $this->db->escape($data['url']) . "',
                                                     logo = '" . $this->db->escape($data['logo']) . "',
                                                     contact = '" . $this->db->escape($data['contact']) . "',
+                                                    upi_number = '" . $this->db->escape($data['upi_number']) . "',
                                                     min_order_value = '" . $this->db->escape($data['min_order_value']) . "',
                                                     delivery_fee = '" . $this->db->escape($data['delivery_fee']) . "',
                                                     upi = '" . $this->db->escape($data['upi_id']) . "'
@@ -1451,6 +1547,7 @@ public function getProductsCountByCategory($category_id){
             name = '" . $this->db->escape($data['name']) . "',
             url  = '" . $this->db->escape($data['url']) . "',
             contact = '" . $this->db->escape($data['contact']) . "',
+            upi_number = '" . $this->db->escape($data['upi_number']) . "',
             min_order_value = '" . $this->db->escape($data['min_order_value']) . "',
             delivery_fee = '" . $this->db->escape($data['delivery_fee']) . "',
             upi = '" . $this->db->escape($data['upi_id']) . "'";
@@ -2878,6 +2975,7 @@ public function sendCustomerOrderPlacedNotification($order_id)
 
         $sql = "SELECT 
                 p.product_id,
+                p.is_combo,
                 pd.name AS product_name,
                 IFNULL(pp.pos_quentity,0) AS pos_quentity,
                 c.category_id,
@@ -2926,7 +3024,14 @@ public function sendCustomerOrderPlacedNotification($order_id)
             $sql .= " LIMIT $start,$limit";
         }
 
-        return $this->db->query($sql)->rows;
+        $products = $this->db->query($sql)->rows;
+
+foreach ($products as &$product) {
+
+    $product['pieces'] = $this->getProductPiecesStock($product['product_id']);
+}
+
+return $products;
     }
 
     public function getCategoryWiseStockTotal() {
@@ -2956,6 +3061,28 @@ public function sendCustomerOrderPlacedNotification($order_id)
 
         return $this->db->query($sql)->rows;
     }
+
+    public function getProductPiecesStock($product_id)
+{
+    $sql = "SELECT
+                ptp.piece_id,
+                pt.piece AS piece_name,
+                ptp.price,
+                ptp.special_price,
+                ptp.piece_price,
+                ptp.min_quantity,
+                ptp.pos_quantity
+            FROM " . DB_PREFIX . "piece_to_product ptp
+
+            LEFT JOIN " . DB_PREFIX . "pieces pt
+                ON ptp.piece_id = pt.piece_id
+
+            WHERE ptp.product_id = '" . (int)$product_id . "'
+
+            ORDER BY ptp.piece_id";
+
+    return $this->db->query($sql)->rows;
+}
 
 
 public function checkAgentTransactionExists(

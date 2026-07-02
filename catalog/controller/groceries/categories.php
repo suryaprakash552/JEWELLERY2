@@ -917,6 +917,34 @@ public function getDeliveryFee(): void {
             return 'catalog/products/'.$file;
             
             }
+
+            public function getMostBoughtProducts(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user || $user['type'] != 'customer') {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+
+        return;
+    }
+
+    $customer_id = $user['id'];
+
+    $this->load->model('groceries/categories');
+
+    $products = $this->model_groceries_categories->getMostBoughtProducts($customer_id);
+
+    $this->response->setOutput(json_encode([
+        "status" => "success",
+        "data" => $products
+    ]));
+}
     public function addProduct(): void {
             
             $this->response->addHeader('Content-Type: application/json');
@@ -1561,6 +1589,134 @@ public function addPiece(): void {
             "data"   => $pieces
         ]));
     }
+
+    public function addCoupon(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    if (!$this->validateToken()) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+        return;
+    }
+
+    try {
+
+        $post = $this->request->post;
+
+        $raw = file_get_contents("php://input");
+
+        if ($raw) {
+            $json = json_decode($raw, true);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $post = array_merge($post, $json);
+            }
+        }
+
+        $this->load->model('groceries/categories');
+
+        $coupon_id = $this->model_groceries_categories->addCoupon($post);
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "coupon_id" => $coupon_id
+        ]));
+
+    } catch (\Throwable $e) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
+
+public function editCoupon(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    if (!$this->validateToken()) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+        return;
+    }
+
+    try {
+
+        $post = $this->request->post;
+
+        $raw = file_get_contents("php://input");
+
+        if ($raw) {
+            $json = json_decode($raw, true);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $post = array_merge($post, $json);
+            }
+        }
+
+        if (empty($post['coupon_id'])) {
+            throw new \Exception("Coupon ID is required");
+        }
+
+        $this->load->model('groceries/categories');
+
+        $this->model_groceries_categories->editCoupon($post['coupon_id'], $post);
+
+        $this->response->setOutput(json_encode([
+            "status" => "success"
+        ]));
+
+    } catch (\Throwable $e) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
+
+public function deleteCoupon(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    if (!$this->validateToken()) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+        return;
+    }
+
+    try {
+
+        $coupon_id = (int)($this->request->post['coupon_id'] ?? 0);
+
+        if (!$coupon_id) {
+            throw new \Exception("Coupon ID is required");
+        }
+
+        $this->load->model('groceries/categories');
+
+        $this->model_groceries_categories->deleteCoupon($coupon_id);
+
+        $this->response->setOutput(json_encode([
+            "status" => "success"
+        ]));
+
+    } catch (\Throwable $e) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
     
     public function getOrdersbyDate(): void {
 
@@ -1703,6 +1859,7 @@ public function addPiece(): void {
         
         try {
         $order_id = (int)($this->request->post['order_id'] ?? 0);
+        $reason = trim($this->request->post['reason'] ?? '');
 
         if ($order_id <= 0) {
             throw new \Exception('Invalid order id');
@@ -1714,7 +1871,7 @@ public function addPiece(): void {
             throw new \Exception('Order already cancelled');
         }
 
-        $this->model_checkout_order->cancelOrderFull($order_id);
+        $this->model_checkout_order->cancelOrderFull($order_id, $reason);
 
         $this->response->setOutput(json_encode([
             'status' => 'success'
@@ -2623,6 +2780,7 @@ public function searchProducts(): void {
             $name = trim($post['name'] ?? '');
             $url  = trim($post['url'] ?? '');
             $contact  = trim($post['contact'] ?? '');
+            $upi_number = trim($post['upi_number'] ?? '');
             $min_order_value = trim($post['min_order_value'] ?? '');
             $delivery_fee = trim($post['delivery_fee'] ?? '');
             $upi_id = trim($post['upi_id'] ?? '');
@@ -2645,6 +2803,7 @@ public function searchProducts(): void {
                 "url"=>$url,
                 "logo"=>$logo,
                 "contact"=>$contact,
+                "upi_number"=>$upi_number,
                 "min_order_value"=>$min_order_value,
                 "delivery_fee"=>$delivery_fee,
                 "upi_id"=>$upi_id,
@@ -2702,6 +2861,7 @@ public function searchProducts(): void {
             $name = trim($post['name'] ?? '');
             $url  = trim($post['url'] ?? '');
             $contact  = trim($post['contact'] ?? '');
+            $upi_number = trim($post['upi_number'] ?? '');
             $min_order_value = trim($post['min_order_value'] ?? '');
             $delivery_fee = trim($post['delivery_fee'] ?? '');
             $upi_id = trim($post['upi_id'] ?? '');
@@ -2720,6 +2880,7 @@ public function searchProducts(): void {
                 "url"=>$url,
                 "logo"=>$logo,
                 "contact"=>$contact,
+                "upi_number"=>$upi_number,
                 "min_order_value"=>$min_order_value,
                 "delivery_fee"=>$delivery_fee,
                 "upi_id"=>$upi_id,
