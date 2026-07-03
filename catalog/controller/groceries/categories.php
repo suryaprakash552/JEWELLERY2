@@ -2502,6 +2502,32 @@ $this->response->setOutput(json_encode([
 
 }
 
+public function getAllCoupons(): void {
+
+$this->response->addHeader('Content-Type: application/json');
+
+$customer_id = $this->validateToken();
+
+if(!$customer_id){
+
+$this->response->setOutput(json_encode([
+"status"=>"error",
+"message"=>"Invalid Token"
+]));
+
+return;
+}
+        $this->load->model('groceries/categories');
+
+        $coupon = $this->model_groceries_categories->getAllCoupons($customer_id['id']);
+        
+        $this->response->setOutput(json_encode([
+"status"=>"success",
+"coupons"=>$coupon
+]));
+        
+}
+
 public function getCoupon(): void {
 
 $this->response->addHeader('Content-Type: application/json');

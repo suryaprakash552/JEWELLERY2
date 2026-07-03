@@ -1418,6 +1418,12 @@ public function getCoupon($customer_id){
 
     return $query->rows;
  }
+ public function getAllCoupons($customer_id){
+
+    $query = $this->db->query("SELECT *  FROM " . DB_PREFIX . "coupon ");
+
+    return $query->rows;
+ }
 
  public function getLatestProducts($start = 0, $limit = 10){
 
