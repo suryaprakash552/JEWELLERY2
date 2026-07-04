@@ -2811,6 +2811,7 @@ public function searchProducts(): void {
             $delivery_fee = trim($post['delivery_fee'] ?? '');
             $upi_id = trim($post['upi_id'] ?? '');
             $address = trim($post['address'] ?? '');
+            $gst = trim($post['gst'] ?? '');
     
             if(!$name){
                 throw new \Exception("Store name required");
@@ -2833,7 +2834,8 @@ public function searchProducts(): void {
                 "min_order_value"=>$min_order_value,
                 "delivery_fee"=>$delivery_fee,
                 "upi_id"=>$upi_id,
-                "address"=>$address
+                "address"=>$address,
+                "gst"=>$gst
             ]);
     
             $this->response->setOutput(json_encode([
@@ -2892,7 +2894,7 @@ public function searchProducts(): void {
             $delivery_fee = trim($post['delivery_fee'] ?? '');
             $upi_id = trim($post['upi_id'] ?? '');
             $address = trim($post['address'] ?? '');
-
+            $gst = trim($post['gst'] ?? '');
             $logo = '';
     
             if(!empty($post['logo'])){
@@ -2910,7 +2912,8 @@ public function searchProducts(): void {
                 "min_order_value"=>$min_order_value,
                 "delivery_fee"=>$delivery_fee,
                 "upi_id"=>$upi_id,
-                "address"=>$address
+                "address"=>$address,
+                "gst"=>$gst
             ]);
     
             $this->response->setOutput(json_encode([

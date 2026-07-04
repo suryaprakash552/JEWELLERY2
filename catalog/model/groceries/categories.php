@@ -1541,7 +1541,8 @@ public function getProductsCountByCategory($category_id){
                                                     upi_number = '" . $this->db->escape($data['upi_number']) . "',
                                                     min_order_value = '" . $this->db->escape($data['min_order_value']) . "',
                                                     delivery_fee = '" . $this->db->escape($data['delivery_fee']) . "',
-                                                    upi = '" . $this->db->escape($data['upi_id']) . "'
+                                                    upi = '" . $this->db->escape($data['upi_id']) . "',
+                                                    gst = '" . $this->db->escape($data['gst']) . "'
                                                 ");
 
         return $this->db->getLastId();
@@ -1556,7 +1557,8 @@ public function getProductsCountByCategory($category_id){
             upi_number = '" . $this->db->escape($data['upi_number']) . "',
             min_order_value = '" . $this->db->escape($data['min_order_value']) . "',
             delivery_fee = '" . $this->db->escape($data['delivery_fee']) . "',
-            upi = '" . $this->db->escape($data['upi_id']) . "'";
+            upi = '" . $this->db->escape($data['upi_id']) . "',
+            gst = '" . $this->db->escape($data['gst']) . "'";
     
         if(!empty($data['logo'])){
             $sql .= ", logo = '" . $this->db->escape($data['logo']) . "'";
