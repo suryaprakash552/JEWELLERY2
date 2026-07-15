@@ -593,6 +593,48 @@ public function getProductDetails(){
     ]));
 }
 
+public function getBannerProducts(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+    
+    if(!$this->validateToken()){
+        $this->response->setOutput(json_encode([
+    
+            "status"=>"error",
+            "message"=>"Invalid Token"
+            
+            ]));
+            
+            return;
+            
+            }
+    
+    $category_id = (int)($this->request->post['category_id'] ?? $this->request->get['category_id'] ?? 0);
+    
+    $this->load->model('groceries/categories');
+
+    $category_products=$this->model_groceries_categories->getBannerProducts($category_id);
+
+    $subcategories=$this->model_groceries_categories->getSubCategories($category_id);
+    foreach($subcategories as &$subcategory){
+    
+    $subcategory['products']=$this->model_groceries_categories->getBannerProducts($subcategory['category_id']);
+    
+    }
+
+    $this->response->setOutput(
+    
+        json_encode([
+        
+        "status"=>"success",
+        "products"=>$category_products,
+        "subcategories"=>$subcategories
+        ])
+    
+    );
+
+}
+
 public function addOrder(): void {
 
     $this->response->addHeader('Content-Type: application/json');
@@ -998,6 +1040,18 @@ public function getDeliveryFee(): void {
             unset($post['image_base64']);
             
             }
+            $post['extra_images'] = $post['extra_images'] ?? [];
+
+            foreach ($post['extra_images'] as $k => $image) {
+
+                if (!empty($image['image_base64'])) {
+
+                    $post['extra_images'][$k]['image'] =
+                        $this->saveBase64Image($image['image_base64']);
+
+                    unset($post['extra_images'][$k]['image_base64']);
+                }
+            }
             
         
             
@@ -1018,6 +1072,7 @@ public function getDeliveryFee(): void {
             'rack_code'=>'RACK-00',
             
             'category_id'=>0,
+            'recieved_price'=>0,
             
             'price'=>0,
             
@@ -1114,6 +1169,12 @@ public function getDeliveryFee(): void {
             }
             
             $this->model_product_addproducts->edit($product_id,$post);
+            $this->model_product_addproducts->deleteProductImages($product_id);
+
+            $this->model_product_addproducts->saveProductImages(
+                $product_id,
+                $post['extra_images']
+            );
             
             }else{
             
@@ -1140,6 +1201,13 @@ public function getDeliveryFee(): void {
             
             
             $product_id = $this->model_product_addproducts->add($post);
+            if (!empty($post['extra_images'])) {
+
+                $this->model_product_addproducts->saveProductImages(
+                    $product_id,
+                    $post['extra_images']
+                );
+            }
             
             }
             
@@ -1318,6 +1386,7 @@ public function getDeliveryFee(): void {
         $offer_percentage = (float)($post['offer_percentage'] ?? 0);
         $gst = (float)($post['gst'] ?? 0);
         $sort_order = (int)($post['sort_order'] ?? 0);
+        $is_banner = (int)($post['is_banner'] ?? 0);
         $status = (int)($post['status'] ?? 1);
 
         $this->load->model('groceries/categories');
@@ -1332,7 +1401,9 @@ public function getDeliveryFee(): void {
                                                             "offer_percentage"=>$offer_percentage,
                                                             "gst"=>$gst,
                                                             "sort_order"=>$sort_order,
-                                                            "status"=>$status
+                                                            "is_banner"=>$sort_order,
+                                                            "status"=>$status,
+                                                            "offer_products" => $post['offer_products'] ?? []
                                                             ]);
 
         $this->response->setOutput(json_encode([
@@ -1433,7 +1504,9 @@ public function editCategory(): void {
             "offer_percentage" => (float)($post['offer_percentage'] ?? 0),
             "gst" => (float)($post['gst'] ?? 0),
             "sort_order" => (int)($post['sort_order'] ?? 0),
-            "status" => (int)($post['status'] ?? 1)
+            "is_banner" => (int)($post['is_banner'] ?? 0),
+            "status" => (int)($post['status'] ?? 1),
+            "offer_products" => $post['offer_products'] ?? []
         ];
 
         $updated = $this->model_groceries_categories->editCategory($category_id, $data);
@@ -3728,28 +3801,25 @@ public function editBanner(): void {
             "to_date"=>$post['to_date'] ?? null,
             "status"=>$post['status'] ?? 1
         ]);
+        $this->model_groceries_categories->deleteBannerImages($banner_id);
 
-        // add new images only if provided (do not delete old ones)
-        if(!empty($post['images'])){
-            foreach($post['images'] as $img){
-                if(!empty($img['existing_image'])){
-                    $this->model_groceries_categories->updateBannerImage([
-                        "banner_id"=>$banner_id,
-                        "title"=>$img['title'] ?? '',
-                        "link"=>$img['category_id'] ?? '',
-                        "image"=>$img['existing_image'],
-                        "sort_order"=>$img['sort_order'] ?? 0
-                    ]);
-                } elseif(!empty($img['image'])){
-                    $path = $this->saveBannerImage($img['image'],$img['title']);
-                    $this->model_groceries_categories->addBannerImage([
-                        "banner_id"=>$banner_id,
-                        "title"=>$img['title'] ?? '',
-                        "link"=>$img['category_id'] ?? '',
-                        "image"=>$path,
-                        "sort_order"=>$img['sort_order'] ?? 0
-                    ]);
+        if (!empty($post['images'])) {
+
+            foreach ($post['images'] as $img) {
+
+                if (!empty($img['existing_image'])) {
+                    $image = $img['existing_image'];
+                } else {
+                    $image = $this->saveBannerImage($img['image'], $img['title']);
                 }
+
+                $this->model_groceries_categories->addBannerImage([
+                    "banner_id"  => $banner_id,
+                    "title"      => $img['title'] ?? '',
+                    "link"       => $img['category_id'] ?? '',
+                    "image"      => $image,
+                    "sort_order" => $img['sort_order'] ?? 0
+                ]);
             }
         }
 
@@ -3999,27 +4069,26 @@ public function editRunningBanner(): void {
             "status"=>$post['status'] ?? 1
         ]);
 
+        $this->model_groceries_categories->deleteRunningBannerImages($banner_id);
+
         // add new images only if provided (do not delete old ones)
-        if(!empty($post['images'])){
-            foreach($post['images'] as $img){
-                if(!empty($img['existing_image'])){
-                    $this->model_groceries_categories->updateRunningBannerImage([
-                        "banner_id"=>$banner_id,
-                        "title"=>$img['title'] ?? '',
-                        "link"=>$img['category_id'] ?? '',
-                        "image"=>$img['existing_image'],
-                        "sort_order"=>$img['sort_order'] ?? 0
-                    ]);
-                } elseif(!empty($img['image'])){
-                    $path = $this->saveBannerImage($img['image'],$img['title']);
-                    $this->model_groceries_categories->addRunningBannerImage([
-                        "banner_id"=>$banner_id,
-                        "title"=>$img['title'] ?? '',
-                        "link"=>$img['category_id'] ?? '',
-                        "image"=>$path,
-                        "sort_order"=>$img['sort_order'] ?? 0
-                    ]);
+        if (!empty($post['images'])) {
+
+            foreach ($post['images'] as $img) {
+
+                if (!empty($img['existing_image'])) {
+                    $image = $img['existing_image'];
+                } else {
+                    $image = $this->saveBannerImage($img['image'], $img['title']);
                 }
+
+                $this->model_groceries_categories->addRunningBannerImage([
+                    "banner_id"  => $banner_id,
+                    "title"      => $img['title'] ?? '',
+                    "link"       => $img['category_id'] ?? '',
+                    "image"      => $image,
+                    "sort_order" => $img['sort_order'] ?? 0
+                ]);
             }
         }
 
@@ -4178,27 +4247,26 @@ public function editBottomBanner(): void {
             "status"=>$post['status'] ?? 1
         ]);
 
+        $this->model_groceries_categories->deleteBottomBannerImages($banner_id);
+
         // add new images only if provided (do not delete old ones)
-        if(!empty($post['images'])){
-            foreach($post['images'] as $img){
-                if(!empty($img['existing_image'])){
-                    $this->model_groceries_categories->updateBottomBannerImage([
-                        "banner_id"=>$banner_id,
-                        "title"=>$img['title'] ?? '',
-                        "link"=>$img['category_id'] ?? '',
-                        "image"=>$img['existing_image'],
-                        "sort_order"=>$img['sort_order'] ?? 0
-                    ]);
-                } elseif(!empty($img['image'])){
-                    $path = $this->saveBannerImage($img['image'],$img['title']);
-                    $this->model_groceries_categories->addBottomBannerImage([
-                        "banner_id"=>$banner_id,
-                        "title"=>$img['title'] ?? '',
-                        "link"=>$img['category_id'] ?? '',
-                        "image"=>$path,
-                        "sort_order"=>$img['sort_order'] ?? 0
-                    ]);
+        if (!empty($post['images'])) {
+
+            foreach ($post['images'] as $img) {
+
+                if (!empty($img['existing_image'])) {
+                    $image = $img['existing_image'];
+                } else {
+                    $image = $this->saveBannerImage($img['image'], $img['title']);
                 }
+
+                $this->model_groceries_categories->addBottomBannerImage([
+                    "banner_id"  => $banner_id,
+                    "title"      => $img['title'] ?? '',
+                    "link"       => $img['category_id'] ?? '',
+                    "image"      => $image,
+                    "sort_order" => $img['sort_order'] ?? 0
+                ]);
             }
         }
 
@@ -4540,6 +4608,59 @@ public function getAllProducts(): void {
                 ]
             ]));
         }
+
+        public function productProfitReport(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    if (!$this->validateToken()) {
+
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>"Invalid Token"
+        ]));
+
+        return;
+    }
+
+    $from_date = $this->request->get['from_date'] ?? date('Y-m-d');
+    $to_date   = $this->request->get['to_date'] ?? date('Y-m-d');
+
+    $this->load->model('groceries/categories');
+
+    $products = $this->model_groceries_categories
+        ->getProductProfitReport($from_date,$to_date);
+
+    $grand_sales = 0;
+$grand_profit = 0;
+$total_profit = 0;
+$total_loss = 0;
+
+foreach ($products as $row) {
+
+    $profit = (float)$row['total_profit'];
+
+    $grand_sales += (float)$row['total_sales'];
+    $grand_profit += $profit;
+
+    if ($profit >= 0) {
+        $total_profit += $profit;
+    } else {
+        $total_loss += $profit;
+    }
+}
+
+    $this->response->setOutput(json_encode([
+    "status"        => "success",
+    "from_date"     => $from_date,
+    "to_date"       => $to_date,
+    "grand_sales"   => $grand_sales,
+    "grand_profit"  => $grand_profit,   // Profit - Loss (Net)
+    "total_profit"  => $total_profit,   // Only positive values
+    "total_loss"    => $total_loss,     // Only negative values (absolute)
+    "products"      => $products
+]));
+}
 
     public function sendUPIPayment(): void {
 

@@ -22,7 +22,7 @@ class Addproducts extends \Opencart\System\Engine\Model {
                                                                 special_price='" . (float)$data['special_price'] . "',
                                                                 quantity='" . (int)$data['quantity'] . "',
                                                                 model= '',
-                                                                received_price= '',
+                                                                received_price= " . (float)$data['recieved_price'] . ",
                                                                 r_tax= '',
                                                                 max_quantity='" . (int)$data['max_quantity'] . "',
                                                                 r_tag='" . $this->db->escape($data['r_tag']) . "',
@@ -47,13 +47,27 @@ class Addproducts extends \Opencart\System\Engine\Model {
                 $this->db->query("INSERT INTO " . DB_PREFIX . "piece_to_product SET
                     product_id = '" . (int)$product_id . "',
                     piece_id = '" . (int)$piece['piece_id'] . "',
+                    recieved_price = '" . (float)$piece['recieved_price'] . "',
                     price = '" . (float)$piece['price'] . "',
                     image = '" . $this->db->escape($piece['image'] ?? '') . "',
                     special_price = '" . (float)$piece['special_price'] . "',
                     piece_default = '" . (int)$piece['piece_default'] . "',
                     min_quantity = '" . (int)$piece['min_quantity'] . "',
-                    pos_quantity = '" . (int)$piece['pos_quantity'] . "'
+                    pos_quantity = '" . (int)$piece['pos_quantity'] . "',
+                    category_id = '" . (int)($piece['category_id'] ?? 0) . "'
                 ");
+
+                if (!empty($piece['category_id'])) {
+
+                    $this->db->query("
+                        INSERT IGNORE INTO `" . DB_PREFIX . "piece_category`
+                        SET
+                            category_id = '" . (int)$piece['category_id'] . "',
+                            product_id  = '" . (int)$product_id . "',
+                            piece_id    = '" . (int)$piece['piece_id'] . "',
+                            created_at  = NOW()
+                    ");
+                }
             }
         }
         
@@ -89,12 +103,21 @@ class Addproducts extends \Opencart\System\Engine\Model {
     return $query->row;
 }
 
+public function deleteProductImages($product_id): void {
+
+    $this->db->query("
+        DELETE FROM " . DB_PREFIX . "product_image
+        WHERE product_id = '" . (int)$product_id . "'
+    ");
+}
+
     public function edit(int $product_id, array $data): void {
                                                 $this->db->query("UPDATE " . DB_PREFIX . "product SET
                                                                                                 sku='" . $this->db->escape($data['sku']) . "',
                                                                                                 upc='" . $this->db->escape($data['upc']) . "',
                                                                                                 box_id='" . (int)$data['box_id'] . "',
                                                                                                 rack_code='" . $this->db->escape($data['rack_code']) . "',
+                                                                                                received_price='" . (float)$data['recieved_price'] . "',
                                                                                                 price='" . (float)$data['price'] . "',
                                                                                                 additional_price='" . (float)$data['additional_price'] . "',
                                                                                                 is_combo = '" . $this->db->escape($data['is_combo']) . "',
@@ -141,6 +164,7 @@ class Addproducts extends \Opencart\System\Engine\Model {
                 
                 
                 $this->db->query("DELETE FROM " . DB_PREFIX . "piece_to_product WHERE product_id = '" . (int)$product_id . "'");
+$this->db->query("DELETE FROM `" . DB_PREFIX . "piece_category` WHERE product_id = '" . (int)$product_id . "'");
 
 if (!empty($data['pieces'])) {
 
@@ -149,19 +173,31 @@ if (!empty($data['pieces'])) {
         $this->db->query("INSERT INTO " . DB_PREFIX . "piece_to_product SET
             product_id = '" . (int)$product_id . "',
             piece_id = '" . (int)$piece['piece_id'] . "',
+            recieved_price = '" . (float)$piece['recieved_price'] . "',
             image = '" . $this->db->escape($piece['image'] ?? '') . "',
             price = '" . (float)$piece['price'] . "',
             special_price = '" . (float)$piece['special_price'] . "',
             piece_default = '" . (int)$piece['piece_default'] . "',
             min_quantity = '" . (int)$piece['min_quantity'] . "',
-            pos_quantity = '" . (int)$piece['pos_quantity'] . "'
+            pos_quantity = '" . (int)$piece['pos_quantity'] . "',
+            category_id = '" . (int)($piece['category_id'] ?? 0) . "'
         ");
+
+        // Store category-piece mapping
+        if (!empty($piece['category_id'])) {
+
+           $this->db->query("
+            INSERT IGNORE INTO `" . DB_PREFIX . "piece_category`
+            SET
+                category_id = '" . (int)$piece['category_id'] . "',
+                product_id  = '" . (int)$product_id . "',
+                piece_id    = '" . (int)$piece['piece_id'] . "',
+                created_at  = NOW()
+        ");
+        }
     }
 }
-        
-    
-}
-
+    }
 
     
     public function savePosProduct(int $product_id, int $pos_status, int $pos_quentity): void {
@@ -207,7 +243,31 @@ public function delete(int $product_id): void {
     // piece mapping
     $this->db->query("DELETE FROM " . DB_PREFIX . "piece_to_product WHERE product_id = '" . (int)$product_id . "'");
 
+    // piece category mapping
+    $this->db->query("DELETE FROM " . DB_PREFIX . "piece_category WHERE product_id = '" . (int)$product_id . "'");
+    $this->db->query("
+    DELETE FROM " . DB_PREFIX . "product_image
+    WHERE product_id = '" . (int)$product_id . "'
+");
+
 }
+
+
+public function saveProductImages(int $product_id, array $images): void {
+
+    foreach ($images as $image) {
+
+        $this->db->query("
+            INSERT INTO " . DB_PREFIX . "product_image
+            SET
+                product_id = '" . (int)$product_id . "',
+                image = '" . $this->db->escape($image['image']) . "',
+                sort_order = '" . (int)($image['sort_order'] ?? 0) . "'
+        ");
+    }
+}
+
+
 public function generateBoxBarcode(): int {
 
     $unique15 = substr(

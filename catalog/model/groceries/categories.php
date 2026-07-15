@@ -187,6 +187,7 @@ private function sendPushNotification(
                 JOIN `" . DB_PREFIX . "category_description` cd
                 ON c.category_id = cd.category_id
                 WHERE c.parent_id = 0
+                AND c.is_banner = 0
                 AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
 
         return $this->db->query($sql)->rows;
@@ -198,18 +199,28 @@ public function getProductPieces($product_id): array {
             ptp.piece_id,
             ptp.image,
             ps.piece,
+            ptp.recieved_price,
             ptp.price,
             ptp.special_price,
             ptp.piece_price,
             ptp.piece_default,
             ptp.is_combo,
             ptp.min_quantity,
-            ptp.pos_quantity
+            ptp.pos_quantity,
+            ptp.category_id,
+            cd.name AS category_name
 
             FROM " . DB_PREFIX . "piece_to_product ptp
 
             LEFT JOIN " . DB_PREFIX . "pieces ps
-            ON ptp.piece_id = ps.piece_id
+                ON ptp.piece_id = ps.piece_id
+
+            LEFT JOIN " . DB_PREFIX . "category c
+                ON ptp.category_id = c.category_id
+
+            LEFT JOIN " . DB_PREFIX . "category_description cd
+                ON c.category_id = cd.category_id
+                AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
 
             WHERE ptp.product_id = '" . (int)$product_id . "'
 
@@ -222,6 +233,7 @@ public function getProductPieces($product_id): array {
 
         $sql = "SELECT 
                 p.product_id,
+                p.received_price,
                 p.price,
                 p.image,
                 p.featured,
@@ -251,6 +263,7 @@ public function getProductPieces($product_id): array {
      $product['categories'] = $this->getProductCategories($product['product_id']);  
 
     $product['pieces'] = $this->getProductPieces($product['product_id']);
+    $product['extra_images'] = $this->getProductExtraImages($product['product_id']);
 
 }
 
@@ -284,6 +297,7 @@ public function getProductPieces($product_id): array {
                 JOIN `" . DB_PREFIX . "category_description` cd
                 ON c.category_id = cd.category_id
                 WHERE c.parent_id = '" . (int)$category_id . "'
+                AND c.is_banner = 0
                 AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
 
         return $this->db->query($sql)->rows;
@@ -338,53 +352,197 @@ public function getProductPieces($product_id): array {
 
    public function getProductsOnly($category_id){
 
-    $sql = "SELECT 
-            p.product_id,
-            p.price,
-            p.special_price,
-            p.is_combo,
-            p.featured,
-            p.image,
-            pd.name,
-            pd.description,
-            c.category_id,
-            cd.name AS category_name,
-            c.gst,
-            pp.pos_status,
-            pp.pos_quentity
+    $sql = "SELECT DISTINCT
+        p.product_id,
+        p.price,
+        p.special_price,
+        p.is_combo,
+        p.featured,
+        p.image,
+        pd.name,
+        pd.description,
+        c.category_id,
+        cd.name AS category_name,
+        c.gst,
+        pp.pos_status,
+        pp.pos_quentity
 
-            FROM " . DB_PREFIX . "product_to_category pc
+        FROM " . DB_PREFIX . "product p
 
-            JOIN " . DB_PREFIX . "product p
-            ON pc.product_id = p.product_id
-
-            JOIN " . DB_PREFIX . "product_description pd
+        JOIN " . DB_PREFIX . "product_description pd
             ON p.product_id = pd.product_id
 
-            JOIN " . DB_PREFIX . "category c
-            ON pc.category_id = c.category_id
+        LEFT JOIN " . DB_PREFIX . "product_to_category pc
+            ON p.product_id = pc.product_id
+    AND pc.category_id = '" . (int)$category_id . "'
 
-            JOIN " . DB_PREFIX . "category_description cd
-            ON c.category_id = cd.category_id
+        LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
+            ON p.product_id = ptp.product_id
 
-            LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
+    
+            LEFT JOIN " . DB_PREFIX . "category c
+    ON c.category_id = pc.category_id
+
+        LEFT JOIN " . DB_PREFIX . "category_description cd
+            ON cd.category_id = c.category_id
+            AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+
+        LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
             ON p.product_id = pp.product_id
 
-        
+        WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
 
-            WHERE pc.category_id = '" . (int)$category_id . "'
-            AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+        AND (
+            pc.category_id = '" . (int)$category_id . "'
+            OR
+            ptp.category_id = '" . (int)$category_id . "'
+        )
 
-            ORDER BY p.product_id DESC";
+        ORDER BY p.product_id DESC";
             
     $products = $this->db->query($sql)->rows;
 
 foreach ($products as &$product) {
 
-    $product['pieces'] = $this->getProductPieces($product['product_id']);
+    $product['pieces'] = $this->getProductPiecesByCategory(
+        $product['product_id'],
+        $category_id
+    );
+    $product['extra_images'] = $this->getProductExtraImages($product['product_id']);
 }
 
 return $products;
+}
+
+public function getBannerProducts($category_id){
+
+      $language_id = (int)$this->config->get('config_language_id');
+
+    $sql = "SELECT DISTINCT
+                p.product_id,
+                p.price,
+                p.special_price,
+                p.is_combo,
+                p.featured,
+                p.image,
+                pd.name,
+                pd.description,
+                c.category_id,
+                cd.name AS category_name,
+                c.gst,
+                pp.pos_status,
+                pp.pos_quentity
+
+            FROM " . DB_PREFIX . "product p
+
+            JOIN " . DB_PREFIX . "product_description pd
+                ON pd.product_id = p.product_id
+                AND pd.language_id = '".$language_id."'
+
+            LEFT JOIN " . DB_PREFIX . "product_to_category pc
+                ON pc.product_id = p.product_id
+
+            LEFT JOIN " . DB_PREFIX . "piece_category pcat
+                ON pcat.product_id = p.product_id
+
+            LEFT JOIN " . DB_PREFIX . "category c
+                ON c.category_id = pc.category_id
+
+            LEFT JOIN " . DB_PREFIX . "category_description cd
+                ON cd.category_id = c.category_id
+                AND cd.language_id = '".$language_id."'
+
+            LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
+                ON pp.product_id = p.product_id
+
+            WHERE
+                pc.category_id = '".(int)$category_id."'
+                OR
+                pcat.category_id = '".(int)$category_id."'
+
+            ORDER BY p.product_id DESC";
+
+    $products = $this->db->query($sql)->rows;
+
+foreach ($products as &$product) {
+
+    $product['pieces'] = $this->getBannerPieces(
+        $product['product_id'],
+        $category_id
+    );
+    $product['extra_images'] = $this->getProductExtraImages($product['product_id']);
+}
+
+return $products;
+}
+
+public function getBannerPieces($product_id, $category_id): array {
+
+    $sql = "SELECT
+                ptp.id,
+                ptp.piece_id,
+                ps.piece,
+                ptp.image,
+                ptp.recieved_price,
+                ptp.price,
+                ptp.special_price,
+                ptp.piece_price,
+                ptp.piece_default,
+                ptp.min_quantity,
+                ptp.pos_quantity,
+                ptp.is_combo
+
+            FROM " . DB_PREFIX . "piece_to_product ptp
+
+            INNER JOIN " . DB_PREFIX . "piece_category pc
+                ON pc.product_id = ptp.product_id
+                AND pc.piece_id = ptp.piece_id
+
+            LEFT JOIN " . DB_PREFIX . "pieces ps
+                ON ps.piece_id = ptp.piece_id
+
+            WHERE ptp.product_id = '" . (int)$product_id . "'
+            AND pc.category_id = '" . (int)$category_id . "'
+
+            ORDER BY ptp.piece_default DESC, ptp.id ASC";
+
+    return $this->db->query($sql)->rows;
+}
+
+public function getProductPiecesByCategory($product_id, $category_id): array {
+
+    $sql = "SELECT
+            ptp.id,
+            ptp.piece_id,
+            ps.piece,
+            ptp.image,
+            ptp.recieved_price,
+            ptp.price,
+            ptp.special_price,
+            ptp.piece_price,
+            ptp.piece_default,
+            ptp.min_quantity,
+            ptp.pos_quantity,
+            ptp.is_combo,
+            ptp.category_id
+
+            FROM " . DB_PREFIX . "piece_to_product ptp
+
+            LEFT JOIN " . DB_PREFIX . "pieces ps
+                ON ps.piece_id = ptp.piece_id
+
+            WHERE ptp.product_id = '" . (int)$product_id . "'";
+
+    // If this product has pieces for the selected offer category,
+    // return only those pieces.
+    $check = $this->db->query($sql . " AND ptp.category_id = '" . (int)$category_id . "'");
+
+    if ($check->num_rows) {
+        return $check->rows;
+    }
+
+    // Otherwise return all pieces.
+    return $this->db->query($sql . " ORDER BY ptp.id")->rows;
 }
     
     public function getRandomProducts() {
@@ -477,6 +635,21 @@ foreach ($products as &$product) {
 return $products;
     }
 
+    public function getProductExtraImages($product_id): array {
+
+    $query = $this->db->query("
+        SELECT
+            product_image_id,
+            image,
+            sort_order
+        FROM `" . DB_PREFIX . "product_image`
+        WHERE product_id = '" . (int)$product_id . "'
+        ORDER BY sort_order ASC
+    ");
+
+    return $query->rows;
+}
+
 public function getProductDetails($product_id){
 
     $sql = "SELECT 
@@ -503,6 +676,8 @@ public function getProductDetails($product_id){
 foreach ($products as &$product) {
 
     $product['pieces'] = $this->getProductPieces($product['product_id']);
+
+    $product['extra_images'] = $this->getProductExtraImages($product['product_id']);
 }
 
 return $products;
@@ -513,6 +688,7 @@ public function getRelatedProducts($product_id){
     $sql = "SELECT 
             p.product_id,
             p.price,
+            p.special_price,
             p.image,
             p.is_combo,
             pd.name,
@@ -674,6 +850,8 @@ gst='".(float)$data['gst']."',
 
 sort_order='".(int)$data['sort_order']."',
 
+is_banner='".(int)$data['is_banner']."',
+
 status='".(int)$data['status']."'
 ");
 
@@ -726,6 +904,27 @@ $this->db->query("INSERT INTO " . DB_PREFIX . "category_path SET
     path_id = '" . (int)$category_id . "',
     level = '" . (int)$level . "'");
 
+    if (!empty($data['offer_products'])) {
+
+    foreach ($data['offer_products'] as $item) {
+
+        $product_id = (int)($item['product_id'] ?? 0);
+        $piece_id   = (int)($item['piece_id'] ?? 0);
+
+        if (!$product_id || !$piece_id) {
+            continue;
+        }
+
+        $this->db->query("
+            INSERT IGNORE INTO `" . DB_PREFIX . "piece_category`
+            SET
+                category_id = '" . (int)$category_id . "',
+                product_id  = '" . $product_id . "',
+                piece_id    = '" . $piece_id . "'
+        ");
+    }
+}
+
 return $category_id;
 
 }
@@ -744,32 +943,119 @@ public function categoryExists(string $name): bool {
 }
 public function getCategories(): array {
 
-    $sql = "SELECT 
+    $language_id = (int)$this->config->get('config_language_id');
 
-    cp.category_id,
-    c.*,
-    GROUP_CONCAT(cd.name ORDER BY cp.level SEPARATOR ' > ') AS name
-   
+    $sql = "SELECT
+                c.category_id,
+                c.parent_id,
+                c.image,
+                c.offer,
+                c.offer_from,
+                c.offer_to,
+                c.offer_percentage,
+                c.gst,
+                c.sort_order,
+                c.is_banner,
+                c.status,
 
-    FROM " . DB_PREFIX . "category_path cp
+                GROUP_CONCAT(DISTINCT cd2.name ORDER BY cp.level SEPARATOR ' > ') AS category_name,
 
-    LEFT JOIN " . DB_PREFIX . "category c
-    ON cp.category_id = c.category_id
+                p.product_id,
+                pd.name AS product_name,
 
-    LEFT JOIN " . DB_PREFIX . "category_description cd
-    ON cp.path_id = cd.category_id
+                ptp.piece_id,
+                ps.piece AS piece_name
 
-    WHERE cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
-    AND c.status = 1
+            FROM " . DB_PREFIX . "category c
 
-    GROUP BY cp.category_id
+            LEFT JOIN " . DB_PREFIX . "category_path cp
+                ON cp.category_id = c.category_id
 
-    ORDER BY name ASC";
+            LEFT JOIN " . DB_PREFIX . "category_description cd2
+                ON cd2.category_id = cp.path_id
+                AND cd2.language_id = '" . $language_id . "'
 
-    $query = $this->db->query($sql);
+            LEFT JOIN " . DB_PREFIX . "piece_category pc
+                ON pc.category_id = c.category_id
 
-    return $query->rows;
+            LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
+                ON ptp.product_id = pc.product_id
+                AND ptp.piece_id = pc.piece_id
 
+            LEFT JOIN " . DB_PREFIX . "product p
+            ON p.product_id = pc.product_id
+
+            LEFT JOIN " . DB_PREFIX . "product_description pd
+                ON pd.product_id = p.product_id
+                AND pd.language_id = '" . $language_id . "'
+
+            LEFT JOIN " . DB_PREFIX . "pieces ps
+                ON ps.piece_id = ptp.piece_id
+
+            WHERE c.status = 1
+
+            GROUP BY
+                c.category_id,
+                p.product_id,
+                ptp.piece_id
+
+            ORDER BY category_name ASC";
+
+    $rows = $this->db->query($sql)->rows;
+
+    $categories = [];
+
+    foreach ($rows as $row) {
+
+        $category_id = (int)$row['category_id'];
+
+        if (!isset($categories[$category_id])) {
+
+            $categories[$category_id] = [
+                'category_id'      => $row['category_id'],
+                'category_name'    => $row['category_name'],
+                'parent_id'        => $row['parent_id'],
+                'image'            => $row['image'],
+                'offer'            => $row['offer'],
+                'offer_from'       => $row['offer_from'],
+                'offer_to'         => $row['offer_to'],
+                'offer_percentage' => $row['offer_percentage'],
+                'gst'              => $row['gst'],
+                'sort_order'       => $row['sort_order'],
+                'is_banner'        => $row['is_banner'],
+                'status'           => $row['status'],
+                'products'         => []
+            ];
+        }
+
+        if (!empty($row['product_id'])) {
+
+            $product_id = (int)$row['product_id'];
+
+            if (!isset($categories[$category_id]['products'][$product_id])) {
+
+                $categories[$category_id]['products'][$product_id] = [
+                    'product_id'   => $row['product_id'],
+                    'product_name' => $row['product_name'],
+                    'pieces'       => []
+                ];
+            }
+
+            if (!empty($row['piece_id'])) {
+
+                $categories[$category_id]['products'][$product_id]['pieces'][] = [
+                    'piece_id'   => $row['piece_id'],
+                    'piece_name' => $row['piece_name']
+                ];
+            }
+        }
+    }
+
+    foreach ($categories as &$category) {
+        $category['products'] = array_values($category['products']);
+    }
+
+    return array_values($categories);
 }
 
 public function editCategory($category_id, $data) {
@@ -792,6 +1078,7 @@ public function editCategory($category_id, $data) {
         offer_percentage = '" . (float)$data['offer_percentage'] . "',
         gst = '" . (float)$data['gst'] . "',
         sort_order = '" . (int)$data['sort_order'] . "',
+        is_banner = '" . (int)$data['is_banner'] . "',
         status = '" . (int)$data['status'] . "'";
 
     if (!empty($data['image'])) {
@@ -829,6 +1116,31 @@ $this->db->query("INSERT INTO " . DB_PREFIX . "category_path SET
         WHERE category_id = '" . (int)$category_id . "'
         AND language_id = '" . (int)$this->config->get('config_language_id') . "'
     ");
+
+    $this->db->query("
+DELETE FROM `" . DB_PREFIX . "piece_category`
+WHERE category_id = '" . (int)$category_id . "'");
+
+   if (!empty($data['offer_products'])) {
+
+    foreach ($data['offer_products'] as $item) {
+
+        $product_id = (int)($item['product_id'] ?? 0);
+        $piece_id   = (int)($item['piece_id'] ?? 0);
+
+        if (!$product_id || !$piece_id) {
+            continue;
+        }
+
+        $this->db->query("
+            INSERT IGNORE INTO `" . DB_PREFIX . "piece_category`
+            SET
+                category_id = '" . (int)$category_id . "',
+                product_id  = '" . $product_id . "',
+                piece_id    = '" . $piece_id . "'
+        ");
+    }
+}
 
     return true;
 }
@@ -2247,7 +2559,7 @@ public function updateBannerImage($data): void {
             link  = '" . $this->db->escape($data['link'])  . "',
             image = '" . $this->db->escape($data['image']) . "',
             sort_order = '" . (int)$data['sort_order'] . "'
-        WHERE banner_id = '" . (int)$data['banner_id'] . "'
+        WHERE banner_image_id = '" . (int)$data['banner_image_id'] . "'
     ");
 }
 
@@ -2388,13 +2700,15 @@ public function getAllRunningBanners(){
 }
 
 public function updateRunningBannerImage($data): void {
+
     $this->db->query("
-        UPDATE " . DB_PREFIX . "banner_image 
-        SET title = '" . $this->db->escape($data['title']) . "',
-            link  = '" . $this->db->escape($data['link'])  . "',
+        UPDATE " . DB_PREFIX . "banner_image
+        SET
+            title = '" . $this->db->escape($data['title']) . "',
+            link = '" . $this->db->escape($data['link']) . "',
             image = '" . $this->db->escape($data['image']) . "',
             sort_order = '" . (int)$data['sort_order'] . "'
-        WHERE banner_id = '" . (int)$data['banner_id'] . "'
+        WHERE banner_image_id = '" . (int)$data['banner_image_id'] . "'
     ");
 }
 
@@ -3039,8 +3353,133 @@ foreach ($products as &$product) {
     $product['pieces'] = $this->getProductPiecesStock($product['product_id']);
 }
 
+
+
 return $products;
     }
+
+    public function getProductProfitReport($from_date = '', $to_date = '') {
+
+    if (empty($from_date)) {
+        $from_date = date('Y-m-d');
+    }
+
+    if (empty($to_date)) {
+        $to_date = date('Y-m-d');
+    }
+
+    $sql = "SELECT
+
+        op.product_id,
+        op.piece_id,
+        ps.piece AS piece_name,
+
+        p.image,
+
+        CASE
+            WHEN op.piece_id > 0 THEN CONCAT(pd.name,' - ',pcs.piece)
+            ELSE pd.name
+        END AS product_name,
+
+        SUM(op.quantity) AS sold_qty,
+
+        CASE
+            WHEN op.piece_id > 0
+                THEN ptp.recieved_price
+            ELSE
+                p.received_price
+        END AS purchase_price,
+
+        CASE
+            WHEN op.piece_id > 0
+                THEN IF(ptp.special_price > 0, ptp.special_price, ptp.price)
+            ELSE
+                IF(p.special_price > 0, p.special_price, p.price)
+        END AS selling_price,
+
+        SUM(
+            op.quantity *
+            (
+                CASE
+                    WHEN op.piece_id > 0
+                        THEN IF(ptp.special_price > 0, ptp.special_price, ptp.price)
+                    ELSE
+                        IF(p.special_price > 0, p.special_price, p.price)
+                END
+            )
+        ) AS total_sales,
+
+        SUM(
+            op.quantity *
+            (
+                CASE
+                    WHEN op.piece_id > 0
+                        THEN ptp.recieved_price
+                    ELSE
+                        p.received_price
+                END
+            )
+        ) AS total_purchase,
+
+        SUM(
+            op.quantity *
+            (
+                (
+                    CASE
+                        WHEN op.piece_id > 0
+                            THEN IF(ptp.special_price > 0, ptp.special_price, ptp.price)
+                        ELSE
+                            IF(p.special_price > 0, p.special_price, p.price)
+                    END
+                )
+                -
+                (
+                    CASE
+                        WHEN op.piece_id > 0
+                            THEN ptp.recieved_price
+                        ELSE
+                            p.received_price
+                    END
+                )
+            )
+        ) AS total_profit
+
+    FROM " . DB_PREFIX . "order_product op
+
+    INNER JOIN " . DB_PREFIX . "order o
+        ON o.order_id = op.order_id
+        
+
+    INNER JOIN " . DB_PREFIX . "product p
+        ON p.product_id = op.product_id
+
+    INNER JOIN " . DB_PREFIX . "product_description pd
+        ON pd.product_id = p.product_id
+        AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+
+    LEFT JOIN " . DB_PREFIX . "pieces ps
+    ON ps.piece_id = op.piece_id
+
+    LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
+        ON ptp.product_id = op.product_id
+        AND ptp.piece_id = op.piece_id
+
+    LEFT JOIN " . DB_PREFIX . "pieces pcs
+        ON pcs.piece_id = op.piece_id
+
+    WHERE DATE(o.date_added)
+        BETWEEN '" . $this->db->escape($from_date) . "'
+        AND '" . $this->db->escape($to_date) . "'
+
+    GROUP BY
+        op.product_id,
+        op.piece_id
+
+    ORDER BY total_profit DESC";
+
+    return $this->db->query($sql)->rows;
+}
+
 
     public function getCategoryWiseStockTotal() {
 
