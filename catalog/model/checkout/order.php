@@ -1755,10 +1755,34 @@ public function cancelOrderFull(int $order_id, string $reason = ''): void
 
 private function restorePosQuantity(int $order_id): void
 {
-    $products = $this->db->query(" SELECT product_id, quantity FROM `" . DB_PREFIX . "order_product`WHERE order_id = '" . (int)$order_id . "'");
+    $products = $this->db->query("
+        SELECT
+            product_id,
+            piece_id,
+            quantity
+        FROM `" . DB_PREFIX . "order_product`
+        WHERE order_id = '" . (int)$order_id . "'
+    ");
 
     foreach ($products->rows as $p) {
-        $this->db->query("UPDATE `" . DB_PREFIX . "pts_pos_product` SET pos_quentity = pos_quentity + " . (int)$p['quantity'] . " WHERE product_id = '" . (int)$p['product_id'] . "'");
+
+        // Restore product POS quantity
+        $this->db->query("
+            UPDATE `" . DB_PREFIX . "pts_pos_product`
+            SET pos_quentity = pos_quentity + " . (int)$p['quantity'] . "
+            WHERE product_id = '" . (int)$p['product_id'] . "'
+        ");
+
+        // Restore piece POS quantity
+        if ((int)$p['piece_id'] > 0) {
+
+            $this->db->query("
+                UPDATE `" . DB_PREFIX . "piece_to_product`
+                SET pos_quantity = pos_quantity + " . (int)$p['quantity'] . "
+                WHERE product_id = '" . (int)$p['product_id'] . "'
+                AND piece_id = '" . (int)$p['piece_id'] . "'
+            ");
+        }
     }
 }
 

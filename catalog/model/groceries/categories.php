@@ -3448,7 +3448,11 @@ return $products;
 
     INNER JOIN " . DB_PREFIX . "order o
         ON o.order_id = op.order_id
-        
+
+    INNER JOIN " . DB_PREFIX . "track_order tor
+        ON tor.order_id = o.order_id
+        AND tor.track_status_id = 5
+        AND tor.status = 1
 
     INNER JOIN " . DB_PREFIX . "product p
         ON p.product_id = op.product_id
@@ -3458,7 +3462,7 @@ return $products;
         AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
 
     LEFT JOIN " . DB_PREFIX . "pieces ps
-    ON ps.piece_id = op.piece_id
+        ON ps.piece_id = op.piece_id
 
     LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
         ON ptp.product_id = op.product_id
@@ -3470,6 +3474,7 @@ return $products;
     WHERE DATE(o.date_added)
         BETWEEN '" . $this->db->escape($from_date) . "'
         AND '" . $this->db->escape($to_date) . "'
+        AND o.order_status_id <> 7
 
     GROUP BY
         op.product_id,
