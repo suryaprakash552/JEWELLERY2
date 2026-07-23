@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saleem Gold Covering Receipt</title>
+    <title>Smile Basket Receipt</title>
     <base href="{{ base }}"/>
     <link href="{{ bootstrap_css }}" type="text/css" rel="stylesheet"/>
     <link href="{{ icons }}" type="text/css" rel="stylesheet"/>
@@ -41,7 +41,7 @@
         .text-right { text-align: right; }
         .text-left { text-align: left; }
         .bold { font-weight: 700; }
-        
+
         .line {
             border-bottom: 1px solid #000;
             margin: 5px 0;
@@ -57,7 +57,7 @@
             text-align: center;
             margin-bottom: 5px;
         }
-        
+
         .logo-main {
             font-size: 20px;
             font-weight: 900;
@@ -65,15 +65,24 @@
             font-family: serif;
             text-transform: uppercase;
             word-wrap: break-word;
-            color:#000;
+            color: #000;
         }
-        
+
         .logo-tagline {
             font-size: 9px;
             color: #000;
             font-weight: bold;
             margin-bottom: 5px;
             margin-top: 2px;
+        }
+
+        /* Logo is converted to pure B&W by JS canvas below — no CSS filter */
+        .logo-img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
         .store-info {
@@ -96,7 +105,6 @@
             font-weight: 700;
             margin-top: 5px;
         }
-
 
         .items-table {
             width: 100%;
@@ -128,6 +136,15 @@
             padding: 3px 0;
         }
 
+        .items-table tbody td {
+            text-align: center !important;
+            vertical-align: top !important;
+        }
+
+        .items-table tbody td:first-child {
+            text-align: left !important;
+        }
+
         .total-qty-bar {
             display: flex;
             justify-content: space-between;
@@ -146,7 +163,7 @@
             text-align: right;
             margin-top: 5px;
         }
-        
+
         .amount-words {
             font-size: 10px;
             font-weight: 700;
@@ -162,30 +179,97 @@
             margin: 10px 0;
         }
 
+        .product-name {
+    white-space: normal;      /* Allow wrapping */
+    word-break: break-word;   /* Break long words if needed */
+    overflow-wrap: break-word;
+    line-height: 1.2;
+    text-align: left;
+    vertical-align: top;
+}
+
         .terms {
             font-size: 9px;
             font-weight: 600;
             margin-top: 10px;
         }
-        
+
         .align-right { text-align: right; }
         .align-center { text-align: center; }
-        
+
         .total-row {
             font-weight: bold;
             background-color: #fafafa;
         }
-        .items-table tbody td {
-    text-align: center !important;   /* Horizontal center */
-    vertical-align: top !important;  /* Vertical top */
-}
 
-/* First column (Item Name) left aligned */
-.items-table tbody td:first-child {
-    text-align: left !important;
-}
+        .tax-row {
+            display: flex;
+            justify-content: flex-end;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: 'Roboto', 'Noto Sans Devanagari', sans-serif;
+            margin-bottom: 3px;
+        }
 
+        .tax-row span:first-child {
+            min-width: 90px;
+            text-align: left;
+        }
 
+        .excluded-item {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .cancelled-invoice {
+            position: relative;
+        }
+
+        .cancelled-invoice::after {
+            content: "CANCELLED";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-35deg);
+            font-size: 60px;
+            font-weight: 900;
+            color: rgba(255, 0, 0, 0.25);
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        .cancelled-invoice {
+            opacity: 0.7;
+        }
+
+        /* Watermark */
+        .watermark {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+            width: 90%;
+            height: auto;
+        }
+
+        .watermark img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 50%;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ─── PRINT STYLES ───────────────────────────────────────────────────────── */
         @media print {
             body {
                 background: white;
@@ -213,86 +297,21 @@
                 size: 80mm auto;
                 margin: 0;
             }
-            
+
             html, body {
                 height: auto;
                 overflow: hidden;
             }
+
+            /* Logo is already converted to pure B&W by JS canvas */
+            .logo-img {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                max-width: 70px !important;
+                height: auto !important;
+                page-break-inside: avoid;
+            }
         }
-        
-        /* Watermark styling - mostly black but details visible */
-        .watermark {
-            position: absolute;
-            top: 45%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0.35;
-            pointer-events: none;
-            z-index: 0;
-            width: 90%;
-            height: auto;
-        }
-
-        .watermark img {
-            width: 100%;
-            height: auto;
-            display: block;
-            border-radius: 50%;
-            /* ~90% black, 10% light details visible */
-           image-rendering: pixelated;
-           image-rendering: crisp-edges;
-        }
-        
-        
-
-        /* Content wrapper to ensure it's above watermark */
-        .content-wrapper {
-            position: relative;
-            z-index: 1;
-        }
-
-        .bold { font-weight: 700; }
-        .line { border-bottom: 1px solid #000; margin: 5px 0; }
-        .tax-row {
-    display: flex;
-    justify-content: flex-end;
-    font-size: 12px;
-    font-weight: 500;
-    font-family: 'Roboto', 'Noto Sans Devanagari', sans-serif;
-    margin-bottom: 3px;
-}
-
-.tax-row span:first-child {
-    min-width: 90px;
-    text-align: left;
-}
-.excluded-item {
-    text-decoration: line-through;
-    opacity: 0.6;
-}
-
-.cancelled-invoice {
-    position: relative;
-}
-
-.cancelled-invoice::after {
-    content: "CANCELLED";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-35deg);
-    font-size: 60px;
-    font-weight: 900;
-    color: rgba(255, 0, 0, 0.25);
-    z-index: 999;
-    pointer-events: none;
-}
-
-.cancelled-invoice {
-    opacity: 0.7;
-}
-
-
     </style>
 </head>
 <body>
@@ -303,11 +322,6 @@
 {% set gst_total = cgst + sgst %}
 
 <div class="receipt-container {% if order.order_status_id == 7 %}cancelled-invoice{% endif %}">
-   
-    <!-- Watermark -->
-    {#<div class="watermark">#}
-    {#    <img src="/MTL/image/saleem_logo.jpg" alt="Watermark">#}
-    {#</div>#}
 
     <div class="content-wrapper">
         <div class="header-top text-center">INVOICE</div>
@@ -316,7 +330,7 @@
                 Invoice : {{ order.invoice_prefix ~ order.invoice_no }}
             </div>
             <div>
-               {{ "now"|date("d-m-Y h:i A", "Asia/Kolkata") }}
+               {{ order.date_added|date("d-m-Y h:i A") }}
             </div>
         </div>
 
@@ -325,21 +339,21 @@
         <div class="logo-section">
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
                 <!-- MAIN LOGO: 90% black, 10% detail -->
-                <img src="https://myteknoland.com/MTL/image/saleem_logo.jpg"
+                <img src="https://dbmarts.com/DBM/image/SmileBhasket.png"
                      alt="Logo"
-                     style="
-                        width: 70px;
-                        height: 70px;
-                        object-fit: contain;
-                     ">
+                     class="logo-img"
+                     loading="eager">
+
                 <div>
-                    <div class="logo-main" style="margin-left:-25px;">
-                        SALEEM GOLD COVERING
+                    <div class="logo-main" style="margin-left:2px; white-space: nowrap;">
+                        <div style="font-size:18px; font-weight:bold;">
+                            {{ store_name }}
+                        </div>
+                        <div style="font-size:12px; color:#555; position: relative; left:20px;">
+                            {{ store_tagline }}
+                        </div>
                     </div>
-                    <h6 style = "margin-right:20px;">WHOLESALE - +91 7337011206</h6>
-                    {#<div class="logo-tagline" style="margin-left:-25px;">#}
-                    {#     WHOLESALE STORE#}
-                    {#</div>#}
+                    <h6 style="margin-left:10px;"> +91 {{ store_contact }}</h6>
                 </div>
             </div>
         </div>
@@ -347,15 +361,14 @@
         <div class="line"></div>
 
         <div class="store-info">
-            38/109-B-4,Chittor Road, Rayachoty,Annamayya Dist,<br>
-            Andhra Pradesh - 516269.<br>
+            {{ store_address }}
         </div>
 
         <div class="line"></div>
 
         <div class="gst-info">
-            GST : 37BBBPB0938F1Z4
-            &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspOrder ID: {{ order.order_id }}
+            GST : {{ store_gst }}
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Order ID: {{ order.order_id }}
         </div>
 
         <div class="line"></div>
@@ -378,44 +391,56 @@
         <div class="line"></div>
 
         {% if not small_print %}
-    <table class="items-table">
-        <thead>
-            <tr>
-                <th width="35%">Sl. Item Name</th>
-                <th width="12%">Qty</th>
-                <th width="18%">MRP</th>
-                <th width="17%">AMT</th>
-            </tr>
-        </thead>
-        <tbody>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th width="6%">SL</th>
+                    <th width="34%">Item Name</th>
+                    <th width="10%">Qty</th>
+                    <th width="15%">MRP</th>
+                    <th width="15%">SP</th>
+                    <th width="8%">DISC</th>
+                    <th width="12%">AMT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in order.product %}
+                {% set mrp = (product.mrp is defined and product.mrp > 0) ? product.mrp : product.price %}
+                {% set sp  = (product.sp is defined and product.sp > 0) ? product.sp : product.price %}
+
+                <tr class="item-name-row {% if product.excluded %}excluded-item{% endif %}">
+                    <td class="align-center">
+                        {{ loop.index }}
+                    </td>
+
+                    <td class="text-left product-name">
+                        {{ product.name }}
+                    </td>
+
+                    <td>{{ product.quantity }}</td>
+                    <td>{{ mrp|number_format(0, '.', '') }}</td>
+                    <td>{{ sp|number_format(0, '.', '') }}</td>
+                    <td>{{ product.discount|number_format(0, '.', '') }}%</td>
+                    <td>{{ product.total|number_format(0, '.', '') }}</td>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="total-qty-bar">
+            {% set total_items = 0 %}
+            {% set total_qty = 0 %}
+
             {% for product in order.product %}
-            <tr class="item-name-row {% if product.excluded %}excluded-item{% endif %}">
-                <td style="margin-left:15px;">{{ loop.index }} &nbsp; {{ product.name }}</td>
-                <td>{{ product.quantity }}</td>
-                <td>{{ product.price|replace({'₹': '', 'Rs.': '', 'Rs': ''})|split('.')|first }}</td>
-                <td>{{ product.total|replace({'₹': '', 'Rs.': '', 'Rs': ''}) }}</td>
-            </tr>
+                {% if not product.excluded %}
+                    {% set total_items = total_items + 1 %}
+                    {% set total_qty = total_qty + product.quantity %}
+                {% endif %}
             {% endfor %}
-        </tbody>
-    </table>
 
-    <div class="total-qty-bar">
-        {% set total_items = 0 %}
-        {% set total_qty = 0 %}
-
-        {% for product in order.product %}
-            {% if not product.excluded %}
-                {% set total_items = total_items + 1 %}
-                {% set total_qty = total_qty + product.quantity %}
-            {% endif %}
-        {% endfor %}
-
-        <span>Total Item : ( {{ total_items }} )</span>
-        <span>Total Qty : ( {{ total_qty }} )</span>
-    </div>
-{% endif %}
-
-
+            <span>Total Item : ( {{ total_items }} )</span>
+            <span>Total Qty : ( {{ total_qty }} )</span>
+        </div>
+        {% endif %}
 
         <div class="summary-table">
             <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
@@ -425,37 +450,30 @@
             {% set coupon_parts = order.invoice.coupon|split('-') %}
             {% set coupon_name = coupon_parts[0] ?? '' %}
             {% set coupon_amt = coupon_parts[1] ?? '' %}
-        
             <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
                 <span></span><span>COUPON ({{ coupon_name }}) : {{ coupon_amt }}</span>
-               {# <span></span>#}
             </div>
-        {% endif %}
+            {% endif %}
             <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
-                <span></span><span style="font-weight:700;">Discount Amt : {{ gst_total|number_format(2) }}</span>
+                <span></span><span style="font-weight:700;">Discount Amt : {{ order.invoice.discount_amount|number_format(0, '.', '') }}.00</span>
             </div>
-            {#<div style="display:flex; justify-content:space-between; margin-bottom: 2px;">#}
-            {#    <span></span><span>Round Off : 0.00</span>#}
-            {#</div>#}
+            <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
+            <span></span><span style="font-weight:700;">Delivery Fee : {{ order.invoice.delivery_charge|number_format(0, '.', '') }}.00</span>
+            </div>
         </div>
 
         <div class="line"></div>
 
-<div class="tax-row">
-    <span>CGST (1.5%)</span>
-    <span>: {{ cgst|number_format(2) }}</span>
-</div>
-
-<div class="tax-row">
-    <span>SGST (1.5%)</span>
-    <span>: {{ sgst|number_format(2) }}</span>
-</div>
+        <div class="tax-row">
+            <span style="position: relative; left: 54px;">GST</span>
+            <span>: {{ order.invoice.invoice_tax|number_format(0, '.', '') }}.00</span>
+        </div>
 
         <div class="line"></div>
 
         <div style="display:flex; justify-content:space-between; padding: 5px 0;" class="bold">
             <span></span>
-            <span style="font-size:18px;font-weight: 700;">
+            <span style="font-size:18px; font-weight: 700;">
                 Net Payable : {{ order.invoice.total_received }}
             </span>
         </div>
@@ -463,49 +481,90 @@
         <div class="line"></div>
 
         <div class="savings-line">
-            Total Amount Save On This Bills : {{ gst_total|number_format(2) }}/-
+            Total Amount Save On This Bills : {{ order.savings|number_format(0, '.', '') }}/-
         </div>
 
         <div class="line"></div>
 
-        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700;">
-            <span>CASH RECEIVED</span><span>{{ order.invoice.cash_amount }}</span>
-        </div>
-
-        {% if order.invoice.upi_amount > 0 %}
-        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-top: 3px;">
-            <span>UPI RECEIVED</span><span>{{ order.invoice.upi_amount }}</span>
-        </div> 
-        {% endif %}
-        {% if order.invoice.advance_used > 0 %}
- <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-top: 3px;">
-            <span>ADVANCE USED</span><span>{{ order.invoice.advance_used }}</span>
-        </div> 
-{% endif %}
-
-        {% if order.invoice.due_amount > 0 %}
-        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-top: 3px; color: red;">
-            <span>DUE AMOUNT</span><span>{{ order.invoice.due_amount }}</span>
-        </div>
-        {% endif %}
-
-        <div class="line"></div>
 
         <div class="terms text-center">
-            <div style="text-decoration: underline; margin-bottom: 5px;">Terms & conditions</div>
-            <div class="text-center" style="font-weight: 700; font-size: 18px; white-space: nowrap;">
-                No exchange & No Return
+            <div style="text-decoration: underline; margin-bottom: 5px;">Terms &amp; conditions</div>
+            <div class="text-center" style="font-weight: 700; font-size: 15px; white-space: nowrap;">
+               Thank You For Choosing Smile Basket
             </div>
         </div>
 
         <div class="line"></div>
 
         <div class="text-center" style="font-weight: 500; font-size: 12px;">
-            “Your next visit deserves something special. Come back and enjoy exclusive in-store benefits!”
+            "Your next order deserves something special. Come back and enjoy exclusive benefits!"
         </div>
+
     </div>
 </div>
 {% endfor %}
+
+
+<script>
+/**
+ * B&W Logo Converter
+ * Reads every pixel — if not near-white, turns it pure black.
+ * Works for ANY logo color: orange, green, red, etc.
+ * Gives crisp black-on-white output for thermal / B&W printers.
+ */
+function convertLogoToBW(imgEl) {
+    var canvas = document.createElement('canvas');
+    var size = 140; // 2x for crispness
+    canvas.width = size;
+    canvas.height = size;
+    var ctx = canvas.getContext('2d');
+
+    // White background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, size, size);
+    ctx.drawImage(imgEl, 0, 0, size, size);
+
+    var imageData = ctx.getImageData(0, 0, size, size);
+    var data = imageData.data;
+
+    for (var i = 0; i < data.length; i += 4) {
+        var r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+
+        // Transparent pixel → white
+        if (a < 30) {
+            data[i]=255; data[i+1]=255; data[i+2]=255; data[i+3]=255;
+            continue;
+        }
+
+        // Alpha-blend onto white
+        var al = a / 255;
+        r = Math.round(r * al + 255 * (1 - al));
+        g = Math.round(g * al + 255 * (1 - al));
+        b = Math.round(b * al + 255 * (1 - al));
+
+        // Luminance threshold: >200 = white, else = black
+        var lum = 0.299*r + 0.587*g + 0.114*b;
+        if (lum > 200) {
+            data[i]=255; data[i+1]=255; data[i+2]=255; data[i+3]=255;
+        } else {
+            data[i]=0; data[i+1]=0; data[i+2]=0; data[i+3]=255;
+        }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+    imgEl.src = canvas.toDataURL('image/png');
+}
+
+window.addEventListener('load', function() {
+    document.querySelectorAll('.logo-img').forEach(function(img) {
+        if (img.complete && img.naturalWidth > 0) {
+            convertLogoToBW(img);
+        } else {
+            img.addEventListener('load', function() { convertLogoToBW(img); });
+        }
+    });
+});
+</script>
 
 </body>
 </html>

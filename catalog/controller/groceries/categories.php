@@ -368,22 +368,18 @@ public function saveAdminFcmToken(): void {
         "message" => "FCM Token Saved"
     ]));
 }
-    public function sendWhatsAppOtp($data = []){
+   public function sendWhatsAppOtp($data = [])
+{
+    file_put_contents(DIR_LOGS . 'whatsapp.log', "FUNCTION CALLED\n", FILE_APPEND);
 
-        file_put_contents(DIR_LOGS . 'whatsapp.log', "FUNCTION CALLED\n", FILE_APPEND);
+    $phone = "91" . preg_replace('/\D/', '', $data['phone']);
+    $otp   = (string)$data['otp'];
 
-        $phone = "91" . $data['phone'];
-        $otp   = (string)$data['otp'];
-
-        $payload = [
-    "messaging_product" => "whatsapp",
-    "to" => $phone,
-    "type" => "template",
-    "template" => [
-        "name" => "auth_login_verification",
-        "language" => [
-            "code" => "en"
-        ],
+    $payload = [
+        "to" => $phone,
+        "accountId" => "6a60576358931dfb6a752df1",
+        "templateName" => "auth_login_verification",
+        "languageCode" => "en_US",
         "components" => [
             [
                 "type" => "body",
@@ -406,34 +402,381 @@ public function saveAdminFcmToken(): void {
                 ]
             ]
         ]
-    ]
-];
+    ];
 
-        $ch = curl_init("https://graph.facebook.com/v25.0/1136319812900258/messages");
+    $ch = curl_init();
+
+    curl_setopt_array($ch, [
+        CURLOPT_URL => "https://api-nexmsg.myteknoland.com/api/send/template",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_HTTPHEADER => [
+            "Content-Type: application/json"
+        ]
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    if (curl_errno($ch)) {
+        $response = curl_error($ch);
+    }
+
+    file_put_contents(
+        DIR_LOGS . 'whatsapp.log',
+        "REQUEST:\n" . json_encode($payload, JSON_PRETTY_PRINT) .
+        "\nHTTP CODE: " . $httpCode .
+        "\nRESPONSE:\n" . $response . "\n\n",
+        FILE_APPEND
+    );
+
+    curl_close($ch);
+
+    return $response;
+}
+
+private function sendOrderWhatsApp($order_id, $phone)
+{
+    $this->load->model("checkout/order");
+
+    $order = $this->model_checkout_order->getOrder($order_id);
+
+    if (!$order) {
+        return false;
+    }
+
+    $products = $order['products'] ?? [];
+
+    $customer_name = trim(($order['firstname'] ?? '') . ' ' . ($order['lastname'] ?? ''));
+    $invoice_no    = (string)$order_id;
+    $amount        = number_format((float)$order['total'], 2, '.', '');
+    $date          = date('d/m/Y', strtotime($order['date_added']));
+    $items_count   = (string)max(1, count($products));
+
+    $payload = [
+        "to" => "91" . preg_replace('/\D/', '', $phone),
+        "accountId" => "6a60576358931dfb6a752df1",
+        "templateName" => "order_confirmation",
+        "languageCode" => "en",
+        "components" => [
+            [
+                "type" => "body",
+                "parameters" => [
+                    ["type" => "text", "text" => $customer_name],
+                    ["type" => "text", "text" => "Smile Basket"],
+                    ["type" => "text", "text" => $invoice_no],
+                    ["type" => "text", "text" => $amount],
+                    ["type" => "text", "text" => $date],
+                    ["type" => "text", "text" => $items_count]
+                ]
+            ],
+            [
+                "type" => "button",
+                "sub_type" => "url",
+                "index" => "0",
+                "parameters" => [
+                    [
+                        "type" => "text",
+                        "text" => $invoice_no
+                    ]
+                ]
+            ]
+        ]
+    ];
+
+    $ch = curl_init();
+
+    curl_setopt_array($ch, [
+        CURLOPT_URL => "https://api-nexmsg.myteknoland.com/api/send/template",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_HTTPHEADER => [
+            "Content-Type: application/json"
+        ]
+    ]);
+
+    $response = curl_exec($ch);
+
+    curl_close($ch);
+
+    return $response;
+}
+
+public function Order_sendwhatsapp(): void
+    {
+         $order_id = (int)($this->request->get['order_id'] ?? 0);
+    $quote_id = (int)($this->request->get['quote_id'] ?? 0);
+    $phone    = trim($this->request->get['phone'] ?? '');
+
+    if ((!$order_id && !$quote_id) || !$phone) {
+        $this->response->addHeader("Content-Type: application/json");
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "order_id or quote_id and phone required",
+        ]));
+        return;
+    }
+
+    $this->load->model("checkout/order");
+
+    // -----------------------------
+    // LOAD DATA BASED ON TYPE
+    // -----------------------------
+    if ($quote_id > 0) {
+        // QUOTATION
+        $order = $this->model_checkout_order->getQuoteOrderdetails($quote_id);
+        if (!$order) {
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => "Quotation not found",
+            ]));
+            return;
+        }
+
+        $products = $this->model_checkout_order->getQuoteProducts($quote_id);
+
+        $invoice_no = 'Q-' . $quote_id;
+        $download_link = HTTP_SERVER
+            . 'index.php?route=extension/purpletree_pos/pos/home|quoteInvoice'
+            . '&quote_id=' . $quote_id;
+
+    } else {
+        // ORDER
+        $order = $this->model_checkout_order->getOrder($order_id);
+        if (!$order) {
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => "Order not found",
+            ]));
+            return;
+        }
+
+        $products = $order['products'] ?? [];
+
+        $invoice_no = (string)$order_id;
+        $download_link = HTTP_SERVER
+            . 'index.php?route=extension/purpletree_pos/pos/home|publicInvoice'
+            . '&order_id=' . $order_id;
+        $download_invoice = 
+            'JEWELLERY2/index.php?route=extension/purpletree_pos/pos/home|publicInvoice'
+            . '&order_id=' . $order_id;
+    }
+        $link = 'https://myteknoland.com/';
+    // -----------------------------
+    // COMMON TEMPLATE VALUES
+    // -----------------------------
+    $customer_name = trim(($order['firstname'] ?? '') . ' ' . ($order['lastname'] ?? ''));
+    $store_name    = 'Saleem Gold Covering - Wholesale';
+
+    $items_count = (string) max(1, count($products));
+    $amount      = number_format((float)($order['total'] ?? 0), 2, '.', '');
+    $date        = substr((string)($order['date_added'] ?? date('Y-m-d')), 0, 10);
+   
+        $templateId = $order_id;
+
+        $payload = [
+            "to" => $phone,
+            "accountId" => "6a60576358931dfb6a752df1",
+            "templateName" => "order_confirmation",
+            "languageCode" => "en",
+            "components" => [
+                [
+                    "type" => "body",
+                    "parameters" => [
+                        [
+                            "type" => "text",
+                            "text" => $customer_name
+                        ],
+                        [
+                            "type" => "text",
+                            "text" => "Smile Basket"
+                        ],
+                        [
+                            "type" => "text",
+                            "text" => $invoice_no
+                        ],
+                        [
+                            "type" => "text",
+                            "text" => $amount
+                        ],
+                        [
+                            "type" => "text",
+                            "text" => date('d/m/Y', strtotime($date))
+                        ],
+                        [
+                            "type" => "text",
+                            "text" => (string)$items_count
+                        ]
+                    ]
+                ],
+                [
+                    "type" => "button",
+                    "sub_type" => "url",
+                    "index" => "0",
+                    "parameters" => [
+                        [
+                            "type" => "text",
+                            "text" => (string)$templateId
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        $ch = curl_init();
 
         curl_setopt_array($ch, [
+            CURLOPT_URL => "https://api-nexmsg.myteknoland.com/api/send/template",
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
             CURLOPT_POSTFIELDS => json_encode($payload),
             CURLOPT_HTTPHEADER => [
-                "Authorization: Bearer EAAJ2OLT3ofgBRjA9C51mCUjXvbUmF9ZC2Y93T8snItzeUzTcZCqC8vQv8fR0GnC6LJrfzZAYnhCk6svl6C9GTpQ6I0SqQgXd7ZAtefdUUHem173HINWDg0V0011DIvq2rZCCNsFWWoY5XFEtZAPeTlEh4rS8FSfg64kFR0RGliCo91aItAvcT5WrDcK2PwIQZDZD",
                 "Content-Type: application/json"
-            ]
+            ],
         ]);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        file_put_contents(
-            DIR_LOGS . 'whatsapp.log',
-            "HTTP CODE: " . $httpCode . "\nRESPONSE: " . $response . "\n",
-            FILE_APPEND
-        );
+        if (curl_errno($ch)) {
+            $response = curl_error($ch);
+        }
 
         curl_close($ch);
 
-        return $response;
+        $this->response->addHeader("Content-Type: application/json");
+        $this->response->setOutput(json_encode([
+            "status" => $httpCode,
+            "response" => json_decode($response, true) ?: $response
+        ]));
+        
     }
+
+    public function cancelOrderWhatsApp($internal = false): void
+{
+    $order_id = (int)($this->request->get['order_id'] ?? 0);
+    $reason   = trim($this->request->get['reason'] ?? 'Order Cancelled');
+
+    if (!$order_id) {
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "order_id is required"
+        ]));
+        return;
+    }
+
+    $this->load->model('checkout/order');
+
+    $order = $this->model_checkout_order->getOrder($order_id);
+
+    if (!$order) {
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Order not found"
+        ]));
+        return;
+    }
+
+    $phone = "91" . preg_replace('/\D/', '', $order['telephone']);
+
+    $customer_name = trim(($order['firstname'] ?? '') . ' ' . ($order['lastname'] ?? ''));
+    $store_name    = "Smile Basket";
+    $amount        = number_format((float)$order['total'], 2, '.', '');
+    $date          = date('d/m/Y', strtotime($order['date_added']));
+
+    $payload = [
+        "to" => $phone,
+        "accountId" => "6a60576358931dfb6a752df1",
+        "templateName" => "order_cancellation",
+        "languageCode" => "en_US",
+        "components" => [
+            [
+                "type" => "body",
+                "parameters" => [
+                    [
+                        "type" => "text",
+                        "text" => $customer_name
+                    ],
+                    [
+                        "type" => "text",
+                        "text" => $store_name
+                    ],
+                    [
+                        "type" => "text",
+                        "text" => (string)$order_id
+                    ],
+                    [
+                        "type" => "text",
+                        "text" => $date
+                    ],
+                    [
+                        "type" => "text",
+                        "text" => $amount
+                    ],
+                    [
+                        "type" => "text",
+                        "text" => $reason
+                    ]
+                ]
+            ]
+        ]
+    ];
+
+    $ch = curl_init();
+
+    curl_setopt_array($ch, [
+        CURLOPT_URL => "https://api-nexmsg.myteknoland.com/api/send/template",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_HTTPHEADER => [
+            "Content-Type: application/json"
+        ],
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    file_put_contents(
+    DIR_LOGS . 'cancel_whatsapp.log',
+    "HTTP: " . $httpCode . "\n" .
+    "REQUEST:\n" . json_encode($payload, JSON_PRETTY_PRINT) . "\n" .
+    "RESPONSE:\n" . $response . "\n\n",
+    FILE_APPEND
+);
+
+    if (curl_errno($ch)) {
+        $response = curl_error($ch);
+    }
+
+    curl_close($ch);
+
+   if (!$internal) {
+    $this->response->addHeader('Content-Type: application/json');
+    $this->response->setOutput(json_encode([
+        "status"   => $httpCode,
+        "response" => json_decode($response, true) ?: $response
+    ]));
+   }
+}
 
     public function getInitialData(): void {
 
@@ -696,7 +1039,7 @@ public function addOrder(): void {
     
     $order_data=[
         
-        'invoice_prefix'=>'SMR-',
+        'invoice_prefix'=>'DBM-',
         
         'invoice_no'=>time(),
         
@@ -824,6 +1167,15 @@ public function addOrder(): void {
         true
     
     );
+
+    try {
+        $this->sendOrderWhatsApp(
+            $order_id,
+            $orderDetails['Mobile']
+        );
+    } catch (\Throwable $e) {
+        $this->log->write("WhatsApp Error: " . $e->getMessage());
+    }
 
     $this->response->setOutput(json_encode([
     
@@ -1945,6 +2297,15 @@ public function deleteCoupon(): void {
         }
 
         $this->model_checkout_order->cancelOrderFull($order_id, $reason);
+        // Send WhatsApp cancellation message
+        try {
+            $this->request->get['order_id'] = $order_id;
+            $this->request->get['reason']   = $reason;
+
+            $this->cancelOrderWhatsApp();
+        } catch (\Throwable $e) {
+            $this->log->write('Cancel WhatsApp Error: ' . $e->getMessage());
+        }
 
         $this->response->setOutput(json_encode([
             'status' => 'success'

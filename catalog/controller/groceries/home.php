@@ -329,6 +329,15 @@ class Home extends \Opencart\System\Engine\Controller {
                     true
                 );
             }
+
+            try {
+        $this->sendOrderWhatsApp(
+            $order_id,
+            $orderDetails['Mobile']
+        );
+    } catch (\Throwable $e) {
+        $this->log->write("WhatsApp Error: " . $e->getMessage());
+    }
             
 
             $this->session->data['dqr12_device_send'] = [
@@ -470,6 +479,74 @@ if ($customer_id > 0) {
             );
         }
     }
+
+    private function sendOrderWhatsApp($order_id, $phone)
+{
+    $this->load->model("checkout/order");
+
+    $order = $this->model_checkout_order->getOrder($order_id);
+
+    if (!$order) {
+        return false;
+    }
+
+    $products = $order['products'] ?? [];
+
+    $customer_name = trim(($order['firstname'] ?? '') . ' ' . ($order['lastname'] ?? ''));
+    $invoice_no    = (string)$order_id;
+    $amount        = number_format((float)$order['total'], 2, '.', '');
+    $date          = date('d/m/Y', strtotime($order['date_added']));
+    $items_count   = (string)max(1, count($products));
+
+    $payload = [
+        "to" => "91" . preg_replace('/\D/', '', $phone),
+        "accountId" => "6a60576358931dfb6a752df1",
+        "templateName" => "order_confirmation",
+        "languageCode" => "en",
+        "components" => [
+            [
+                "type" => "body",
+                "parameters" => [
+                    ["type" => "text", "text" => $customer_name],
+                    ["type" => "text", "text" => "Smile Basket"],
+                    ["type" => "text", "text" => $invoice_no],
+                    ["type" => "text", "text" => $amount],
+                    ["type" => "text", "text" => $date],
+                    ["type" => "text", "text" => $items_count]
+                ]
+            ],
+            [
+                "type" => "button",
+                "sub_type" => "url",
+                "index" => "0",
+                "parameters" => [
+                    [
+                        "type" => "text",
+                        "text" => $invoice_no
+                    ]
+                ]
+            ]
+        ]
+    ];
+
+    $ch = curl_init();
+
+    curl_setopt_array($ch, [
+        CURLOPT_URL => "https://api-nexmsg.myteknoland.com/api/send/template",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_HTTPHEADER => [
+            "Content-Type: application/json"
+        ]
+    ]);
+
+    $response = curl_exec($ch);
+
+    curl_close($ch);
+
+    return $response;
+}
     
     public function autocomplete()
     {

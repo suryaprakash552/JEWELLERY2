@@ -1270,14 +1270,26 @@ public function getFullOrderDetails(int $order_id) {
 
     // Products
     $products = $this->db->query("
-    SELECT 
+    SELECT
         op.*,
+
+        CASE
+            WHEN op.piece_id > 0
+                THEN ptp.price
+            ELSE
+                p.price
+        END AS mrp,
+
         p.image AS product_image
 
     FROM `" . DB_PREFIX . "order_product` op
 
     LEFT JOIN `" . DB_PREFIX . "product` p
-    ON p.product_id = op.product_id
+        ON p.product_id = op.product_id
+
+    LEFT JOIN `" . DB_PREFIX . "piece_to_product` ptp
+        ON ptp.product_id = op.product_id
+        AND ptp.piece_id = op.piece_id
 
     WHERE op.order_id = '" . (int)$order_id . "'
 ")->rows;

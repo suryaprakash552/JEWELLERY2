@@ -2527,6 +2527,19 @@ public function adjustDue() {
         $this->load->model("tool/upload");
 
         $data["orders"] = [];
+        $store = $this->db->query("
+            SELECT *
+            FROM `" . DB_PREFIX . "store`
+            LIMIT 1
+        ")->row;
+
+        $data['logo'] = HTTP_SERVER . ($store['logo'] ?? '');
+        $data['store_name'] = $store['name'] ?? '';
+        $data['store_address'] = $store['address'] ?? '';
+        $data['store_tagline'] = ''; // if you don't have this column
+        $data['store_contact'] = $store['contact'] ?? '';
+        $data['store_upi'] = $store['upi'] ?? '';
+        $data['store_gst'] = $store['gst'] ?? '';
 
         $orders = [];
 
@@ -2803,10 +2816,7 @@ public function adjustDue() {
                     "order_id" => $order_id,
                     "invoice_no" => $invoice_no,
                     "order_status_id" => $order_info["order_status_id"],
-                    "date_added" => date(
-                        $this->language->get("date_format_short"),
-                        strtotime($order_info["date_added"])
-                    ),
+                    "date_added" => $order_info["date_added"],
                     "store_name" => $order_info["store_name"],
 
                     "store_address" => nl2br($store_address),
@@ -2829,7 +2839,8 @@ public function adjustDue() {
                         "total_tax" => $order_info["total_tax"] ?? 0,
                         "roundoff_amount" =>
                             $order_info["roundoff_amount"] ?? 0,
-                            "coupon" => $order_info["coupon"] ?? "",
+                        "delivery_charge" => $order_info["takeaway_amount"] ?? 0,
+                        "coupon" => $order_info["coupon"] ?? "",
                         "total_received" => $order_info["total_received"] ?? 0,
                         "cash_amount" => $order_info["cash_amount"] ?? 0,
                         "upi_amount" => $order_info["upi_amount"] ?? 0,
@@ -3489,73 +3500,61 @@ $this->load->view(
     $amount      = number_format((float)($order['total'] ?? 0), 2, '.', '');
     $date        = substr((string)($order['date_added'] ?? date('Y-m-d')), 0, 10);
    
-        // Build MSG91 payload for template "order_success"
-        $payload = [
-            "integrated_number" => "918341711206",
-            "content_type" => "template",
-            "payload" => [
-                "messaging_product" => "whatsapp",
-                "type" => "template",
-                "template" => [
-                    "name" => "download_invoce_order_success",
-                    "language" => [
-                        "code" => "en",
-                        "policy" => "deterministic",
-                    ],
-                    "namespace" => "f18a3096_c1f2_4aae_8001_f7020abc1c5b",
-                    "to_and_components" => [
-                        [
-                            "to" => [$phone, 918341711206],
-                            "components" => [
-                                
-                                 "header_1"=> [
-                            "filename"=> " SGC Invoice",
-                            "type"=> "document",
-                            "value"=> $download_link
-                        ],
-                                "body_1" => [
-                                    "type" => "text",
-                                    "value" => $customer_name,
-                                ],
-                                "body_2" => [
-                                    "type" => "text",
-                                    "value" => $store_name,
-                                ],
-                                "body_3" => [
-                                    "type" => "text",
-                                    "value" => $invoice_no,
-                                ],
-                                "body_4" => [
-                                    "type" => "text",
-                                    "value" => $amount ,
-                                ],
-                                "body_5" => [
-                                    "type" => "text",
-                                    "value" => $date ,
-                                ],
-                                "body_6" => [
-                                    "type" => "text",
-                                    "value" => (string) $items_count,
-                                ],
-                                "button_1" => [
-                                "subtype" => "url",
+        $templateId = $order_id;
 
-                                    "type" => "text",
-                                    "value" => $download_invoice
-                                ]
-                                
-                                
-                            ],
+        $payload = [
+            "to" => $phone,
+            "accountId" => "6a60576358931dfb6a752df1",
+            "templateName" => "order_confirmation",
+            "languageCode" => "en",
+            "components" => [
+                [
+                    "type" => "body",
+                    "parameters" => [
+                        [
+                            "type" => "text",
+                            "text" => $customer_name
                         ],
-                    ],
+                        [
+                            "type" => "text",
+                            "text" => "Smile Basket"
+                        ],
+                        [
+                            "type" => "text",
+                            "text" => $invoice_no
+                        ],
+                        [
+                            "type" => "text",
+                            "text" => $amount
+                        ],
+                        [
+                            "type" => "text",
+                            "text" => date('d/m/Y', strtotime($date))
+                        ],
+                        [
+                            "type" => "text",
+                            "text" => (string)$items_count
+                        ]
+                    ]
                 ],
-            ],
+                [
+                    "type" => "button",
+                    "sub_type" => "url",
+                    "index" => "0",
+                    "parameters" => [
+                        [
+                            "type" => "text",
+                            "text" => (string)$templateId
+                        ]
+                    ]
+                ]
+            ]
         ];
 
-        $ch = curl_init(
-            "https://api.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/"	
-        );
+        $ch = curl_init();
+
         curl_setopt_array($ch, [
+            CURLOPT_URL => "https://api-nexmsg.myteknoland.com/api/send/template",
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => 10,
@@ -3565,22 +3564,24 @@ $this->load->view(
             CURLOPT_CUSTOMREQUEST => "POST",
             CURLOPT_POSTFIELDS => json_encode($payload),
             CURLOPT_HTTPHEADER => [
-                "Content-Type: application/json",
-                "authkey: 471465A6FulqId269201b0eP1",
+                "Content-Type: application/json"
             ],
         ]);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if (curl_errno($ch)) {
+            $response = curl_error($ch);
+        }
+
         curl_close($ch);
 
         $this->response->addHeader("Content-Type: application/json");
-        $this->response->setOutput(
-            json_encode([
-                "status" => $httpCode,
-                "response" => $response,
-            ])
-        );
+        $this->response->setOutput(json_encode([
+            "status" => $httpCode,
+            "response" => json_decode($response, true) ?: $response
+        ]));
         
     }
     
