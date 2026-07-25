@@ -3242,6 +3242,7 @@ public function searchProducts(): void {
             $contact  = trim($post['contact'] ?? '');
             $upi_number = trim($post['upi_number'] ?? '');
             $min_order_value = trim($post['min_order_value'] ?? '');
+            $delivery_order_value = trim($post['delivery_order_value'] ?? '');
             $delivery_fee = trim($post['delivery_fee'] ?? '');
             $upi_id = trim($post['upi_id'] ?? '');
             $address = trim($post['address'] ?? '');
@@ -3266,6 +3267,7 @@ public function searchProducts(): void {
                 "contact"=>$contact,
                 "upi_number"=>$upi_number,
                 "min_order_value"=>$min_order_value,
+                "delivery_order_value"=>$delivery_order_value,
                 "delivery_fee"=>$delivery_fee,
                 "upi_id"=>$upi_id,
                 "address"=>$address,
@@ -3325,6 +3327,7 @@ public function searchProducts(): void {
             $contact  = trim($post['contact'] ?? '');
             $upi_number = trim($post['upi_number'] ?? '');
             $min_order_value = trim($post['min_order_value'] ?? '');
+            $delivery_order_value = trim($post['delivery_order_value'] ?? '');
             $delivery_fee = trim($post['delivery_fee'] ?? '');
             $upi_id = trim($post['upi_id'] ?? '');
             $address = trim($post['address'] ?? '');
@@ -3344,6 +3347,7 @@ public function searchProducts(): void {
                 "contact"=>$contact,
                 "upi_number"=>$upi_number,
                 "min_order_value"=>$min_order_value,
+                "delivery_order_value"=>$delivery_order_value,
                 "delivery_fee"=>$delivery_fee,
                 "upi_id"=>$upi_id,
                 "address"=>$address,
