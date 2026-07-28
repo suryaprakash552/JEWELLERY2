@@ -4896,27 +4896,31 @@ public function getAllProducts(): void {
     $user = $this->validateToken();
 
     if (!$user || $user['type'] != 'admin') {
-
         $this->response->setOutput(json_encode([
             "status" => "error",
             "message" => "Invalid Token"
         ]));
-
         return;
     }
 
     $order_id = (int)($this->request->post['order_id'] ?? 0);
-    $delivery_time = trim($this->request->post['delivery_time'] ?? '');
 
-    if (!$order_id || $delivery_time == '') {
+    $date = trim($this->request->post['date'] ?? '');
+    $hours = trim($this->request->post['hours'] ?? '');
+    $minutes = trim($this->request->post['minutes'] ?? '');
+    $period = strtoupper(trim($this->request->post['period'] ?? ''));
 
+    if (!$order_id || !$date || $hours === '' || $minutes === '') {
         $this->response->setOutput(json_encode([
             "status" => "error",
-            "message" => "Order ID and Delivery Time are required"
+            "message" => "Order ID, Date, Hours and Minutes are required"
         ]));
-
         return;
     }
+
+    $delivery_time = $date . ' ' .
+        str_pad($hours, 2, '0', STR_PAD_LEFT) . ':' .
+        str_pad($minutes, 2, '0', STR_PAD_LEFT). ' ' .$period;
 
     $this->load->model('groceries/categories');
 
