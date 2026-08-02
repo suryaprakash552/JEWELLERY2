@@ -3212,11 +3212,6 @@ public function insertOrderTracking($order_id){
 
     try {
 
-        $this->log->write(
-            "Sending notification to User ID: " .
-            $admin['user_id']
-        );
-
         $this->sendAdminPushNotification(
             $admin['fcm_token'],
             "New Order",
@@ -3224,17 +3219,27 @@ public function insertOrderTracking($order_id){
             $order_id
         );
 
+    } catch (\Kreait\Firebase\Exception\Messaging\NotFound $e) {
+
+        // Invalid or expired FCM token
         $this->log->write(
-            "Notification Success for User ID: " .
-            $admin['user_id']
+            "Invalid FCM Token for User ID: " . $admin['user_id']
         );
+
+        // Remove invalid token from database
+        $this->db->query("
+            UPDATE `" . DB_PREFIX . "user`
+            SET fcm_token = ''
+            WHERE user_id = '" . (int)$admin['user_id'] . "'
+        ");
 
     } catch (\Throwable $e) {
 
+        // Log any other Firebase errors
         $this->log->write(
-            "Notification Failed for User ID: " .
+            "Notification Error for User ID: " .
             $admin['user_id'] .
-            " Error: " .
+            " : " .
             $e->getMessage()
         );
     }
