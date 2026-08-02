@@ -282,7 +282,7 @@ class Home extends \Opencart\System\Engine\Controller {
             $this->load->model('groceries/categories');
 
             $this->model_groceries_categories->insertOrderTracking($order_id);
-            //$this->model_groceries_categories->sendNewOrderNotification($order_id);
+            $this->model_groceries_categories->sendNewOrderNotification($order_id);
             $this->model_groceries_categories->sendCustomerOrderPlacedNotification($order_id);    
 
 

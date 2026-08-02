@@ -3210,18 +3210,35 @@ public function insertOrderTracking($order_id){
 
     foreach ($admins->rows as $admin) {
 
+    try {
+
+        $this->log->write(
+            "Sending notification to User ID: " .
+            $admin['user_id']
+        );
+
         $this->sendAdminPushNotification(
-
             $admin['fcm_token'],
-
             "New Order",
-
             $customer_name . " placed a new order (#" . $order_id . ")",
-
             $order_id
+        );
 
+        $this->log->write(
+            "Notification Success for User ID: " .
+            $admin['user_id']
+        );
+
+    } catch (\Throwable $e) {
+
+        $this->log->write(
+            "Notification Failed for User ID: " .
+            $admin['user_id'] .
+            " Error: " .
+            $e->getMessage()
         );
     }
+}
 }
 
 public function sendCustomerOrderPlacedNotification($order_id)
