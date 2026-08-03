@@ -1736,6 +1736,111 @@ return $query->row;
 
 }
 
+public function zoneCodeExists($code, $zone_id = 0): bool {
+
+    $sql = "
+        SELECT zone_id
+        FROM `" . DB_PREFIX . "zone`
+        WHERE code='" . $this->db->escape($code) . "'";
+
+    if ($zone_id > 0) {
+        $sql .= " AND zone_id != '" . (int)$zone_id . "'";
+    }
+
+    $sql .= " LIMIT 1";
+
+    $query = $this->db->query($sql);
+
+    return (bool)$query->num_rows;
+}
+public function addZone($data) {
+
+    $this->db->query("
+        INSERT INTO `" . DB_PREFIX . "zone`
+        SET
+            country_id = '" . (int)$data['country_id'] . "',
+            code = '" . $this->db->escape($data['code']) . "',
+            status = '" . (int)$data['status'] . "'
+    ");
+
+    $zone_id = $this->db->getLastId();
+
+    $this->db->query("
+        INSERT INTO `" . DB_PREFIX . "zone_description`
+        SET
+            zone_id = '" . (int)$zone_id . "',
+            language_id = '" . (int)$data['language_id'] . "',
+            name = '" . $this->db->escape($data['name']) . "',
+            district = '" . $this->db->escape($data['district']) . "'
+    ");
+
+    return $zone_id;
+}
+
+public function editZone($zone_id, $data) {
+
+    $this->db->query("
+        UPDATE `" . DB_PREFIX . "zone`
+        SET
+            code='" . $this->db->escape($data['code']) . "',
+            status='" . (int)$data['status'] . "'
+        WHERE zone_id='" . (int)$zone_id . "'
+    ");
+
+    $this->db->query("
+        UPDATE `" . DB_PREFIX . "zone_description`
+        SET
+            name='" . $this->db->escape($data['name']) . "',
+            district='" . $this->db->escape($data['district']) . "'
+        WHERE zone_id='" . (int)$zone_id . "'
+    ");
+}
+
+public function deleteZone($zone_id) {
+
+    $this->db->query("
+        DELETE FROM `" . DB_PREFIX . "zone_description`
+        WHERE zone_id='" . (int)$zone_id . "'
+    ");
+
+    $this->db->query("
+        DELETE FROM `" . DB_PREFIX . "zone`
+        WHERE zone_id='" . (int)$zone_id . "'
+    ");
+}
+
+public function getZones($search = '') {
+
+    $sql = "
+        SELECT
+            z.zone_id,
+            z.country_id,
+            z.code,
+            z.status,
+            zd.name,
+            zd.district
+        FROM `" . DB_PREFIX . "zone` z
+        LEFT JOIN `" . DB_PREFIX . "zone_description` zd
+            ON z.zone_id = zd.zone_id
+        WHERE zd.language_id = '1'
+    ";
+
+    if (!empty($search)) {
+
+        $sql .= " AND (
+                    zd.name LIKE '%" . $this->db->escape($search) . "%'
+                    OR zd.district LIKE '%" . $this->db->escape($search) . "%'
+                    OR z.code LIKE '%" . $this->db->escape($search) . "%'
+                  )";
+    }
+
+    $sql .= " ORDER BY zd.name ASC";
+
+    $query = $this->db->query($sql);
+
+    return $query->rows;
+}
+
 public function getCoupon($customer_id){
 
     $query = $this->db->query("SELECT *  FROM " . DB_PREFIX . "coupon WHERE status = '1'");

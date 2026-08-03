@@ -172,6 +172,8 @@ class Categories extends \Opencart\System\Engine\Controller {
         
         }
 
+        $this->load->controller('groceries/categories.sendOwnerLoginAlert',['phone' => $this->request->post['telephone']]);
+
         $json=[
         
             "success"=>"1",
@@ -405,6 +407,72 @@ public function saveAdminFcmToken(): void {
     ];
 
     $ch = curl_init();
+
+    curl_setopt_array($ch, [
+        CURLOPT_URL => "https://api-nexmsg.myteknoland.com/api/send/template",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_HTTPHEADER => [
+            "Content-Type: application/json"
+        ]
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    if (curl_errno($ch)) {
+        $response = curl_error($ch);
+    }
+
+    file_put_contents(
+        DIR_LOGS . 'whatsapp.log',
+        "REQUEST:\n" . json_encode($payload, JSON_PRETTY_PRINT) .
+        "\nHTTP CODE: " . $httpCode .
+        "\nRESPONSE:\n" . $response . "\n\n",
+        FILE_APPEND
+    );
+
+    curl_close($ch);
+
+    return $response;
+}
+
+public function sendOwnerLoginAlert($data = [])
+{
+    $phone = preg_replace('/\D/', '', $data['phone']);
+    $payload = [
+        "to" => "919701657580",
+        "accountId" => "6a60576358931dfb6a752df1",
+        "templateName" => "account_activity_alert",
+        "languageCode" => "en",
+        "components" => [
+            [
+                "type" => "body",
+                "parameters" => [
+                    [
+                        "type" => "text",
+                        "text" => "SB"
+                    ],
+                    [
+                        "type" => "text",
+                        "text" => $phone
+                    ],
+                    [
+                        "type" => "text",
+                        "text" => date('d/m/Y').' '.date('h:i A')
+                    ]
+                ]
+            ]
+        ]
+    ];
+
+   $ch = curl_init();
 
     curl_setopt_array($ch, [
         CURLOPT_URL => "https://api-nexmsg.myteknoland.com/api/send/template",
@@ -2582,6 +2650,268 @@ public function deleteCoupon(): void {
             ])
         );
     }
+
+    public function addZone(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+
+        return;
+    }
+
+    try {
+
+        $post = $this->request->post;
+
+        $raw = file_get_contents("php://input");
+
+        if ($raw) {
+
+            $json = json_decode($raw, true);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $post = array_merge($post, $json);
+            }
+        }
+
+        $name = trim($post['name'] ?? '');
+        $district = trim($post['district'] ?? '');
+        $code = trim($post['code'] ?? '');
+        $status = (int)($post['status'] ?? 1);
+        $country_id = (int)($post['country_id'] ?? 99);
+        $language_id = (int)($post['language_id'] ?? 1);
+
+        if ($name == '') {
+            throw new \Exception("Zone Name Required");
+        }
+
+        if ($district == '') {
+            throw new \Exception("District Required");
+        }
+
+        if ($code == '') {
+            throw new \Exception("Pincode Required");
+        }
+
+        if (!preg_match('/^[0-9]{6}$/', $code)) {
+            throw new \Exception("Invalid Pincode");
+        }
+
+        $this->load->model('groceries/categories');
+
+        if ($this->model_groceries_categories->zoneCodeExists($code)) {
+            throw new \Exception("Pincode already exists");
+        }
+
+        $zone_id = $this->model_groceries_categories->addZone([
+            'name'        => strtoupper($name),
+            'district'    => strtoupper($district),
+            'code'        => $code,
+            'status'      => $status,
+            'country_id'  => $country_id,
+            'language_id' => $language_id
+        ]);
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "zone_id" => $zone_id,
+            "message" => "Zone Added Successfully"
+        ]));
+
+    } catch (\Throwable $e) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
+
+public function editZone(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+
+        return;
+    }
+
+    try {
+
+        $post = $this->request->post;
+
+        $raw = file_get_contents("php://input");
+
+        if ($raw) {
+
+            $json = json_decode($raw, true);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $post = array_merge($post, $json);
+            }
+        }
+
+        $zone_id = (int)($post['zone_id'] ?? 0);
+        $name = trim($post['name'] ?? '');
+        $district = trim($post['district'] ?? '');
+        $code = trim($post['code'] ?? '');
+        $status = (int)($post['status'] ?? 1);
+
+        if ($zone_id <= 0) {
+            throw new \Exception("Zone ID Required");
+        }
+
+        if ($name == '') {
+            throw new \Exception("Zone Name Required");
+        }
+
+        if ($district == '') {
+            throw new \Exception("District Required");
+        }
+
+        if ($code == '') {
+            throw new \Exception("Pincode Required");
+        }
+
+        if (!preg_match('/^[0-9]{6}$/', $code)) {
+            throw new \Exception("Invalid Pincode");
+        }
+
+        $this->load->model('groceries/categories');
+
+        if ($this->model_groceries_categories->zoneCodeExists($code, $zone_id)) {
+            throw new \Exception("Pincode already exists");
+        }
+
+        $this->model_groceries_categories->editZone($zone_id, [
+            'name' => strtoupper($name),
+            'district' => strtoupper($district),
+            'code' => $code,
+            'status' => $status
+        ]);
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "message" => "Zone Updated Successfully"
+        ]));
+
+    } catch (\Throwable $e) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
+
+public function deleteZone(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user) {
+
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>"Invalid Token"
+        ]));
+
+        return;
+    }
+
+    try {
+
+        $post = $this->request->post;
+
+        $raw = file_get_contents("php://input");
+
+        if ($raw) {
+
+            $json = json_decode($raw, true);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $post = array_merge($post, $json);
+            }
+        }
+
+        $zone_id = (int)($post['zone_id'] ?? 0);
+
+        if ($zone_id <= 0) {
+            throw new \Exception("Zone ID Required");
+        }
+
+        $this->load->model('groceries/categories');
+
+        $this->model_groceries_categories->deleteZone($zone_id);
+
+        $this->response->setOutput(json_encode([
+            "status"=>"success",
+            "message"=>"Zone Deleted Successfully"
+        ]));
+
+    } catch (\Throwable $e) {
+
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>$e->getMessage()
+        ]));
+    }
+}
+
+public function getZones(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+
+        return;
+    }
+
+    try {
+
+        $search = trim($this->request->get['search'] ?? '');
+
+        $this->load->model('groceries/categories');
+
+        $zones = $this->model_groceries_categories->getZones($search);
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "total"  => count($zones),
+            "data"   => $zones
+        ]));
+
+    } catch (\Throwable $e) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
     
      public function addAddress(): void {
 
