@@ -111,6 +111,18 @@ class Order extends \Opencart\System\Engine\Model {
 		return $order_id;
 	}*/
 
+    public function getTodayOrderCount($customer_id)
+{
+    $query = $this->db->query("
+        SELECT COUNT(*) AS total
+        FROM `" . DB_PREFIX . "order`
+        WHERE customer_id = '" . (int)$customer_id . "'
+        AND DATE(date_added) = CURDATE()
+    ");
+
+    return (int)$query->row['total'];
+}
+
 
 public function addOrder(array $data, array $invoice_extra = [], $tracking = ''): int {
 /*
@@ -354,6 +366,38 @@ foreach ($posQtyMap as $product_id => $qty) {
                                                                         `total_received`     = '" . (float)$invoice_extra['total_received'] . "',
                                                                         `balance`            = '" . (float)$invoice_extra['balance'] . "',
                                                                         `date_added`         = NOW()");
+    }
+
+    if (!empty($invoice_extra['coupon'])) {
+
+        // coupon stored like "TEST-50.00"
+        $coupon_code = trim(explode('-', $invoice_extra['coupon'])[0]);
+
+        $coupon = $this->db->query("
+            SELECT coupon_id
+            FROM `" . DB_PREFIX . "coupon`
+            WHERE code = '" . $this->db->escape($coupon_code) . "'
+            LIMIT 1
+        ");
+
+        if ($coupon->num_rows) {
+
+            $discount = 0;
+
+            if (strpos($invoice_extra['coupon'], '-') !== false) {
+                $parts = explode('-', $invoice_extra['coupon']);
+                $discount = (float)end($parts);
+            }
+
+            $this->db->query("
+                INSERT INTO `" . DB_PREFIX . "coupon_history`
+                SET coupon_id = '" . (int)$coupon->row['coupon_id'] . "',
+                    order_id = '" . (int)$order_id . "',
+                    customer_id = '" . (int)$data['customer_id'] . "',
+                    amount = '" . (float)$discount . "',
+                    date_added = NOW()
+            ");
+        }
     }
     
     if (!empty($data['custom_fields'])) {

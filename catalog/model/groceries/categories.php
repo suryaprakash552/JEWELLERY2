@@ -1841,12 +1841,25 @@ public function getZones($search = '') {
     return $query->rows;
 }
 
-public function getCoupon($customer_id){
-
-    $query = $this->db->query("SELECT *  FROM " . DB_PREFIX . "coupon WHERE status = '1'");
+public function getCoupon($customer_id)
+{
+    $query = $this->db->query("
+        SELECT *
+        FROM `" . DB_PREFIX . "coupon`
+        WHERE status = '1'
+        AND (
+            date_start = '0000-00-00'
+            OR date_start <= CURDATE()
+        )
+        AND (
+            date_end = '0000-00-00'
+            OR date_end >= CURDATE()
+        )
+        ORDER BY coupon_id DESC
+    ");
 
     return $query->rows;
- }
+}
  public function getAllCoupons($customer_id){
 
     $query = $this->db->query("SELECT *  FROM " . DB_PREFIX . "coupon ");
@@ -3856,6 +3869,313 @@ public function approveAgentTransaction($id) {
     ");
 }
 
+public function validateCoupon($code, $customer_id, $grand_total) {
+
+    $query = $this->db->query("
+        SELECT *
+        FROM `" . DB_PREFIX . "coupon`
+        WHERE code = '" . $this->db->escape(trim($code)) . "'
+        AND status = '1'
+        AND (
+            date_start='0000-00-00'
+            OR date_start <= NOW()
+        )
+        AND (
+            date_end='0000-00-00'
+            OR date_end >= NOW()
+        )
+        LIMIT 1
+    ");
+
+    if (!$query->num_rows) {
+        return [
+            'success' => false,
+            'message' => 'Invalid coupon'
+        ];
+    }
+
+    $coupon = $query->row;
+
+    // minimum cart
+
+    if ($coupon['total'] > 0 && $grand_total < $coupon['total']) {
+
+        return [
+    'success' => false,
+    'message' => 'Minimum order should be ₹' . number_format((float)$coupon['total'], 0)
+];
+    }
+
+    // total usage
+
+    if ($coupon['uses_total'] > 0) {
+
+        $used = $this->getTotalCouponHistoriesByCoupon($coupon['code']);
+
+        if ($used >= $coupon['uses_total']) {
+
+            return [
+                'success'=>false,
+                'message'=>'Coupon usage limit exceeded'
+            ];
+        }
+    }
+
+    // customer usage
+
+    if ($customer_id && $coupon['uses_customer'] > 0) {
+
+        $used = $this->getTotalCouponHistoriesByCustomerId(
+            $coupon['code'],
+            $customer_id
+        );
+
+        if ($used >= $coupon['uses_customer']) {
+
+            return [
+                'success'=>false,
+                'message'=>'You have reached your limit for using this coupon.'
+            ];
+        }
+    }
+
+    return [
+
+        'success'=>true,
+        'coupon_id'     => $coupon['coupon_id'],
+        'code'          => $coupon['code'],
+        'name'          => $coupon['name'],
+        'type'          => $coupon['type'],
+        'discount'      => $coupon['discount'],
+        'shipping'      => $coupon['shipping'],
+        'total'         => (float)$coupon['total'],
+        'minimum_total' => (float)$coupon['minimum_total'],
+        'uses_total'    => (int)$coupon['uses_total'],
+        'uses_customer' => (int)$coupon['uses_customer']
+
+    ];
+}
+public function getActiveCoupon($code, $customer_id = 0) {
+
+    // Get coupon
+    $query = $this->db->query("
+        SELECT *
+        FROM `" . DB_PREFIX . "coupon`
+        WHERE code = '" . $this->db->escape($code) . "'
+        AND status = '1'
+        AND (date_start = '0000-00-00' OR date_start <= CURDATE())
+        AND (date_end = '0000-00-00' OR date_end >= CURDATE())
+        LIMIT 1
+    ");
+
+    if (!$query->num_rows) {
+        return false;
+    }
+
+    $coupon = $query->row;
+
+    // Logged in coupon
+    if ($coupon['logged'] && !$customer_id) {
+        return false;
+    }
+
+    // Total coupon usage
+    if ((int)$coupon['uses_total'] > 0) {
+
+        $used = $this->db->query("
+            SELECT COUNT(*) total
+            FROM `" . DB_PREFIX . "coupon_history`
+            WHERE coupon_id = '" . (int)$coupon['coupon_id'] . "'
+        ");
+
+        if ($used->row['total'] >= $coupon['uses_total']) {
+            return false;
+        }
+    }
+
+    // Customer coupon usage
+    if ($customer_id && (int)$coupon['uses_customer'] > 0) {
+
+        $used = $this->db->query("
+            SELECT COUNT(*) total
+            FROM `" . DB_PREFIX . "coupon_history`
+            WHERE coupon_id = '" . (int)$coupon['coupon_id'] . "'
+            AND customer_id = '" . (int)$customer_id . "'
+        ");
+
+        if ($used->row['total'] >= $coupon['uses_customer']) {
+            return false;
+        }
+    }
+
+    return [
+        'coupon_id'     => $coupon['coupon_id'],
+        'code'          => $coupon['code'],
+        'name'          => $coupon['name'],
+        'type'          => $coupon['type'],
+        'discount'      => $coupon['discount'],
+        'shipping'      => $coupon['shipping'],
+        'total'         => (float)$coupon['total'],
+        'minimum_total' => (float)$coupon['minimum_total'],
+        'uses_total'    => (int)$coupon['uses_total'],
+        'uses_customer' => (int)$coupon['uses_customer']
+    ];
+}
+public function getTotal($total) {
+		if (isset($this->session->data['coupon'])) {
+			$this->load->language('extension/total/coupon', 'coupon');
+
+			$coupon_info = $this->getCoupon($this->session->data['coupon']);
+
+			if ($coupon_info) {
+				$discount_total = 0;
+
+				if (!$coupon_info['product']) {
+					$sub_total = $this->cart->getSubTotal();
+				} else {
+					$sub_total = 0;
+
+					foreach ($this->cart->getProducts() as $product) {
+						if (in_array($product['product_id'], $coupon_info['product'])) {
+							$sub_total += $product['total'];
+						}
+					}
+				}
+
+				// HARD CAP discount by coupon.total
+$max_allowed = (float)$coupon_info['total'];
+
+if ($coupon_info['type'] == 'F') {
+    $coupon_info['discount'] = min(
+        $coupon_info['discount'],
+        $sub_total,
+        $max_allowed > 0 ? $max_allowed : $coupon_info['discount']
+    );
+}
+
+
+				foreach ($this->cart->getProducts() as $product) {
+					$discount = 0;
+
+					if (!$coupon_info['product']) {
+						$status = true;
+					} else {
+						$status = in_array($product['product_id'], $coupon_info['product']);
+					}
+
+					if ($status) {
+						if ($coupon_info['type'] == 'F') {
+							$discount = $coupon_info['discount'] * ($product['total'] / $sub_total);
+						} elseif ($coupon_info['type'] == 'P') {
+							$discount = $product['total'] / 100 * $coupon_info['discount'];
+							if ($coupon_info['total'] > 0) {
+        $discount = min($discount, $coupon_info['total']);
+    }
+						}
+
+						if ($product['tax_class_id']) {
+							$tax_rates = $this->tax->getRates($product['total'] - ($product['total'] - $discount), $product['tax_class_id']);
+
+							foreach ($tax_rates as $tax_rate) {
+								if ($tax_rate['type'] == 'P') {
+									$total['taxes'][$tax_rate['tax_rate_id']] -= $tax_rate['amount'];
+								}
+							}
+						}
+					}
+
+					$discount_total += $discount;
+				}
+
+				if ($coupon_info['shipping'] && isset($this->session->data['shipping_method'])) {
+					if (!empty($this->session->data['shipping_method']['tax_class_id'])) {
+						$tax_rates = $this->tax->getRates($this->session->data['shipping_method']['cost'], $this->session->data['shipping_method']['tax_class_id']);
+
+						foreach ($tax_rates as $tax_rate) {
+							if ($tax_rate['type'] == 'P') {
+								$total['taxes'][$tax_rate['tax_rate_id']] -= $tax_rate['amount'];
+							}
+						}
+					}
+
+					$discount_total += $this->session->data['shipping_method']['cost'];
+				}
+
+				// If discount greater than total
+				if ($discount_total > $total['total']) {
+					$discount_total = $total['total'];
+				}
+
+				if ($discount_total > 0) {
+					$total['totals'][] = array(
+						'code'       => 'coupon',
+						'title'      => sprintf($this->language->get('coupon')->get('text_coupon'), $this->session->data['coupon']),
+						'value'      => -$discount_total,
+						'sort_order' => $this->config->get('total_coupon_sort_order')
+					);
+
+					$total['total'] -= $discount_total;
+				}
+			}
+		}
+	}
+
+	public function confirm($order_info, $order_total) {
+		$code = '';
+
+		$start = strpos($order_total['title'], '(') + 1;
+		$end = strrpos($order_total['title'], ')');
+
+		if ($start && $end) {
+			$code = substr($order_total['title'], $start, $end - $start);
+		}
+
+		if ($code) {
+			$status = true;
+			
+			$coupon_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "coupon` WHERE code = '" . $this->db->escape($code) . "' AND status = '1'");
+
+			if ($coupon_query->num_rows) {
+				$coupon_total = $this->getTotalCouponHistoriesByCoupon($code);
+	
+				if ($coupon_query->row['uses_total'] > 0 && ($coupon_total >= $coupon_query->row['uses_total'])) {
+					$status = false;
+				}
+				
+				if ($order_info['customer_id']) {
+					$customer_total = $this->getTotalCouponHistoriesByCustomerId($code, $order_info['customer_id']);
+					
+					if ($coupon_query->row['uses_customer'] > 0 && ($customer_total >= $coupon_query->row['uses_customer'])) {
+						$status = false;
+					}
+				}
+			} else {
+				$status = false;	
+			}
+
+			if ($status) {
+				$this->db->query("INSERT INTO `" . DB_PREFIX . "coupon_history` SET coupon_id = '" . (int)$coupon_query->row['coupon_id'] . "', order_id = '" . (int)$order_info['order_id'] . "', customer_id = '" . (int)$order_info['customer_id'] . "', amount = '" . (float)$order_total['value'] . "', date_added = NOW()");
+			} else {
+				return $this->config->get('config_fraud_status_id');
+			}
+		}
+	}
+
+	public function unconfirm($order_id) {
+		$this->db->query("DELETE FROM `" . DB_PREFIX . "coupon_history` WHERE order_id = '" . (int)$order_id . "'");
+	}
+	
+	public function getTotalCouponHistoriesByCoupon($coupon) {
+		$query = $this->db->query("SELECT COUNT(*) AS total FROM `" . DB_PREFIX . "coupon_history` ch LEFT JOIN `" . DB_PREFIX . "coupon` c ON (ch.coupon_id = c.coupon_id) WHERE c.code = '" . $this->db->escape($coupon) . "'");	
+		
+		return $query->row['total'];
+	}
+	
+	public function getTotalCouponHistoriesByCustomerId($coupon, $customer_id) {
+		$query = $this->db->query("SELECT COUNT(*) AS total FROM `" . DB_PREFIX . "coupon_history` ch LEFT JOIN `" . DB_PREFIX . "coupon` c ON (ch.coupon_id = c.coupon_id) WHERE c.code = '" . $this->db->escape($coupon) . "' AND ch.customer_id = '" . (int)$customer_id . "'");
+		
+		return $query->row['total'];
+	}
 
 
 }

@@ -3319,73 +3319,87 @@ return;
 }
 
 public function applycoupon()
-    {
-        $customer_id = $this->validateToken();
+{
+$customer = $this->validateToken();
 
-        if(!$customer_id){
-        
-        return $this->response->setOutput(
-        
-        json_encode([
-        
-        "status"=>"error",
-        
-        "message"=>"Invalid Token"
-        
-        ])
-        
-        );
-        
-        }
-        
-        $this->load->language("extension/total/coupon");
-        $this->load->model("checkout/order");
+if (!$customer || $customer['type'] != 'customer') {
 
-        $json = [];
+    return $this->response->setOutput(json_encode([
+        "status" => "error",
+        "message" => "Invalid Token"
+    ]));
+}
 
-        $coupon = $this->request->post["coupon"] ?? "";
-        $grand_total = (float) ($this->request->post["grand_total"] ?? 0);
+$this->load->language("extension/total/coupon");
+$this->load->model('groceries/categories');
 
-        if (!$coupon) {
-            $json["error"] = $this->language->get("error_empty");
-            return $this->response->setOutput(json_encode($json));
-        }
+$json = [];
 
-        $coupon_info = $this->model_checkout_order->getCoupon($coupon);
+$coupon = trim($this->request->post['coupon'] ?? '');
+$grand_total = (float)($this->request->post['grand_total'] ?? 0);
 
-        if (!$coupon_info) {
-            $json["error"] = $this->language->get("error_coupon");
-            return $this->response->setOutput(json_encode($json));
-        }
+if ($coupon == '') {
 
-        // ✅ Minimum bill validation
-        if (
-            $coupon_info["minimum_total"] > 0 &&
-            $grand_total < (float) $coupon_info["minimum_total"]
-        ) {
-            $json["error"] = sprintf(
-                "This coupon requires a minimum bill of ₹ %.2f. Your total is ₹ %.2f.",
-                (float) $coupon_info["minimum_total"],
-                $grand_total
-            );
-            return $this->response->setOutput(json_encode($json));
-        }
+    $json["error"] = $this->language->get("error_empty");
 
-        // ✅ IMPORTANT: return coupon.total also
-        $json["success"] = $this->language->get("text_success");
-        $json["coupon_info"] = [
-            "coupon_id" => $coupon_info["coupon_id"],
-            "code" => $coupon_info["code"],
-            "name" => $coupon_info["name"],
-            "type" => $coupon_info["type"],
-            "discount" => $coupon_info["discount"],
-            "total" => (float) $coupon_info["total"], // ⭐ THIS WAS MISSING
-            "minimum_total" => (float) $coupon_info["minimum_total"],
-        ];
+    return $this->response->setOutput(json_encode($json));
+}
 
-        return $this->response->setOutput(json_encode($json));
+$result = $this->model_groceries_categories->validateCoupon(
+    $coupon,
+    (int)$customer['id'],
+    $grand_total
+);
+
+if (!$result['success']) {
+
+    $json["error"] = $result["message"];
+
+    return $this->response->setOutput(json_encode($json));
+}
+
+$discount_amount = 0;
+
+if ($result['type'] == 'P') {
+
+    // Percentage discount
+    $discount_amount = ($grand_total * $result['discount']) / 100;
+
+    // Maximum discount cap
+    if ($result['total'] > 0 && $discount_amount > $result['total']) {
+        $discount_amount = $result['total'];
     }
 
+} else {
+
+    // Flat discount
+    $discount_amount = $result['discount'];
+
+    // Discount cannot exceed cart total
+    if ($discount_amount > $grand_total) {
+        $discount_amount = $grand_total;
+    }
+}
+
+$final_total = $grand_total - $discount_amount;
+
+
+$json["success"] = $this->language->get("text_success");
+
+$json["coupon_info"] = [
+    "coupon_id"     => $result["coupon_id"],
+    "code"          => $result["code"],
+    "name"          => $result["name"],
+    "type"          => $result["type"],
+    "discount"      => $result["discount"],
+    "discount_amount" => round($discount_amount, 2),
+    "total"         => (float)$result["total"],
+    "minimum_total" => (float)$result["minimum_total"],
+    "final_total"   => round($final_total, 2)
+];
+
+return $this->response->setOutput(json_encode($json));
+}
 
     public function getLatestProducts(): void {
 

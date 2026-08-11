@@ -279,6 +279,13 @@ class Home extends \Opencart\System\Engine\Controller {
             if ($activeQuoteId > 0) {
                 $this->model_checkout_order->completeQuote($activeQuoteId);
             }
+
+            $todayOrders = $this->model_checkout_order->getTodayOrderCount($customer_id);
+            $limit = (int)$this->config->get('config_daily_order_limit');
+
+            if ($todayOrders >= $limit) {
+                throw new \Exception("You can place only {$limit} orders per day.");
+            }
             $this->load->model('groceries/categories');
 
             $this->model_groceries_categories->insertOrderTracking($order_id);
