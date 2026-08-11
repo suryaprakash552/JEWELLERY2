@@ -3898,11 +3898,11 @@ public function validateCoupon($code, $customer_id, $grand_total) {
 
     // minimum cart
 
-    if ($coupon['total'] > 0 && $grand_total < $coupon['total']) {
+    if ($coupon['total'] > 0 && $grand_total < $coupon['minimum_total']) {
 
         return [
     'success' => false,
-    'message' => 'Minimum order should be ₹' . number_format((float)$coupon['total'], 0)
+    'message' => 'Minimum order should be ₹' . number_format((float)$coupon['minimum_total'], 0)
 ];
     }
 
