@@ -64,6 +64,40 @@ class Categories extends \Opencart\System\Engine\Controller {
     public function send_otp(){
 
         $json=[];
+        $firebase_app_check = $this->load->library('firebase_app_check');
+
+        $appCheckToken =$this->request->server['HTTP_X_FIREBASE_APPCHECK'] ?? '';
+        if (empty($appCheckToken)) {
+
+
+            $this->response->addHeader(
+                'Content-Type', 'application/json'
+            );
+
+            $this->response->setOutput(json_encode([
+                "success" => "0",
+                "message" => "Invalid application request"
+            ]));
+
+            return;
+        }
+
+
+if (!$firebase_app_check->verify($appCheckToken)) {
+
+
+    $this->response->addHeader(
+        'Content-Type', 'application/json'
+    );
+
+    $this->response->setOutput(json_encode([
+        "success" => "0",
+        "message" => "Invalid application request"
+    ]));
+
+    return;
+}
+
         if(!$this->request->post){
         
         $input=json_decode(file_get_contents("php://input"),true);
@@ -77,6 +111,7 @@ class Categories extends \Opencart\System\Engine\Controller {
         if($validate['success']=="1"){
         
         $json['telephone']=$this->request->post['telephone'];
+        $json['device_id'] =$this->request->post['device_id'];
 
         $json=$this->load->controller('ws/transactions/common.send_otp',$json);
         
@@ -93,98 +128,292 @@ class Categories extends \Opencart\System\Engine\Controller {
         }
 
         
-       public function verify_otp(): void {
+       public function verify_otp(): void
+{
+    $this->response->addHeader('Content-Type: application/json');
 
-        $this->response->addHeader('Content-Type: application/json');
+    $json = [];
 
-        $json=[];
+    /*
+     * ==========================================
+     * 1. READ REQUEST
+     * ==========================================
+     */
 
-        if(!$this->request->post){
-        
-        $input=json_decode(file_get_contents("php://input"),true);
-        
-        $this->request->post=$input;
-        
-        }
+    if (!$this->request->post) {
 
-        $validate =$this->validate_verify_otp($this->request->post);
-        
-        if($validate['success']=="0"){
-        
-        $this->response->setOutput(json_encode($validate));
-        
-        return;
-        
-        }
+        $input = json_decode(
+            file_get_contents("php://input"),
+            true
+        );
 
-        $this->load->model('ws/transactions/common');
-        
-        $validate_record =$this->model_ws_transactions_common->VERIFY_CUSTOMER_OTP($this->request->post);
-        
-        if(!$validate_record['exstatus']){
-        
+        $this->request->post = $input;
+    }
+
+
+    /*
+     * ==========================================
+     * 2. VALIDATE INPUT
+     * ==========================================
+     */
+
+    $validate =
+        $this->validate_verify_otp(
+            $this->request->post
+        );
+
+    if ($validate['success'] == "0") {
+
         $this->response->setOutput(
-        json_encode([
-        
-            "success"=>"0",
-            "message"=>"Invalid OTP"
-            
-            ]));
-        
+            json_encode($validate)
+        );
+
         return;
-        
-        }
+    }
 
-        $record_input =json_decode($validate_record['input'],true);
-        if(
-        
-        $record_input['telephone']!=$this->request->post['telephone']){
-        
-        $this->response->setOutput(
-            json_encode([
-            
-            "success"=>"0",
-            "message"=>"Wrong Input"
-            
-            ]));
-        
-        return;
-        
-        }
 
-        $new_ref =$this->model_ws_transactions_common->RELEASE_OTP_ATTEMPTS($this->request->post);
+    /*
+     * ==========================================
+     * 3. FIREBASE APP CHECK
+     * ==========================================
+     */
 
-        $this->load->model('groceries/categories');
-    
-        $customer =$this->model_groceries_categories->loginCustomerOtp($this->request->post['telephone']);
+    $appCheckToken =
+        $this->request->server[
+            'HTTP_X_FIREBASE_APPCHECK'
+        ] ?? '';
 
-        if(!$customer){
-        
+    if (empty($appCheckToken)) {
+
         $this->response->setOutput(
             json_encode([
-        
-            "success"=>"0",
-            "message"=>"Customer not found"
-            
-            ]));
-        
+                "success" => "0",
+                "message" => "Invalid application request"
+            ])
+        );
+
         return;
-        
-        }
+    }
 
-        $this->load->controller('groceries/categories.sendOwnerLoginAlert',['phone' => $this->request->post['telephone']]);
+    $firebase_app_check = $this->load->library(
+        'firebase_app_check'
+    );
 
-        $json=[
-        
-            "success"=>"1",
-            "otp_ref"=>$new_ref,
-            "customer_id"=>$customer['customer_id'],
-            "token"=>$customer['token'],
-            "message"=>"OTP Verified Login Success"
-        ];
-        
-        $this->response->setOutput(json_encode($json));
-        }
+    if (
+        !$firebase_app_check
+            ->verify($appCheckToken)
+    ) {
+
+        $this->response->setOutput(
+            json_encode([
+                "success" => "0",
+                "message" => "Invalid application request"
+            ])
+        );
+
+        return;
+    }
+
+
+    /*
+     * ==========================================
+     * 4. VERIFY OTP
+     * ==========================================
+     */
+
+    $this->load->model(
+        'ws/transactions/common'
+    );
+
+    $validate_record =
+        $this->model_ws_transactions_common
+            ->VERIFY_CUSTOMER_OTP(
+                $this->request->post
+            );
+
+    if (!$validate_record['exstatus']) {
+
+        $this->response->setOutput(
+            json_encode([
+                "success" => "0",
+                "message" => "Invalid OTP"
+            ])
+        );
+
+        return;
+    }
+
+
+    /*
+     * ==========================================
+     * 5. GET ORIGINAL OTP REQUEST
+     * ==========================================
+     */
+
+    $record_input =
+        json_decode(
+            $validate_record['input'],
+            true
+        );
+
+    if (!is_array($record_input)) {
+
+        $this->response->setOutput(
+            json_encode([
+                "success" => "0",
+                "message" => "Invalid OTP session"
+            ])
+        );
+
+        return;
+    }
+
+
+    /*
+     * ==========================================
+     * 6. VERIFY TELEPHONE
+     * ==========================================
+     */
+
+    if (
+        empty($record_input['telephone']) ||
+        $record_input['telephone'] !==
+        $this->request->post['telephone']
+    ) {
+
+        $this->response->setOutput(
+            json_encode([
+                "success" => "0",
+                "message" => "Wrong Input"
+            ])
+        );
+
+        return;
+    }
+
+
+    /*
+     * ==========================================
+     * 7. VERIFY DEVICE ID
+     * ==========================================
+     */
+
+    if (
+        empty($record_input['device_id']) ||
+        empty($this->request->post['device_id'])
+    ) {
+
+        $this->response->setOutput(
+            json_encode([
+                "success" => "0",
+                "message" => "Device ID Missing"
+            ])
+        );
+
+        return;
+    }
+
+
+    /*
+     * Compare the device that requested OTP
+     * with the device currently verifying OTP.
+     */
+
+    if (
+        !hash_equals(
+            (string) $record_input['device_id'],
+            (string) $this->request->post['device_id']
+        )
+    ) {
+
+        $this->response->setOutput(
+            json_encode([
+                "success" => "0",
+                "message" => "Device verification failed"
+            ])
+        );
+
+        return;
+    }
+
+
+    /*
+     * ==========================================
+     * 8. OTP + TELEPHONE + DEVICE VERIFIED
+     * ==========================================
+     *
+     * Only now mark OTP as verified.
+     */
+
+    $new_ref =
+        $this->model_ws_transactions_common
+            ->RELEASE_OTP_ATTEMPTS(
+                $this->request->post
+            );
+
+
+    /*
+     * ==========================================
+     * 9. FIND CUSTOMER
+     * ==========================================
+     */
+
+    $this->load->model(
+        'groceries/categories'
+    );
+
+    $customer =
+        $this->model_groceries_categories
+            ->loginCustomerOtp(
+                $this->request->post['telephone']
+            );
+
+    if (!$customer) {
+
+        $this->response->setOutput(
+            json_encode([
+                "success" => "0",
+                "message" => "Customer not found"
+            ])
+        );
+
+        return;
+    }
+
+
+    /*
+     * ==========================================
+     * 10. LOGIN ALERT
+     * ==========================================
+     */
+
+    $this->load->controller(
+        'groceries/categories.sendOwnerLoginAlert',
+        [
+            'phone' =>
+                $this->request->post['telephone']
+        ]
+    );
+
+
+    /*
+     * ==========================================
+     * 11. LOGIN SUCCESS
+     * ==========================================
+     */
+
+    $json = [
+        "success" => "1",
+        "otp_ref" => $new_ref,
+        "customer_id" => $customer['customer_id'],
+        "token" => $customer['token'],
+        "message" => "OTP Verified Login Success"
+    ];
+
+    $this->response->setOutput(
+        json_encode($json)
+    );
+}
 
     public function validate_send_otp($raw){
     
@@ -196,6 +425,13 @@ class Categories extends \Opencart\System\Engine\Controller {
             ];
         
           }
+
+           if (!isset($raw['device_id']) || empty($raw['device_id'])) {
+                return [
+                    "success" => "0",
+                    "message" => "Device ID Missing"
+                ];
+            }
         
             return [
             "success"=>"1",
@@ -236,7 +472,18 @@ class Categories extends \Opencart\System\Engine\Controller {
         
         }
         
+        if (
+        !isset($raw['device_id']) ||
+        empty($raw['device_id'])
+    ) {
+
             return [
+                "success" => "0",
+                "message" => "Device ID Missing"
+            ];
+        }
+        
+        return [
             "success"=>"1"
             ];
         
@@ -1517,6 +1764,8 @@ public function getDeliveryFee(): void {
             'w_tag'=>'W999',
             
             'image'=>'',
+
+            'is_veg'=>(int)($post['is_veg'] ?? 1),
             
             'featured' => (int)($post['featured'] ?? 0),
             

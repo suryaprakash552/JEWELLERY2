@@ -6050,6 +6050,7 @@ public function getEnrollInfoByFPAEPSId_pending($ourrequestid)
     {
         $this->db->query("INSERT INTO " . DB_PREFIX . "customer_otp_session SET
                                                             number = '" . $raw->post['telephone'] . "',
+															device_id = '" .$this->db->escape($data['device_id'] ?? '') . "',
                                                             salt = '" . $this->db->escape($salt = random_int(100000000, 999999999)) . "',
                                                             otp = '" . $this->db->escape(sha1($salt . sha1($salt . sha1($otp)))) . "',
                                                             hits = 1,
@@ -6061,6 +6062,7 @@ public function getEnrollInfoByFPAEPSId_pending($ourrequestid)
     {
         $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "customer_otp_session`
                                                                        WHERE number = '" . $this->db->escape($input['telephone']) . "'
+																	   AND device_id = '" .$this->db->escape($input['device_id']) . "'
                                                                        AND otp = '" . $this->db->escape($input['otp_ref']) . "'
                                                                        AND DATE(created) = DATE(NOW())
                                                                        AND verified = '0'");
@@ -6095,6 +6097,7 @@ public function getEnrollInfoByFPAEPSId_pending($ourrequestid)
                                                           otp = '" . $this->db->escape($otp_ref) . "',
                                                           input = '" . $this->db->escape(json_encode($raw)) . "'
                                                       WHERE number = '" . $this->db->escape($raw['telephone']) . "'
+                                                      AND device_id = '" . $this->db->escape($raw['device_id']) . "'
                                                       AND otp = '" . $this->db->escape($raw['otp_ref']) . "'
                                                       AND DATE(created) = DATE(NOW())");
     
@@ -6109,6 +6112,7 @@ public function getEnrollInfoByFPAEPSId_pending($ourrequestid)
                                                                           input='" . json_encode($raw->post) . "',
                                                                           verified=0
                                                                           where number='" . $this->db->escape($raw->post['telephone']) . "'
+																		  AND device_id = '" .$this->db->escape($data['device_id'] ?? '') . "'
                                                                           and date(created)=date(now())"
                                                                           );
     }
