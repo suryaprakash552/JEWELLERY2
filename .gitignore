@@ -55,6 +55,17 @@ image/catalog/**
 # POS uploaded images
 image/catalog/pos_uploads/*
 image/catalog/pos_uploads/**
+
+# POS QR codes
+image/pos_qr/*
+image/pos_qr/**
+
+# Root-level images (logos, placeholders - generated at runtime)
+image/*.png
+image/*.jpg
+image/*.jpeg
+image/*.gif
+image/*.webp
  
 # =========================
 # Config Files (Sensitive)
