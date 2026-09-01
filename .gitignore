@@ -37,16 +37,22 @@ system/storagex8nclbm3t3z3/cache/template/*
 system/storagex8nclbm3t3z3/cache/template/**
  
 # =========================
-# Image Cache
+# Images (runtime/user-uploaded - do not commit)
 # =========================
- 
+
+# Image cache (auto-generated thumbnails)
 image/cache/*
 image/cache/**
- 
-# =========================
-# POS Uploaded Images (user uploads - do not commit)
-# =========================
- 
+
+# Attendance photos (user-captured)
+image/attendance/*
+image/attendance/**
+
+# Catalog uploaded images
+image/catalog/*
+image/catalog/**
+
+# POS uploaded images
 image/catalog/pos_uploads/*
 image/catalog/pos_uploads/**
  
