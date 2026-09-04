@@ -138,13 +138,9 @@ class Mail {
 			return false;
 		}
 
-		/*if (empty($this->option['sender'])) {
+		if (empty($this->option['sender'])) {
 			throw new \Exception('Error: E-Mail sender required!');
 		}
-*/
-        if (empty($this->from)) {
-        return false; // disable all email sending safely
-        }
 
 		if (empty($this->option['subject'])) {
 			return false;

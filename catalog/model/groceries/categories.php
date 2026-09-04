@@ -229,6 +229,261 @@ public function getProductPieces($product_id): array {
     return $this->db->query($sql)->rows;
 }
 
+private function formatProductResponse($products) {
+
+    $formatted_products = [];
+
+    foreach ($products as $product) {
+
+        $formatted_products[] = [
+            'product_id'     => $product['product_id'] ?? null,
+            'image'          => $product['image'] ?? null,
+            'is_combo'       => $product['is_combo'] ?? null,
+            'received_price' => $product['received_price'] ?? null,
+            'price'          => $product['price'] ?? null,
+            'special_price'  => $product['special_price'] ?? null,
+            'status'         => $product['status'] ?? null,
+            'featured'       => $product['featured'] ?? null,
+            'name'           => $product['name'] ?? null,
+            'id'             => $product['id'] ?? null,
+            'pos_quentity'   => $product['pos_quentity'] ?? null,
+            'pos_status'     => $product['pos_status'] ?? null,
+            'pieces'         => $product['pieces'] ?? []
+        ];
+    }
+
+    return $formatted_products;
+}
+
+public function getProductPiecesBatch(array $product_ids): array {
+    if (empty($product_ids)) {
+        return [];
+    }
+
+    $product_ids = array_map('intval', array_unique($product_ids));
+
+    $sql = "SELECT
+            ptp.id,
+            ptp.piece_id,
+            ptp.product_id,
+            ptp.image,
+            ps.piece,
+            ptp.recieved_price,
+            ptp.price,
+            ptp.special_price,
+            ptp.piece_price,
+            ptp.piece_default,
+            ptp.is_combo,
+            ptp.min_quantity,
+            ptp.pos_quantity,
+            ptp.category_id,
+            cd.name AS category_name
+
+            FROM " . DB_PREFIX . "piece_to_product ptp
+
+            LEFT JOIN " . DB_PREFIX . "pieces ps
+                ON ptp.piece_id = ps.piece_id
+
+            LEFT JOIN " . DB_PREFIX . "category c
+                ON ptp.category_id = c.category_id
+
+            LEFT JOIN " . DB_PREFIX . "category_description cd
+                ON c.category_id = cd.category_id
+                AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+
+            WHERE ptp.product_id IN (" . implode(',', $product_ids) . ")
+
+            ORDER BY ptp.product_id, ptp.id ASC";
+
+    $rows = $this->db->query($sql)->rows;
+
+    $result = [];
+    foreach ($rows as $row) {
+        $result[$row['product_id']][] = $row;
+    }
+
+    return $result;
+}
+
+public function getProductPiecesByCategoryBatch(array $product_ids, int $category_id): array {
+    if (empty($product_ids)) {
+        return [];
+    }
+
+    $product_ids = array_map('intval', array_unique($product_ids));
+
+    $sql = "SELECT
+            ptp.id,
+            ptp.piece_id,
+            ptp.product_id,
+            ps.piece,
+            ptp.image,
+            ptp.recieved_price,
+            ptp.price,
+            ptp.special_price,
+            ptp.piece_price,
+            ptp.piece_default,
+            ptp.min_quantity,
+            ptp.pos_quantity,
+            ptp.is_combo,
+            ptp.category_id
+
+            FROM " . DB_PREFIX . "piece_to_product ptp
+
+            LEFT JOIN " . DB_PREFIX . "pieces ps
+                ON ps.piece_id = ptp.piece_id
+
+            WHERE ptp.product_id IN (" . implode(',', $product_ids) . ")
+            AND ptp.category_id = '" . (int)$category_id . "'
+
+            ORDER BY ptp.product_id, ptp.id ASC";
+
+    $rows = $this->db->query($sql)->rows;
+
+    $result = [];
+    foreach ($rows as $row) {
+        $result[$row['product_id']][] = $row;
+    }
+
+    return $result;
+}
+
+public function getProductPiecesByCategoryWithFallbackBatch(array $product_ids, int $category_id): array {
+    if (empty($product_ids)) {
+        return [];
+    }
+
+    $product_ids = array_map('intval', array_unique($product_ids));
+
+    $sql = "SELECT
+            ptp.id,
+            ptp.piece_id,
+            ptp.product_id,
+            ps.piece,
+            ptp.image,
+            ptp.recieved_price,
+            ptp.price,
+            ptp.special_price,
+            ptp.piece_price,
+            ptp.piece_default,
+            ptp.min_quantity,
+            ptp.pos_quantity,
+            ptp.is_combo,
+            ptp.category_id
+
+            FROM " . DB_PREFIX . "piece_to_product ptp
+
+            LEFT JOIN " . DB_PREFIX . "pieces ps
+                ON ps.piece_id = ptp.piece_id
+
+            WHERE ptp.product_id IN (" . implode(',', $product_ids) . ")";
+
+    $category_sql = $sql . " AND ptp.category_id = '" . (int)$category_id . "'";
+    $category_rows = $this->db->query($category_sql)->rows;
+
+    $result = [];
+    $products_with_category_pieces = [];
+
+    foreach ($category_rows as $row) {
+        $result[$row['product_id']][] = $row;
+        $products_with_category_pieces[$row['product_id']] = true;
+    }
+
+    $missing_product_ids = array_diff($product_ids, array_keys($products_with_category_pieces));
+
+    if (!empty($missing_product_ids)) {
+        $fallback_sql = $sql . " AND ptp.product_id IN (" . implode(',', $missing_product_ids) . ") ORDER BY ptp.product_id, ptp.id ASC";
+        $fallback_rows = $this->db->query($fallback_sql)->rows;
+
+        foreach ($fallback_rows as $row) {
+            $result[$row['product_id']][] = $row;
+        }
+    }
+
+    return $result;
+}
+
+public function getBannerPiecesBatch(array $product_ids, int $category_id): array {
+    if (empty($product_ids)) {
+        return [];
+    }
+
+    $product_ids = array_map('intval', array_unique($product_ids));
+
+    $sql = "SELECT
+                ptp.id,
+                ptp.piece_id,
+                ptp.product_id,
+                ps.piece,
+                ptp.image,
+                ptp.recieved_price,
+                ptp.price,
+                ptp.special_price,
+                ptp.piece_price,
+                ptp.piece_default,
+                ptp.min_quantity,
+                ptp.pos_quantity,
+                ptp.is_combo
+
+            FROM " . DB_PREFIX . "piece_to_product ptp
+
+            INNER JOIN " . DB_PREFIX . "piece_category pc
+                ON pc.product_id = ptp.product_id
+                AND pc.piece_id = ptp.piece_id
+
+            LEFT JOIN " . DB_PREFIX . "pieces ps
+                ON ps.piece_id = ptp.piece_id
+
+            WHERE ptp.product_id IN (" . implode(',', $product_ids) . ")
+            AND pc.category_id = '" . (int)$category_id . "'
+
+            ORDER BY ptp.product_id, ptp.piece_default DESC, ptp.id ASC";
+
+    $rows = $this->db->query($sql)->rows;
+
+    $result = [];
+    foreach ($rows as $row) {
+        $result[$row['product_id']][] = $row;
+    }
+
+    return $result;
+}
+
+public function getProductPiecesStockBatch(array $product_ids): array {
+    if (empty($product_ids)) {
+        return [];
+    }
+
+    $product_ids = array_map('intval', array_unique($product_ids));
+
+    $sql = "SELECT
+                ptp.piece_id,
+                ptp.product_id,
+                pt.piece AS piece_name,
+                ptp.price,
+                ptp.special_price,
+                ptp.piece_price,
+                ptp.min_quantity,
+                ptp.pos_quantity
+            FROM " . DB_PREFIX . "piece_to_product ptp
+
+            LEFT JOIN " . DB_PREFIX . "pieces pt
+                ON ptp.piece_id = pt.piece_id
+
+            WHERE ptp.product_id IN (" . implode(',', $product_ids) . ")
+
+            ORDER BY ptp.product_id, ptp.piece_id";
+
+    $rows = $this->db->query($sql)->rows;
+
+    $result = [];
+    foreach ($rows as $row) {
+        $result[$row['product_id']][] = $row;
+    }
+
+    return $result;
+}
+
     public function getAllProducts($search = '') {
 
         $sql = "SELECT 
@@ -241,6 +496,7 @@ public function getProductPieces($product_id): array {
                 p.special_price,
                 pd.name,
                 pd.description,
+                pd.is_veg,
                 pp.*
                 FROM `" . DB_PREFIX . "product` p
                 JOIN `" . DB_PREFIX . "product_description` pd
@@ -258,18 +514,190 @@ public function getProductPieces($product_id): array {
         $sql .= " ORDER BY p.product_id DESC";
 
         $products = $this->db->query($sql)->rows;
-       foreach ($products as &$product) {
 
-     $product['categories'] = $this->getProductCategories($product['product_id']);  
+        if (!empty($products)) {
+            $product_ids = array_column($products, 'product_id');
+            $all_pieces = $this->getProductPiecesBatch($product_ids);
 
-    $product['pieces'] = $this->getProductPieces($product['product_id']);
-    $product['extra_images'] = $this->getProductExtraImages($product['product_id']);
-
-}
+            foreach ($products as &$product) {
+                $product['categories'] = $this->getProductCategories($product['product_id']);
+                $product['pieces'] = $all_pieces[$product['product_id']] ?? [];
+                $product['extra_images'] = $this->getProductExtraImages($product['product_id']);
+            }
+        }
 
         return $products;
 
         }
+
+    public function get50perDiscountProducts($search = '') {
+
+        $sql = "SELECT
+                p.product_id,
+                p.received_price,
+                p.price,
+                p.image,
+                p.featured,
+                p.is_combo,
+                p.special_price,
+                pd.name,
+                pd.description,
+                pd.is_veg,
+                pp.*
+                FROM `" . DB_PREFIX . "product` p
+                JOIN `" . DB_PREFIX . "product_description` pd
+                ON p.product_id = pd.product_id
+                LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
+                ON p.product_id = pp.product_id
+                WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+                AND (
+                    (p.special_price > 0 AND ((p.price - p.special_price) / p.price * 100) >= 50)
+                    OR EXISTS (
+                        SELECT 1 FROM " . DB_PREFIX . "piece_to_product ptp
+                        WHERE ptp.product_id = p.product_id
+                        AND ptp.special_price > 0
+                        AND ((ptp.price - ptp.special_price) / ptp.price * 100) >= 50
+                    )
+                )";
+
+        if(!empty($search)){
+        $sql .= " AND pd.name LIKE '%".$this->db->escape($search)."%'";
+        }
+
+        $sql .= " ORDER BY p.product_id DESC";
+
+        $products = $this->db->query($sql)->rows;
+
+        if (!empty($products)) {
+            $product_ids = array_column($products, 'product_id');
+            $all_pieces = $this->getProductPiecesBatch($product_ids);
+
+            foreach ($products as &$product) {
+                $product['categories'] = $this->getProductCategories($product['product_id']);
+                $pieces = $all_pieces[$product['product_id']] ?? [];
+
+                // Filter pieces to only include those with 50%+ discount
+                $discount_pieces = [];
+                foreach ($pieces as $piece) {
+                    if ($piece['special_price'] > 0) {
+                        $discount_percent = (($piece['price'] - $piece['special_price']) / $piece['price']) * 100;
+                        if ($discount_percent >= 50) {
+                            $discount_pieces[] = $piece;
+                        }
+                    }
+                }
+
+                // If no pieces have 50%+ discount, check if product itself has 50%+ discount
+                if (empty($discount_pieces)) {
+                    if ($product['special_price'] > 0) {
+                        $product_discount = (($product['price'] - $product['special_price']) / $product['price']) * 100;
+                        if ($product_discount >= 50) {
+                            // Product qualifies, include all pieces
+                            $product['pieces'] = $pieces;
+                        } else {
+                            // Neither product nor pieces qualify, skip this product
+                            continue;
+                        }
+                    } else {
+                        // No discount, skip this product
+                        continue;
+                    }
+                } else {
+                    // Pieces qualify, include only discount pieces
+                    $product['pieces'] = $discount_pieces;
+                }
+
+                $product['extra_images'] = $this->getProductExtraImages($product['product_id']);
+            }
+        }
+
+        return array_values($products);
+    }
+
+    public function get10to49perDiscountProducts($search = '') {
+
+        $sql = "SELECT
+                p.product_id,
+                p.received_price,
+                p.price,
+                p.image,
+                p.featured,
+                p.is_combo,
+                p.special_price,
+                pd.name,
+                pd.description,
+                pd.is_veg,
+                pp.*
+                FROM `" . DB_PREFIX . "product` p
+                JOIN `" . DB_PREFIX . "product_description` pd
+                ON p.product_id = pd.product_id
+                LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
+                ON p.product_id = pp.product_id
+                WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+                AND (
+                    (p.special_price > 0 AND ((p.price - p.special_price) / p.price * 100) >= 10 AND ((p.price - p.special_price) / p.price * 100) < 50)
+                    OR EXISTS (
+                        SELECT 1 FROM " . DB_PREFIX . "piece_to_product ptp
+                        WHERE ptp.product_id = p.product_id
+                        AND ptp.special_price > 0
+                        AND ((ptp.price - ptp.special_price) / ptp.price * 100) >= 10
+                        AND ((ptp.price - ptp.special_price) / ptp.price * 100) < 50
+                    )
+                )";
+
+        if(!empty($search)){
+        $sql .= " AND pd.name LIKE '%".$this->db->escape($search)."%'";
+        }
+
+        $sql .= " ORDER BY p.product_id DESC";
+
+        $products = $this->db->query($sql)->rows;
+
+        if (!empty($products)) {
+            $product_ids = array_column($products, 'product_id');
+            $all_pieces = $this->getProductPiecesBatch($product_ids);
+
+            foreach ($products as &$product) {
+                $product['categories'] = $this->getProductCategories($product['product_id']);
+                $pieces = $all_pieces[$product['product_id']] ?? [];
+
+                // Filter pieces to only include those with 10-49% discount
+                $discount_pieces = [];
+                foreach ($pieces as $piece) {
+                    if ($piece['special_price'] > 0) {
+                        $discount_percent = (($piece['price'] - $piece['special_price']) / $piece['price']) * 100;
+                        if ($discount_percent >= 10 && $discount_percent < 50) {
+                            $discount_pieces[] = $piece;
+                        }
+                    }
+                }
+
+                // If no pieces have 10-49% discount, check if product itself has 10-49% discount
+                if (empty($discount_pieces)) {
+                    if ($product['special_price'] > 0) {
+                        $product_discount = (($product['price'] - $product['special_price']) / $product['price']) * 100;
+                        if ($product_discount >= 10 && $product_discount < 50) {
+                            // Product qualifies, include all pieces
+                            $product['pieces'] = $pieces;
+                        } else {
+                            // Neither product nor pieces qualify, skip this product
+                            continue;
+                        }
+                    } else {
+                        // No discount, skip this product
+                        continue;
+                    }
+                } else {
+                    // Pieces qualify, include only discount pieces
+                    $product['pieces'] = $discount_pieces;
+                }
+
+                $product['extra_images'] = $this->getProductExtraImages($product['product_id']);
+            }
+        }
+
+        return array_values($products);
+    }
 
         public function getProductCategories($product_id)
 {
@@ -325,6 +753,7 @@ public function getProductPieces($product_id): array {
         pc.category_id,
         pd.name,
         pd.description,
+        pd.is_veg,
         p.price,
         p.image
         
@@ -361,6 +790,7 @@ public function getProductPieces($product_id): array {
         p.image,
         pd.name,
         pd.description,
+        pd.is_veg,
         c.category_id,
         cd.name AS category_name,
         c.gst,
@@ -399,17 +829,18 @@ public function getProductPieces($product_id): array {
         )
 
         ORDER BY p.product_id DESC";
-            
+
     $products = $this->db->query($sql)->rows;
 
-foreach ($products as &$product) {
+    if (!empty($products)) {
+        $product_ids = array_column($products, 'product_id');
+        $all_pieces = $this->getProductPiecesByCategoryWithFallbackBatch($product_ids, $category_id);
 
-    $product['pieces'] = $this->getProductPiecesByCategory(
-        $product['product_id'],
-        $category_id
-    );
-    $product['extra_images'] = $this->getProductExtraImages($product['product_id']);
-}
+        foreach ($products as &$product) {
+            $product['pieces'] = $all_pieces[$product['product_id']] ?? [];
+            $product['extra_images'] = $this->getProductExtraImages($product['product_id']);
+        }
+    }
 
 return $products;
 }
@@ -427,6 +858,7 @@ public function getBannerProducts($category_id){
                 p.image,
                 pd.name,
                 pd.description,
+                pd.is_veg,
                 c.category_id,
                 cd.name AS category_name,
                 c.gst,
@@ -464,14 +896,15 @@ public function getBannerProducts($category_id){
 
     $products = $this->db->query($sql)->rows;
 
-foreach ($products as &$product) {
+    if (!empty($products)) {
+        $product_ids = array_column($products, 'product_id');
+        $all_pieces = $this->getBannerPiecesBatch($product_ids, $category_id);
 
-    $product['pieces'] = $this->getBannerPieces(
-        $product['product_id'],
-        $category_id
-    );
-    $product['extra_images'] = $this->getProductExtraImages($product['product_id']);
-}
+        foreach ($products as &$product) {
+            $product['pieces'] = $all_pieces[$product['product_id']] ?? [];
+            $product['extra_images'] = $this->getProductExtraImages($product['product_id']);
+        }
+    }
 
 return $products;
 }
@@ -546,12 +979,13 @@ public function getProductPiecesByCategory($product_id, $category_id): array {
 }
     
     public function getRandomProducts() {
-        $sql = "SELECT *
+
+    $sql = "SELECT *
         FROM `" . DB_PREFIX . "product` p
         JOIN `" . DB_PREFIX . "product_description` pd
             ON p.product_id = pd.product_id
-        
-            LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
+
+        LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
             ON p.product_id = pp.product_id
 
         WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
@@ -559,23 +993,34 @@ public function getProductPiecesByCategory($product_id, $category_id): array {
         ORDER BY p.date_added DESC
         LIMIT 9";
 
-        $products = $this->db->query($sql)->rows;
+    $products = $this->db->query($sql)->rows;
 
-foreach ($products as &$product) {
+    if (!empty($products)) {
 
-    $product['pieces'] = $this->getProductPieces($product['product_id']);
-}
+        $product_ids = array_column($products, 'product_id');
 
-return $products;
+        $all_pieces = $this->getProductPiecesBatch($product_ids);
+
+        foreach ($products as &$product) {
+
+            $product['pieces'] =
+                $all_pieces[$product['product_id']] ?? [];
+        }
+
+        unset($product);
     }
 
+    return $this->formatProductResponse($products);
+}
+
     public function getComboProducts() {
-        $sql = "SELECT *
+
+    $sql = "SELECT *
         FROM `" . DB_PREFIX . "product` p
         JOIN `" . DB_PREFIX . "product_description` pd
             ON p.product_id = pd.product_id
-        
-            LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
+
+        LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
             ON p.product_id = pp.product_id
 
         WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
@@ -583,16 +1028,26 @@ return $products;
         ORDER BY p.date_added DESC
         LIMIT 9";
 
-        $products = $this->db->query($sql)->rows;
+    $products = $this->db->query($sql)->rows;
 
-foreach ($products as &$product) {
+    if (!empty($products)) {
 
-    $product['pieces'] = $this->getProductPieces($product['product_id']);
+        $product_ids = array_column($products, 'product_id');
+
+        $all_pieces = $this->getProductPiecesBatch($product_ids);
+
+        foreach ($products as &$product) {
+
+            $product['pieces'] =
+                $all_pieces[$product['product_id']] ?? [];
+        }
+
+        unset($product);
+    }
+
+    return $this->formatProductResponse($products);
 }
 
-return $products;
-    }
-        
         public function getOfferCategories() {
 
         $sql="SELECT *
@@ -607,33 +1062,45 @@ return $products;
         
         }
         
-        public function getOfferProducts($category_id){
+        public function getOfferProducts($category_id) {
 
-        $sql="SELECT *
+    $sql = "SELECT *
         FROM `" . DB_PREFIX . "product_to_category` pc
-        
+
         JOIN `" . DB_PREFIX . "product` p
-        ON pc.product_id=p.product_id
-        
+            ON pc.product_id = p.product_id
+
         JOIN `" . DB_PREFIX . "product_description` pd
-        ON p.product_id=pd.product_id
+            ON p.product_id = pd.product_id
 
         LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
             ON p.product_id = pp.product_id
-        WHERE pc.category_id='".(int)$category_id."'
-        
-        AND pd.language_id='".(int)$this->config->get('config_language_id')."'
-        
+
+        WHERE pc.category_id = '" . (int)$category_id . "'
+
+        AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+
         ORDER BY p.date_added DESC";
-        $products = $this->db->query($sql)->rows;
 
-foreach ($products as &$product) {
+    $products = $this->db->query($sql)->rows;
 
-    $product['pieces'] = $this->getProductPieces($product['product_id']);
-}
+    if (!empty($products)) {
 
-return $products;
+        $product_ids = array_column($products, 'product_id');
+
+        $all_pieces = $this->getProductPiecesBatch($product_ids);
+
+        foreach ($products as &$product) {
+
+            $product['pieces'] =
+                $all_pieces[$product['product_id']] ?? [];
+        }
+
+        unset($product);
     }
+
+    return $this->formatProductResponse($products);
+}
 
     public function getProductExtraImages($product_id): array {
 
@@ -656,7 +1123,8 @@ public function getProductDetails($product_id){
             p.*,
             pp.*,
             pd.name,
-            pd.description
+            pd.description,
+            pd.is_veg
             
             FROM `" . DB_PREFIX . "product` p
             
@@ -668,19 +1136,21 @@ public function getProductDetails($product_id){
             
             
             WHERE p.product_id = '" . (int)$product_id . "'
-            
+
             AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
 
     $products = $this->db->query($sql)->rows;
 
-foreach ($products as &$product) {
+    if (!empty($products)) {
+        $product_ids = array_column($products, 'product_id');
+        $all_pieces = $this->getProductPiecesBatch($product_ids);
 
-    $product['pieces'] = $this->getProductPieces($product['product_id']);
+        foreach ($products as &$product) {
+            $product['pieces'] = $all_pieces[$product['product_id']] ?? [];
+        }
+    }
 
-    $product['extra_images'] = $this->getProductExtraImages($product['product_id']);
-}
-
-return $products;
+    return $products;
 }
 
 public function getRelatedProducts($product_id){
@@ -693,6 +1163,7 @@ public function getRelatedProducts($product_id){
             p.is_combo,
             pd.name,
             pd.description,
+            pd.is_veg,
             pp.*
 
             FROM `" . DB_PREFIX . "product_related` pr
@@ -712,10 +1183,14 @@ public function getRelatedProducts($product_id){
 
     $products = $this->db->query($sql)->rows;
 
-foreach ($products as &$product) {
+    if (!empty($products)) {
+        $product_ids = array_column($products, 'product_id');
+        $all_pieces = $this->getProductPiecesBatch($product_ids);
 
-    $product['pieces'] = $this->getProductPieces($product['product_id']);
-}
+        foreach ($products as &$product) {
+            $product['pieces'] = $all_pieces[$product['product_id']] ?? [];
+        }
+    }
 
 return $products;
 }
@@ -733,16 +1208,17 @@ public function loginCustomerOtp($telephone) {
 
     // CHECK CUSTOMER EXISTS
     $query = $this->db->query(
-        "SELECT customer_id 
-         FROM " . DB_PREFIX . "customer 
-         WHERE telephone = '" . $this->db->escape($telephone) . "' 
-         AND status = '1' 
+        "SELECT customer_id, telephone
+         FROM " . DB_PREFIX . "customer
+         WHERE telephone = '" . $this->db->escape($telephone) . "'
+         AND status = '1'
          LIMIT 1"
     );
 
     if ($query->num_rows) {
 
         $customer_id = $query->row['customer_id'];
+        $customer_telephone = $query->row['telephone'];
 
     } else {
 
@@ -766,22 +1242,141 @@ public function loginCustomerOtp($telephone) {
         );
 
         $customer_id = $this->db->getLastId();
+        $customer_telephone = $telephone;
     }
 
     // GENERATE TOKEN
     $token = bin2hex(random_bytes(32));
 
+    // UPDATE CUSTOMER TOKEN
     $this->db->query(
-        "UPDATE " . DB_PREFIX . "customer 
-         SET token = '" . $this->db->escape($token) . "' 
+        "UPDATE " . DB_PREFIX . "customer
+         SET token = '" . $this->db->escape($token) . "'
          WHERE customer_id = '" . (int)$customer_id . "'"
     );
 
+    // Check if customer has wallet record, create if not exists
+    $wallet_check = $this->db->query("
+        SELECT customerid FROM " . DB_PREFIX . "manage_wallet
+        WHERE customerid = '" . (int)$customer_id . "'
+        LIMIT 1
+    ");
+
+    if (!$wallet_check->row) {
+        $this->db->query("
+            INSERT INTO " . DB_PREFIX . "manage_wallet SET
+                customerid = '" . (int)$customer_id . "',
+                amount = 0,
+                aeps_amount = 0,
+                pre_amount = 0,
+                apiwallet = 0,
+                plan_limit = 0,
+                sms_limit = 0,
+                pg_amount = 0
+        ");
+    }
+
     return [
-        'status' => true,
-        'message' => 'Login successful',
         'customer_id' => $customer_id,
-        
+        'token' => $token
+    ];
+}
+
+
+
+public function loginCustomerEmailOtp($email, $telephone = '') {
+
+    $email = trim($email);
+    $telephone = trim($telephone);
+
+    if (!$email) {
+        return [
+            'status' => false,
+            'message' => 'Email is required'
+        ];
+    }
+
+    // CHECK CUSTOMER EXISTS BY EMAIL
+    $query = $this->db->query(
+        "SELECT customer_id, email, telephone
+         FROM " . DB_PREFIX . "customer
+         WHERE email = '" . $this->db->escape($email) . "'
+         AND status = '1'
+         LIMIT 1"
+    );
+
+    if ($query->num_rows) {
+
+        $customer_id = $query->row['customer_id'];
+        $customer_email = $query->row['email'];
+
+        // Update telephone if provided and different
+        if ($telephone && $query->row['telephone'] != $telephone) {
+            $this->db->query(
+                "UPDATE " . DB_PREFIX . "customer
+                 SET telephone = '" . $this->db->escape($telephone) . "'
+                 WHERE customer_id = '" . (int)$customer_id . "'"
+            );
+        }
+
+    } else {
+
+        // DEFAULT PASSWORD
+        $password = password_hash('Admin@123', PASSWORD_DEFAULT);
+
+        // INSERT CUSTOMER WITH EMAIL AND TELEPHONE
+        $this->db->query(
+            "INSERT INTO " . DB_PREFIX . "customer SET
+            firstname = '',
+            lastname  = '',
+            email     = '" . $this->db->escape($email) . "',
+            telephone = '" . $this->db->escape($telephone) . "',
+            password  = '" . $this->db->escape($password) . "',
+            newsletter = '0',
+            language_id = '1',
+            customer_group_id = '1',
+            store_id = '3',
+            status = '1',
+            date_added = NOW()"
+        );
+
+        $customer_id = $this->db->getLastId();
+        $customer_email = $email;
+    }
+
+    // GENERATE TOKEN
+    $token = bin2hex(random_bytes(32));
+
+    // UPDATE CUSTOMER TOKEN
+    $this->db->query(
+        "UPDATE " . DB_PREFIX . "customer
+         SET token = '" . $this->db->escape($token) . "'
+         WHERE customer_id = '" . (int)$customer_id . "'"
+    );
+
+    // Check if customer has wallet record, create if not exists
+    $wallet_check = $this->db->query("
+        SELECT customerid FROM " . DB_PREFIX . "manage_wallet
+        WHERE customerid = '" . (int)$customer_id . "'
+        LIMIT 1
+    ");
+
+    if (!$wallet_check->row) {
+        $this->db->query("
+            INSERT INTO " . DB_PREFIX . "manage_wallet SET
+                customerid = '" . (int)$customer_id . "',
+                amount = 0,
+                aeps_amount = 0,
+                pre_amount = 0,
+                apiwallet = 0,
+                plan_limit = 0,
+                sms_limit = 0,
+                pg_amount = 0
+        ");
+    }
+
+    return [
+        'customer_id' => $customer_id,
         'token' => $token
     ];
 }
@@ -1256,11 +1851,17 @@ public function getFullOrderDetails(int $order_id) {
     $order = $this->db->query("
         SELECT 
             o.*,
-            os.name AS order_status
+            os.name AS order_status,
+            c.telephone AS customer_telephone
         FROM `" . DB_PREFIX . "order` o
+
         LEFT JOIN `" . DB_PREFIX . "order_status` os
             ON os.order_status_id = o.order_status_id
             AND os.language_id = '" . (int)$this->config->get('config_language_id') . "'
+
+        LEFT JOIN `" . DB_PREFIX . "customer` c
+            ON c.customer_id = o.customer_id
+
         WHERE o.order_id = '" . (int)$order_id . "'
     ")->row;
 
@@ -1308,6 +1909,11 @@ public function getFullOrderDetails(int $order_id) {
         FROM `" . DB_PREFIX . "order_invoice`
         WHERE order_id = '" . (int)$order_id . "'
     ")->row;
+    $cancellation_request = $this->db->query("
+        SELECT *
+        FROM `" . DB_PREFIX . "order_cancellation_requests`
+        WHERE order_id = '" . (int)$order_id . "'
+    ")->row;
     $tracking = $this->db->query("
         SELECT
             t.track_status_id,
@@ -1345,6 +1951,7 @@ public function getFullOrderDetails(int $order_id) {
         'products'    => $products,
         'totals'      => $totals,
         'invoice'     => $invoice,
+        'cancellation_request' => $cancellation_request,
         'tracking'    => $tracking,
         'tax_details' => $tax,
         'history'     => $history
@@ -1576,6 +2183,67 @@ public function pieceExists($piece): bool {
     return $query->num_rows > 0;
 }
 
+public function checkDeliveryAvailability($latitude, $longitude)
+{
+    $latitude  = (float)$latitude;
+    $longitude = (float)$longitude;
+
+    if (!$latitude || !$longitude) {
+        return false;
+    }
+
+    $query = $this->db->query("
+        SELECT 
+            store_id,
+            name,
+            latitude,
+            longitude,
+            delivery_range
+        FROM " . DB_PREFIX . "store
+        WHERE latitude IS NOT NULL
+        AND longitude IS NOT NULL
+        AND delivery_range IS NOT NULL
+        AND latitude != ''
+        AND longitude != ''
+        AND delivery_range > 0
+    ");
+
+    foreach ($query->rows as $store) {
+
+        $store_lat = (float)$store['latitude'];
+        $store_lng = (float)$store['longitude'];
+
+        // Haversine formula
+        $earth_radius = 6371; // KM
+
+        $lat_difference = deg2rad($latitude - $store_lat);
+        $lng_difference = deg2rad($longitude - $store_lng);
+
+        $a = sin($lat_difference / 2) * sin($lat_difference / 2)
+           + cos(deg2rad($store_lat))
+           * cos(deg2rad($latitude))
+           * sin($lng_difference / 2)
+           * sin($lng_difference / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        $distance = $earth_radius * $c;
+
+        if ($distance <= (float)$store['delivery_range']) {
+
+            return [
+                'available' => true,
+                'store_id' => $store['store_id'],
+                'store_name' => $store['name'],
+                'distance' => round($distance, 2),
+                'delivery_range' => (float)$store['delivery_range']
+            ];
+        }
+    }
+
+    return false;
+}
+
 public function addAddress($data){
 
 // If new address is default → remove old default
@@ -1603,6 +2271,8 @@ WHERE customer_id='".(int)$data['customer_id']."'
         zone_id='".(int)$data['zone_id']."',
         custom_field='',
         `default`='".(int)$data['default']."',
+        latitude='".$this->db->escape(isset($data['latitude']) ? $data['latitude'] : '')."',
+        longitude='".$this->db->escape(isset($data['longitude']) ? $data['longitude'] : '')."',
         tracking='".$this->db->escape(isset($data['tracking']) ? $data['tracking'] : '')."'
         ");
 
@@ -1678,7 +2348,10 @@ city='".$this->db->escape($data['city'])."',
 postcode='".$this->db->escape($data['postcode'])."',
 country_id='".(int)$data['country_id']."',
 zone_id='".(int)$data['zone_id']."',
-`default`='".(int)$data['default']."'
+`default`='".(int)$data['default']."',
+latitude='".$this->db->escape(isset($data['latitude']) ? $data['latitude'] : '')."',
+longitude='".$this->db->escape(isset($data['longitude']) ? $data['longitude'] : '')."',
+tracking='".$this->db->escape(isset($data['tracking']) ? $data['tracking'] : '')."'
 
 WHERE address_id='".(int)$address_id."'
 AND customer_id='".(int)$customer_id."'
@@ -1873,6 +2546,7 @@ public function getCoupon($customer_id)
             p.product_id,
             pd.name,
             pd.description,
+            pd.is_veg,
             p.price,
             p.special_price,
             p.image,
@@ -1931,6 +2605,7 @@ public function searchProducts($search){
             p.product_id,
             pd.name,
             pd.description,
+            pd.is_veg,
             p.price,
             p.special_price,
             p.image,
@@ -1980,16 +2655,36 @@ public function getProductsCountByCategory($category_id){
                                                     url  = '" . $this->db->escape($data['url']) . "',
                                                     logo = '" . $this->db->escape($data['logo']) . "',
                                                     contact = '" . $this->db->escape($data['contact']) . "',
+                                                    latitude = '" . $this->db->escape($data['latitude']) . "',
+                                                    longitude = '" . $this->db->escape($data['longitude']) . "',
                                                     address = '" . $this->db->escape($data['address']) . "',
                                                     upi_number = '" . $this->db->escape($data['upi_number']) . "',
                                                     min_order_value = '" . $this->db->escape($data['min_order_value']) . "',
                                                     delivery_order_value = '" . $this->db->escape($data['delivery_order_value']) . "',
                                                     delivery_fee = '" . $this->db->escape($data['delivery_fee']) . "',
+                                                    delivery_range = '" . $this->db->escape($data['delivery_range']) . "',
                                                     upi = '" . $this->db->escape($data['upi_id']) . "',
-                                                    gst = '" . $this->db->escape($data['gst']) . "'
+                                                    gst = '" . $this->db->escape($data['gst']) . "',
+                                                    store_email = '" . $this->db->escape($data['store_email'] ?? '') . "',
+                                                    status = '" . (int)($data['status'] ?? 1) . "'
                                                 ");
 
-        return $this->db->getLastId();
+        $store_id = $this->db->getLastId();
+
+        // Insert delivery charges if provided
+        if (isset($data['delivery_charges']) && is_array($data['delivery_charges'])) {
+            foreach ($data['delivery_charges'] as $charge) {
+                $this->db->query("INSERT INTO " . DB_PREFIX . "delivery_charges SET
+                    store_id = '" . (int)$store_id . "',
+                    delivery_from = '" . $this->db->escape($charge['delivery_from']) . "',
+                    delivery_to = '" . $this->db->escape($charge['delivery_to']) . "',
+                    amount = '" . $this->db->escape($charge['amount']) . "',
+                    date = NOW()
+                ");
+            }
+        }
+
+        return $store_id;
     }
     
     public function editStore($store_id,$data){
@@ -1998,21 +2693,49 @@ public function getProductsCountByCategory($category_id){
             name = '" . $this->db->escape($data['name']) . "',
             url  = '" . $this->db->escape($data['url']) . "',
             contact = '" . $this->db->escape($data['contact']) . "',
+            latitude = '" . $this->db->escape($data['latitude']) . "',
+            longitude = '" . $this->db->escape($data['longitude']) . "',
             address = '" . $this->db->escape($data['address']) . "',
             upi_number = '" . $this->db->escape($data['upi_number']) . "',
             min_order_value = '" . $this->db->escape($data['min_order_value']) . "',
             delivery_order_value = '" . $this->db->escape($data['delivery_order_value']) . "',
             delivery_fee = '" . $this->db->escape($data['delivery_fee']) . "',
+            delivery_range = '" . $this->db->escape($data['delivery_range']) . "',
             upi = '" . $this->db->escape($data['upi_id']) . "',
             gst = '" . $this->db->escape($data['gst']) . "'";
-    
+
         if(!empty($data['logo'])){
             $sql .= ", logo = '" . $this->db->escape($data['logo']) . "'";
         }
-    
+
+        // Update simplified email field if provided
+        if(isset($data['store_email'])){
+            $sql .= ", store_email = '" . $this->db->escape($data['store_email']) . "'";
+        }
+
+        // Update status if provided
+        if(isset($data['status'])){
+            $sql .= ", status = '" . (int)$data['status'] . "'";
+        }
+
         $sql .= " WHERE store_id = '" . (int)$store_id . "'";
-    
+
         $this->db->query($sql);
+
+        // Handle delivery charges - delete existing and insert new
+        $this->db->query("DELETE FROM " . DB_PREFIX . "delivery_charges WHERE store_id = '" . (int)$store_id . "'");
+
+        if (isset($data['delivery_charges']) && is_array($data['delivery_charges'])) {
+            foreach ($data['delivery_charges'] as $charge) {
+                $this->db->query("INSERT INTO " . DB_PREFIX . "delivery_charges SET
+                    store_id = '" . (int)$store_id . "',
+                    delivery_from = '" . $this->db->escape($charge['delivery_from']) . "',
+                    delivery_to = '" . $this->db->escape($charge['delivery_to']) . "',
+                    amount = '" . $this->db->escape($charge['amount']) . "',
+                    date = NOW()
+                ");
+            }
+        }
     }
     
     public function getStores(){
@@ -2022,21 +2745,124 @@ public function getProductsCountByCategory($category_id){
                 FROM " . DB_PREFIX . "store
                 ORDER BY store_id DESC
             ");
-        
-            return $query->rows;
+
+            $stores = $query->rows;
+
+            // Get delivery charges for each store
+            foreach ($stores as &$store) {
+                $charges_query = $this->db->query("
+                    SELECT *
+                    FROM " . DB_PREFIX . "delivery_charges
+                    WHERE store_id = '" . (int)$store['store_id'] . "'
+                    ORDER BY delivery_from ASC
+                ");
+                $store['delivery_charges'] = $charges_query->rows;
+            }
+
+            return $stores;
     }
     
-    public function getStore(){
+    public function getStore($store_id = null){
+        if ($store_id) {
+            $query = $this->db->query("
+                SELECT *
+                FROM " . DB_PREFIX . "store
+                WHERE store_id = '" . (int)$store_id . "'
+            ");
+        } else {
+            $query = $this->db->query("
+                SELECT *
+                FROM " . DB_PREFIX . "store
+                ORDER BY store_id DESC
+                LIMIT 1
+            ");
+        }
+
+        $store = $query->row;
+
+        if ($store) {
+            // Get delivery charges for this store
+            $charges_query = $this->db->query("
+                SELECT *
+                FROM " . DB_PREFIX . "delivery_charges
+                WHERE store_id = '" . (int)$store['store_id'] . "'
+                ORDER BY delivery_from ASC
+            ");
+            $store['delivery_charges'] = $charges_query->rows;
+        }
+
+        return $store;
+    }
+
+    public function getDeliveryChargesByStoreId($store_id) {
+        $query = $this->db->query("
+            SELECT *
+            FROM " . DB_PREFIX . "delivery_charges
+            WHERE store_id = '" . (int)$store_id . "'
+            ORDER BY delivery_from ASC
+        ");
+
+        return $query->rows;
+    }
+
+    public function calculateDistance($lat1, $lon1, $lat2, $lon2)
+{
+    $lat1 = (float)$lat1;
+    $lon1 = (float)$lon1;
+    $lat2 = (float)$lat2;
+    $lon2 = (float)$lon2;
 
     $query = $this->db->query("
-        SELECT *
-        FROM " . DB_PREFIX . "store
-        ORDER BY store_id DESC
+        SELECT
+            6371 * 2 * ASIN(
+                SQRT(
+                    POWER(
+                        SIN(
+                            RADIANS(" . $lat2 . " - " . $lat1 . ") / 2
+                        ),
+                        2
+                    )
+                    +
+                    COS(RADIANS(" . $lat1 . "))
+                    *
+                    COS(RADIANS(" . $lat2 . "))
+                    *
+                    POWER(
+                        SIN(
+                            RADIANS(" . $lon2 . " - " . $lon1 . ") / 2
+                        ),
+                        2
+                    )
+                )
+            ) AS distance_km
+    ");
+
+    if ($query->num_rows) {
+        return (float)$query->row['distance_km'];
+    }
+
+    return 0;
+}
+
+    public function getDeliveryChargeByDistance($store_id, $distance)
+{
+    $query = $this->db->query("
+        SELECT amount
+        FROM " . DB_PREFIX . "delivery_charges
+        WHERE store_id = '" . (int)$store_id . "'
+        AND delivery_from <= '" . (float)$distance . "'
+        AND delivery_to >= '" . (float)$distance . "'
+        ORDER BY delivery_from ASC
         LIMIT 1
     ");
 
-    return $query->row;
+    if ($query->num_rows) {
+        return $query->row['amount'];
+    }
+
+    return 0;
 }
+
     public function addAgent($data){
 
         /* CUSTOMER */
@@ -2532,6 +3358,16 @@ public function getCustomerByIdAndPhone($agentId, $telephone) {
 
     $customer['profile_image'] = $image['image'] ?? '';
 
+    // Get wallet amount
+    $wallet = $this->db->query("
+        SELECT amount
+        FROM " . DB_PREFIX . "manage_wallet
+        WHERE customerid = '" . (int)$agentId . "'
+        LIMIT 1
+    ")->row;
+
+    $customer['wallet_amount'] = $wallet['amount'] ?? 0;
+
     return $customer;
 }
 
@@ -2636,7 +3472,7 @@ public function addBanner($data){
             AND b.to_date IS NOT NULL
             AND CURDATE() BETWEEN b.from_date AND b.to_date
 
-            ORDER BY bi.sort_order ASC";
+            ORDER BY b.banner_id DESC";
 
     return $this->db->query($sql)->rows;
 }
@@ -2681,7 +3517,7 @@ public function getAllBanners(){
 
             WHERE b.type = 1
 
-            ORDER BY bi.sort_order ASC";
+            ORDER BY b.banner_id DESC";
 
     return $this->db->query($sql)->rows;
 }
@@ -2798,7 +3634,7 @@ public function addRunningBanner($data){
             AND b.to_date IS NOT NULL
             AND CURDATE() BETWEEN b.from_date AND b.to_date
 
-            ORDER BY bi.sort_order ASC";
+            ORDER BY b.banner_id DESC";
 
     return $this->db->query($sql)->rows;
 }
@@ -2828,7 +3664,7 @@ public function getAllRunningBanners(){
 
             WHERE b.type = 2
 
-            ORDER BY bi.sort_order ASC";
+            ORDER BY b.banner_id DESC";
 
     return $this->db->query($sql)->rows;
 }
@@ -2948,7 +3784,7 @@ public function addBottomBanner($data){
             AND b.to_date IS NOT NULL
             AND CURDATE() BETWEEN b.from_date AND b.to_date
 
-            ORDER BY bi.sort_order ASC";
+            ORDER BY b.banner_id DESC";
 
     return $this->db->query($sql)->rows;
 }
@@ -2978,7 +3814,7 @@ public function getAllBottomBanners(){
 
             WHERE b.type = 3
 
-            ORDER BY bi.sort_order ASC";
+            ORDER BY b.banner_id DESC";
 
     return $this->db->query($sql)->rows;
 }
@@ -3256,7 +4092,7 @@ public function updateDeliveryTime($order_id, $delivery_time)
 public function insertOrderTracking($order_id){
 
         $status_list = $this->db->query("
-        SELECT track_status_id 
+        SELECT track_status_id
         FROM ".DB_PREFIX."track_status
         ")->rows;
 
@@ -3265,6 +4101,31 @@ public function insertOrderTracking($order_id){
         $track_status_id = (int)$status['track_status_id'];
 
         $status_value = ($track_status_id == 1) ? 1 : 0;
+
+        $this->db->query("
+        INSERT INTO ".DB_PREFIX."track_order SET
+        order_id='".(int)$order_id."',
+        track_status_id='".$track_status_id."',
+        status='".$status_value."'
+        ");
+
+        }
+
+    }
+
+    public function insertOrderTrackingUpTo5($order_id){
+
+        $status_list = $this->db->query("
+        SELECT track_status_id
+        FROM ".DB_PREFIX."track_status
+        WHERE track_status_id <= 5
+        ")->rows;
+
+        foreach($status_list as $status){
+
+        $track_status_id = (int)$status['track_status_id'];
+
+        $status_value = 1;
 
         $this->db->query("
         INSERT INTO ".DB_PREFIX."track_order SET
@@ -3504,15 +4365,55 @@ public function sendCustomerOrderPlacedNotification($order_id)
 
         $products = $this->db->query($sql)->rows;
 
-foreach ($products as &$product) {
+        if (!empty($products)) {
+            $product_ids = array_column($products, 'product_id');
+            $all_pieces = $this->getProductPiecesStockBatch($product_ids);
 
-    $product['pieces'] = $this->getProductPiecesStock($product['product_id']);
-}
-
-
+            foreach ($products as &$product) {
+                $product['pieces'] = $all_pieces[$product['product_id']] ?? [];
+            }
+        }
 
 return $products;
     }
+
+public function getDeliveryReport($data = array()) {
+    $from_date = isset($data['from_date']) ? $this->db->escape($data['from_date']) : date('Y-m-d');
+    $to_date = isset($data['to_date']) ? $this->db->escape($data['to_date']) : date('Y-m-d');
+
+    $sql = "SELECT
+                oi.order_id,
+                o.firstname,
+                o.lastname,
+                o.telephone,
+                oi.takeaway_amount as delivery_amount,
+                oi.total_received,
+                oi.cash_amount,
+                oi.upi_amount,
+                oi.date_added,
+                oi.amount_through
+            FROM " . DB_PREFIX . "order_invoice oi
+            LEFT JOIN " . DB_PREFIX . "order o ON (oi.order_id = o.order_id)
+            WHERE DATE(oi.date_added) >= '" . $from_date . "'
+            AND DATE(oi.date_added) <= '" . $to_date . "'
+            AND oi.takeaway_amount > 0
+            ORDER BY oi.date_added DESC";
+
+    $query = $this->db->query($sql);
+    $results = $query->rows;
+
+    $total_delivery_amount = 0;
+    foreach ($results as &$result) {
+        $total_delivery_amount += (float)$result['delivery_amount'];
+    }
+
+    return [
+        'from_date' => $from_date,
+        'to_date' => $to_date,
+        'total_delivery_amount' => $total_delivery_amount,
+        'orders' => $results
+    ];
+}
 
     public function getProductProfitReport($from_date = '', $to_date = '') {
 
@@ -4176,6 +5077,160 @@ if ($coupon_info['type'] == 'F') {
 		
 		return $query->row['total'];
 	}
+
+	// Payment Methods CRUD Operations
+
+	public function addPaymentMethod($data) {
+		$this->db->query("INSERT INTO `" . DB_PREFIX . "payment_methods` SET
+			name = '" . $this->db->escape($data['name']) . "',
+            store_id = '" . $this->db->escape($data['store_id']) . "',
+			status = '" . (int)($data['status'] ?? 1) . "',
+			sort_order = '" . (int)($data['sort_order'] ?? 0) . "',
+			date_added = NOW()");
+
+		return $this->db->getLastId();
+	}
+
+	public function editPaymentMethod($payment_method_id, $data) {
+		$this->db->query("UPDATE `" . DB_PREFIX . "payment_methods` SET
+			name = '" . $this->db->escape($data['name']) . "',
+			store_id = '" . $this->db->escape($data['store_id']) . "',
+			status = '" . (int)($data['status'] ?? 1) . "',
+			sort_order = '" . (int)($data['sort_order'] ?? 0) . "',
+			date_modified = NOW()
+			WHERE payment_method_id = '" . (int)$payment_method_id . "'");
+	}
+
+	public function deletePaymentMethod($payment_method_id) {
+		$this->db->query("DELETE FROM `" . DB_PREFIX . "payment_methods` WHERE payment_method_id = '" . (int)$payment_method_id . "'");
+	}
+
+	public function getPaymentMethods($data = array()) {
+    $sql = "SELECT * FROM `" . DB_PREFIX . "payment_methods` WHERE 1=1";
+
+    if (!empty($data['store_id'])) {
+        $sql .= " AND store_id = '" . (int)$data['store_id'] . "'";
+    }
+
+    $sort_data = array('name', 'store_id', 'sort_order', 'date_added');
+    if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
+        $sql .= " ORDER BY " . $data['sort'];
+    } else {
+        $sql .= " ORDER BY sort_order";
+    }
+
+    $sql .= (isset($data['order']) && $data['order'] == 'DESC') ? " DESC" : " ASC";
+
+    if (isset($data['start']) || isset($data['limit'])) {
+        if ($data['start'] < 0) $data['start'] = 0;
+        if ($data['limit'] < 1) $data['limit'] = 20;
+        $sql .= " LIMIT " . (int)$data['start'] . "," . (int)$data['limit'];
+    }
+
+    $query = $this->db->query($sql);
+    return $query->rows;
+}
+
+public function getTotalPaymentMethods($data = array()) {
+    $sql = "SELECT COUNT(*) AS total FROM `" . DB_PREFIX . "payment_methods` WHERE 1=1";
+    if (!empty($data['store_id'])) {
+        $sql .= " AND store_id = '" . (int)$data['store_id'] . "'";
+    }
+    $query = $this->db->query($sql);
+    return $query->row['total'];
+}
+
+public function getPaymentMethod($payment_method_id, $store_id = null) {
+    $sql = "SELECT * FROM `" . DB_PREFIX . "payment_methods` WHERE payment_method_id = '" . (int)$payment_method_id . "' AND status = '1'";
+    if ($store_id) {
+        $sql .= " AND store_id = '" . (int)$store_id . "'";
+    }
+    $query = $this->db->query($sql);
+    return $query->row;
+}
+
+// Order Cancellation Request Functions
+
+public function addCancellationRequest($data) {
+    $this->db->query("INSERT INTO `" . DB_PREFIX . "order_cancellation_requests` SET
+        order_id = '" . (int)$data['order_id'] . "',
+        customer_id = '" . (int)$data['customer_id'] . "',
+        reason = '" . $this->db->escape($data['reason']) . "',
+        status = '0',
+        date_requested = NOW()");
+
+    return $this->db->getLastId();
+}
+
+public function getCancellationRequest($request_id) {
+    $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order_cancellation_requests` WHERE request_id = '" . (int)$request_id . "'");
+    return $query->row;
+}
+
+public function getCancellationRequests($data = array()) {
+    $sql = "SELECT r.*, o.firstname, o.lastname, o.telephone, oi.advance_used as wallet,oi.total_received as total
+            FROM `" . DB_PREFIX . "order_cancellation_requests` r
+            LEFT JOIN `" . DB_PREFIX . "order` o ON (r.order_id = o.order_id)
+            LEFT JOIN `" . DB_PREFIX . "order_invoice` oi ON (r.order_id = oi.order_id)
+            WHERE 1=1";
+
+    if (!empty($data['order_id'])) {
+        $sql .= " AND r.order_id = '" . (int)$data['order_id'] . "'";
+    }
+    if (!empty($data['customer_id'])) {
+        $sql .= " AND r.customer_id = '" . (int)$data['customer_id'] . "'";
+    }
+    if (isset($data['status'])) {
+        $sql .= " AND r.status = '" . (int)$data['status'] . "'";
+    }
+    $sql .= " ORDER BY r.date_requested DESC";
+    if (isset($data['start']) || isset($data['limit'])) {
+        if ($data['start'] < 0) $data['start'] = 0;
+        if ($data['limit'] < 1) $data['limit'] = 20;
+        $sql .= " LIMIT " . (int)$data['start'] . "," . (int)$data['limit'];
+    }
+    $query = $this->db->query($sql);
+    return $query->rows;
+}
+
+public function getTotalCancellationRequests($data = array()) {
+    $sql = "SELECT COUNT(*) AS total FROM `" . DB_PREFIX . "order_cancellation_requests` WHERE 1=1";
+
+    if (!empty($data['order_id'])) {
+        $sql .= " AND order_id = '" . (int)$data['order_id'] . "'";
+    }
+
+    if (!empty($data['customer_id'])) {
+        $sql .= " AND customer_id = '" . (int)$data['customer_id'] . "'";
+    }
+
+    if (isset($data['status'])) {
+        $sql .= " AND status = '" . (int)$data['status'] . "'";
+    }
+
+    $query = $this->db->query($sql);
+    return $query->row['total'];
+}
+
+public function updateCancellationRequest($request_id, $status, $admin_comment = '') {
+    $sql = "UPDATE `" . DB_PREFIX . "order_cancellation_requests` SET
+        status = '" . (int)$status . "'";
+    
+    if ($admin_comment) {
+        $sql .= ", admin_comment = '" . $this->db->escape($admin_comment) . "'";
+    }
+    
+    $sql .= ", date_processed = NOW() WHERE request_id = '" . (int)$request_id . "'";
+    
+    $this->db->query($sql);
+}
+
+public function updateOrderStatus($order_id, $order_status_id) {
+    $this->db->query("UPDATE `" . DB_PREFIX . "order` SET
+        order_status_id = '" . (int)$order_status_id . "',
+        date_modified = NOW()
+        WHERE order_id = '" . (int)$order_id . "'");
+}
 
 
 }

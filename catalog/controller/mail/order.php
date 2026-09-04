@@ -609,7 +609,8 @@ class Order extends \Opencart\System\Engine\Controller {
 				$mail = new \Opencart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
 				$mail->setTo($this->config->get('config_email'));
 				$mail->setFrom($this->config->get('config_email'));
-			$mail->setSender(html_entity_decode((string)($order_info['store_name'] ?? ''), ENT_QUOTES, 'UTF-8'));
+				$sender_name = !empty($order_info['store_name']) ? $order_info['store_name'] : $this->config->get('config_name');
+				$mail->setSender(html_entity_decode((string)$sender_name, ENT_QUOTES, 'UTF-8'));
 				$mail->setSubject($subject);
 				$mail->setHtml($this->load->view('mail/order_alert', $data));
 				$mail->send();

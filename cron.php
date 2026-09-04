@@ -1,4 +1,7 @@
 <?php
+// Change to script directory
+chdir(__DIR__);
+
 // Configuration
 if (!is_file('config.php')) {
 	exit('CRON is unable to load configuration from file config.php');

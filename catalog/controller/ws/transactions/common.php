@@ -2559,24 +2559,75 @@
             if ($validate_record['exstatus'])
             {
                 $record_input = json_decode($validate_record['input'], true);
-                if (isset($record_input['telephone']) &&
-                    !empty($record_input['telephone']) &&
-                    ($record_input['telephone'] == $this->request->post['telephone']))
+                // Support both telephone and email for verification
+                $input_key = isset($record_input['telephone']) ? 'telephone' : 'email';
+                if (isset($record_input[$input_key]) &&
+                    !empty($record_input[$input_key]) &&
+                    ($record_input[$input_key] == $this->request->post[$input_key]))
                 {
                     $new_ref = $this->model_ws_transactions_common->RELEASE_OTP_ATTEMPTS($this->request->post);
-        
+
                     $json['success'] = "1";
                     $json['otp_ref'] = $new_ref;
                     $json['message'] = $this->language->get('success_otp_verified');
-                
-                } 
-                else 
+
+                }
+                else
                 {
                     $json['success'] = "0";
                     $json['message'] = $this->language->get('error_wronginput');
                 }
             }
-        
+
+            return $json;
+        }
+
+        public function send_mail_otp($data = [])
+        {
+            $json = array();
+            $this->load->model('ws/transactions/common');
+
+            $email = $this->request->post['email'];
+            $telephone = $this->request->post['telephone'];
+
+            // Use email as the identifier instead of telephone
+            $validate_record = $this->model_ws_transactions_common->GET_CUSTOMER_OTP_ATTEMPTS($this->request->post, $email);
+
+            if (!$validate_record['exstatus']) {
+                $otp = rand(100000, 999999);
+                $this->model_ws_transactions_common->INSERT_CUSTOMER_OTP_ATTEMPTS($data, $this->request, $otp);
+                $email_sent = $this->load->controller('groceries/categories.sendEmailOtp', ['email' => $email, 'otp' => $otp]);
+
+                if ($email_sent) {
+                    $get_custrecord = $this->model_ws_transactions_common->GET_CUSTOMER_OTP_ATTEMPTS($this->request->post, $email);
+                    $json['success'] = "1";
+                    $json['otp_ref'] = $get_custrecord['otp'];
+                    $json['message'] = "OTP sent successfully to your mail";
+                } else {
+                    $json['success'] = "0";
+                    $json['message'] = "Failed to send OTP";
+                }
+            } else {
+                if ($validate_record['hits'] < $this->config->get('config_otp_retry_count')) {
+                    $otp = rand(100000, 999999);
+                    $this->model_ws_transactions_common->UPDATE_OTP_ATTEMPTS($data, $this->request, $otp);
+                    $email_sent = $this->load->controller('groceries/categories.sendEmailOtp', ['email' => $email, 'otp' => $otp]);
+
+                    if ($email_sent) {
+                        $get_custrecord = $this->model_ws_transactions_common->GET_CUSTOMER_OTP_ATTEMPTS($this->request->post, $email);
+                        $json['success'] = "2";
+                        $json['otp_ref'] = $get_custrecord['otp'];
+                        $json['message'] = "OTP Re-sent successfully to your mail";
+                    } else {
+                        $json['success'] = "0";
+                        $json['message'] = "Failed to send OTP";
+                    }
+                } else {
+                    $json['success'] = "0";
+                    $json['message'] = "OTP attempt limit exceeded";
+                }
+            }
+
             return $json;
         }
         

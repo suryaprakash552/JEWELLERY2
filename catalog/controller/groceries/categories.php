@@ -1,6 +1,14 @@
 <?php
 namespace Opencart\Catalog\Controller\Groceries;
 
+// API Rate Limiting and Cache Configuration
+define('API_RATE_LIMIT_INITIAL_DATA_MAX', 30); // Max requests per minute
+define('API_RATE_LIMIT_INITIAL_DATA_WINDOW', 60); // Time window in seconds
+define('API_RATE_LIMIT_CATEGORY_DATA_MAX', 60); // Max requests per minute
+define('API_RATE_LIMIT_CATEGORY_DATA_WINDOW', 60); // Time window in seconds
+define('API_CACHE_TTL_INITIAL_DATA', 300); // Cache TTL in seconds (5 minutes)
+define('API_CACHE_TTL_CATEGORY_DATA', 180); // Cache TTL in seconds (3 minutes)
+
 class Categories extends \Opencart\System\Engine\Controller {
     
     public function login(): void {
@@ -64,40 +72,6 @@ class Categories extends \Opencart\System\Engine\Controller {
     public function send_otp(){
 
         $json=[];
-        $firebase_app_check = $this->load->library('firebase_app_check');
-
-        $appCheckToken =$this->request->server['HTTP_X_FIREBASE_APPCHECK'] ?? '';
-        if (empty($appCheckToken)) {
-
-
-            $this->response->addHeader(
-                'Content-Type', 'application/json'
-            );
-
-            $this->response->setOutput(json_encode([
-                "success" => "0",
-                "message" => "Invalid application request"
-            ]));
-
-            return;
-        }
-
-
-if (!$firebase_app_check->verify($appCheckToken)) {
-
-
-    $this->response->addHeader(
-        'Content-Type', 'application/json'
-    );
-
-    $this->response->setOutput(json_encode([
-        "success" => "0",
-        "message" => "Invalid application request"
-    ]));
-
-    return;
-}
-
         if(!$this->request->post){
         
         $input=json_decode(file_get_contents("php://input"),true);
@@ -111,7 +85,6 @@ if (!$firebase_app_check->verify($appCheckToken)) {
         if($validate['success']=="1"){
         
         $json['telephone']=$this->request->post['telephone'];
-        $json['device_id'] =$this->request->post['device_id'];
 
         $json=$this->load->controller('ws/transactions/common.send_otp',$json);
         
@@ -128,292 +101,110 @@ if (!$firebase_app_check->verify($appCheckToken)) {
         }
 
         
-       public function verify_otp(): void
-{
-    $this->response->addHeader('Content-Type: application/json');
+       public function verify_otp(): void {
 
-    $json = [];
+        $this->response->addHeader('Content-Type: application/json');
 
-    /*
-     * ==========================================
-     * 1. READ REQUEST
-     * ==========================================
-     */
+        $json=[];
 
-    if (!$this->request->post) {
+        if(!$this->request->post){
 
-        $input = json_decode(
-            file_get_contents("php://input"),
-            true
-        );
+        $input=json_decode(file_get_contents("php://input"),true);
 
-        $this->request->post = $input;
-    }
+        $this->request->post=$input;
 
+        }
 
-    /*
-     * ==========================================
-     * 2. VALIDATE INPUT
-     * ==========================================
-     */
+        $validate =$this->validate_verify_otp($this->request->post);
 
-    $validate =
-        $this->validate_verify_otp(
-            $this->request->post
-        );
+        if($validate['success']=="0"){
 
-    if ($validate['success'] == "0") {
-
-        $this->response->setOutput(
-            json_encode($validate)
-        );
+        $this->response->setOutput(json_encode($validate));
 
         return;
-    }
 
+        }
 
-    /*
-     * ==========================================
-     * 3. FIREBASE APP CHECK
-     * ==========================================
-     */
+        $this->load->model('ws/transactions/common');
 
-    $appCheckToken =
-        $this->request->server[
-            'HTTP_X_FIREBASE_APPCHECK'
-        ] ?? '';
+        $validate_record =$this->model_ws_transactions_common->VERIFY_CUSTOMER_OTP($this->request->post);
 
-    if (empty($appCheckToken)) {
+        if(!$validate_record['exstatus']){
+
+        $this->response->setOutput(
+        json_encode([
+
+            "success"=>"0",
+            "message"=>"Invalid OTP"
+
+            ]));
+
+        return;
+
+        }
+
+        $record_input =json_decode($validate_record['input'],true);
+
+        // Get the identifier used (email or telephone)
+        $identifier = isset($this->request->post['email']) ? $this->request->post['email'] : $this->request->post['telephone'];
+        $record_identifier = isset($record_input['email']) ? $record_input['email'] : $record_input['telephone'];
+
+        if($record_identifier != $identifier){
 
         $this->response->setOutput(
             json_encode([
-                "success" => "0",
-                "message" => "Invalid application request"
-            ])
-        );
+
+            "success"=>"0",
+            "message"=>"Wrong Input"
+
+            ]));
 
         return;
-    }
 
-    $firebase_app_check = $this->load->library(
-        'firebase_app_check'
-    );
+        }
 
-    if (
-        !$firebase_app_check
-            ->verify($appCheckToken)
-    ) {
+        $new_ref =$this->model_ws_transactions_common->RELEASE_OTP_ATTEMPTS($this->request->post);
+
+        $this->load->model('groceries/categories');
+
+        // Use email for login if email OTP, otherwise use telephone
+        if (isset($this->request->post['email'])) {
+            $telephone = isset($this->request->post['telephone']) ? $this->request->post['telephone'] : '';
+            $customer = $this->model_groceries_categories->loginCustomerEmailOtp($this->request->post['email'], $telephone);
+        } else {
+            $customer = $this->model_groceries_categories->loginCustomerOtp($this->request->post['telephone']);
+        }
+
+        if(!$customer){
 
         $this->response->setOutput(
             json_encode([
-                "success" => "0",
-                "message" => "Invalid application request"
-            ])
-        );
+
+            "success"=>"0",
+            "message"=>"Customer not found"
+
+            ]));
 
         return;
-    }
 
+        }
 
-    /*
-     * ==========================================
-     * 4. VERIFY OTP
-     * ==========================================
-     */
+        // Send login alert using the identifier (phone for telephone, email for email)
+        $this->load->controller('groceries/categories.sendOwnerLoginAlert',[
+            'phone' => isset($this->request->post['email']) ? $this->request->post['email'] : $this->request->post['telephone']
+        ]);
 
-    $this->load->model(
-        'ws/transactions/common'
-    );
+        $json=[
 
-    $validate_record =
-        $this->model_ws_transactions_common
-            ->VERIFY_CUSTOMER_OTP(
-                $this->request->post
-            );
+            "success"=>"1",
+            "otp_ref"=>$new_ref,
+            "customer_id"=>$customer['customer_id'],
+            "token"=>$customer['token'],
+            "message"=>"OTP Verified Login Success"
+        ];
 
-    if (!$validate_record['exstatus']) {
-
-        $this->response->setOutput(
-            json_encode([
-                "success" => "0",
-                "message" => "Invalid OTP"
-            ])
-        );
-
-        return;
-    }
-
-
-    /*
-     * ==========================================
-     * 5. GET ORIGINAL OTP REQUEST
-     * ==========================================
-     */
-
-    $record_input =
-        json_decode(
-            $validate_record['input'],
-            true
-        );
-
-    if (!is_array($record_input)) {
-
-        $this->response->setOutput(
-            json_encode([
-                "success" => "0",
-                "message" => "Invalid OTP session"
-            ])
-        );
-
-        return;
-    }
-
-
-    /*
-     * ==========================================
-     * 6. VERIFY TELEPHONE
-     * ==========================================
-     */
-
-    if (
-        empty($record_input['telephone']) ||
-        $record_input['telephone'] !==
-        $this->request->post['telephone']
-    ) {
-
-        $this->response->setOutput(
-            json_encode([
-                "success" => "0",
-                "message" => "Wrong Input"
-            ])
-        );
-
-        return;
-    }
-
-
-    /*
-     * ==========================================
-     * 7. VERIFY DEVICE ID
-     * ==========================================
-     */
-
-    if (
-        empty($record_input['device_id']) ||
-        empty($this->request->post['device_id'])
-    ) {
-
-        $this->response->setOutput(
-            json_encode([
-                "success" => "0",
-                "message" => "Device ID Missing"
-            ])
-        );
-
-        return;
-    }
-
-
-    /*
-     * Compare the device that requested OTP
-     * with the device currently verifying OTP.
-     */
-
-    if (
-        !hash_equals(
-            (string) $record_input['device_id'],
-            (string) $this->request->post['device_id']
-        )
-    ) {
-
-        $this->response->setOutput(
-            json_encode([
-                "success" => "0",
-                "message" => "Device verification failed"
-            ])
-        );
-
-        return;
-    }
-
-
-    /*
-     * ==========================================
-     * 8. OTP + TELEPHONE + DEVICE VERIFIED
-     * ==========================================
-     *
-     * Only now mark OTP as verified.
-     */
-
-    $new_ref =
-        $this->model_ws_transactions_common
-            ->RELEASE_OTP_ATTEMPTS(
-                $this->request->post
-            );
-
-
-    /*
-     * ==========================================
-     * 9. FIND CUSTOMER
-     * ==========================================
-     */
-
-    $this->load->model(
-        'groceries/categories'
-    );
-
-    $customer =
-        $this->model_groceries_categories
-            ->loginCustomerOtp(
-                $this->request->post['telephone']
-            );
-
-    if (!$customer) {
-
-        $this->response->setOutput(
-            json_encode([
-                "success" => "0",
-                "message" => "Customer not found"
-            ])
-        );
-
-        return;
-    }
-
-
-    /*
-     * ==========================================
-     * 10. LOGIN ALERT
-     * ==========================================
-     */
-
-    $this->load->controller(
-        'groceries/categories.sendOwnerLoginAlert',
-        [
-            'phone' =>
-                $this->request->post['telephone']
-        ]
-    );
-
-
-    /*
-     * ==========================================
-     * 11. LOGIN SUCCESS
-     * ==========================================
-     */
-
-    $json = [
-        "success" => "1",
-        "otp_ref" => $new_ref,
-        "customer_id" => $customer['customer_id'],
-        "token" => $customer['token'],
-        "message" => "OTP Verified Login Success"
-    ];
-
-    $this->response->setOutput(
-        json_encode($json)
-    );
-}
+        $this->response->setOutput(json_encode($json));
+        }
 
     public function validate_send_otp($raw){
     
@@ -425,13 +216,6 @@ if (!$firebase_app_check->verify($appCheckToken)) {
             ];
         
           }
-
-           if (!isset($raw['device_id']) || empty($raw['device_id'])) {
-                return [
-                    "success" => "0",
-                    "message" => "Device ID Missing"
-                ];
-            }
         
             return [
             "success"=>"1",
@@ -442,52 +226,264 @@ if (!$firebase_app_check->verify($appCheckToken)) {
         
         
         public function validate_verify_otp($raw){
-        
-        if(!isset($raw['telephone'])||!is_numeric($raw['telephone'])){
-        
+
+        // Support both telephone and email as identifier
+        $identifier = isset($raw['email']) ? $raw['email'] : (isset($raw['telephone']) ? $raw['telephone'] : '');
+
+        if (empty($identifier)) {
+            return [
+            "success"=>"0",
+            "message"=>"Telephone or Email is required"
+            ];
+        }
+
+        // If telephone is provided, validate it's numeric
+        if (isset($raw['telephone']) && !is_numeric($raw['telephone'])) {
             return [
             "success"=>"0",
             "message"=>"Invalid Telephone"
             ];
-        
         }
-        
-        
+
+        // If email is provided, validate it's a valid email
+        if (isset($raw['email']) && !filter_var($raw['email'], FILTER_VALIDATE_EMAIL)) {
+            return [
+            "success"=>"0",
+            "message"=>"Invalid Email"
+            ];
+        }
+
+
         if(!isset($raw['otp'])||!is_numeric($raw['otp'])){
-        
+
             return [
             "success"=>"0",
             "message"=>"Invalid OTP"
             ];
-        
+
+        }
+
+        if(!isset($raw['otp_ref'])||empty($raw['otp_ref'])){
+
+            return [
+            "success"=>"0",
+            "message"=>"Invalid OTP Reference"
+            ];
+
         }
         
+            return [
+            "success"=>"1",
+            "message"=>"OK"
+            ];
         
+         }
+
+    public function send_mail_otp(){
+
+        $json=[];
+        if(!$this->request->post){
+        
+        $input=json_decode(file_get_contents("php://input"),true);
+        
+        $this->request->post=$input;
+        
+        }
+        $validate=$this->validate_send_mail_otp($this->request->post);
+        
+        
+        if($validate['success']=="1"){
+
+        $json['email']=$this->request->post['email'];
+        $json['telephone']=$this->request->post['telephone'];
+
+        $json=$this->load->controller('ws/transactions/common.send_mail_otp',$json);
+        
+        }else{
+        
+        $json=$validate;
+        
+        }
+
+        $this->response->addHeader('Content-Type: application/json');
+        
+        $this->response->setOutput(json_encode($json));
+        
+    }
+
+    public function verify_mail_otp(): void {
+
+        $this->response->addHeader('Content-Type: application/json');
+
+        $json=[];
+
+        if(!$this->request->post){
+        
+        $input=json_decode(file_get_contents("php://input"),true);
+        
+        $this->request->post=$input;
+        
+        }
+
+        $validate =$this->validate_verify_mail_otp($this->request->post);
+        
+        if($validate['success']=="0"){
+        
+        $this->response->setOutput(json_encode($validate));
+        
+        return;
+        
+        }
+
+        $this->load->model('ws/transactions/common');
+        
+        $validate_record =$this->model_ws_transactions_common->VERIFY_CUSTOMER_OTP($this->request->post);
+        
+        if(!$validate_record['exstatus']){
+        
+        $this->response->setOutput(
+        json_encode([
+        
+            "success"=>"0",
+            "message"=>"Invalid OTP"
+            
+            ]));
+        
+        return;
+        
+        }
+
+        $record_input =json_decode($validate_record['input'],true);
+
+        // Get the identifier used (email or telephone)
+        $identifier = isset($this->request->post['email']) ? $this->request->post['email'] : $this->request->post['telephone'];
+        $record_identifier = isset($record_input['email']) ? $record_input['email'] : $record_input['telephone'];
+
+        if($record_identifier != $identifier){
+
+        $this->response->setOutput(
+            json_encode([
+
+            "success"=>"0",
+            "message"=>"Wrong Input"
+
+            ]));
+
+        return;
+
+        }
+
+        $new_ref =$this->model_ws_transactions_common->RELEASE_OTP_ATTEMPTS($this->request->post);
+
+        $this->load->model('groceries/categories');
+
+        // Use email for login with telephone
+        $telephone = isset($this->request->post['telephone']) ? $this->request->post['telephone'] : '';
+        $customer = $this->model_groceries_categories->loginCustomerEmailOtp($this->request->post['email'], $telephone);
+
+        if(!$customer){
+
+        $this->response->setOutput(
+            json_encode([
+
+            "success"=>"0",
+            "message"=>"Customer not found"
+
+            ]));
+
+        return;
+
+        }
+
+        $this->load->controller('groceries/categories.sendOwnerLoginAlert',['phone' => $customer['telephone']]);
+
+        $json=[
+        
+            "success"=>"1",
+            "otp_ref"=>$new_ref,
+            "customer_id"=>$customer['customer_id'],
+            "token"=>$customer['token'],
+            "message"=>"OTP Verified Login Success"
+        ];
+        
+        $this->response->setOutput(json_encode($json));
+    }
+
+    public function validate_send_mail_otp($raw){
+
+        if(!isset($raw['email'])||empty($raw['email'])||!filter_var($raw['email'], FILTER_VALIDATE_EMAIL)){
+
+            return [
+            "success"=>"0",
+            "message"=>"Invalid Email"
+            ];
+
+        }
+
+        if(!isset($raw['telephone'])||empty($raw['telephone'])||!is_numeric($raw['telephone'])){
+
+            return [
+            "success"=>"0",
+            "message"=>"Mobile number is required"
+            ];
+
+        }
+
+            return [
+            "success"=>"1",
+            "message"=>"OK"
+            ];
+
+         }
+        
+        
+        public function validate_verify_mail_otp($raw){
+
+        if(!isset($raw['email'])||empty($raw['email'])||!filter_var($raw['email'], FILTER_VALIDATE_EMAIL)){
+
+            return [
+            "success"=>"0",
+            "message"=>"Invalid Email"
+            ];
+
+        }
+
+        if(!isset($raw['telephone'])||empty($raw['telephone'])||!is_numeric($raw['telephone'])){
+
+            return [
+            "success"=>"0",
+            "message"=>"Mobile number is required"
+            ];
+
+        }
+
+
+        if(!isset($raw['otp'])||!is_numeric($raw['otp'])){
+
+            return [
+            "success"=>"0",
+            "message"=>"Invalid OTP"
+            ];
+
+        }
+        
+
         if(empty($raw['otp_ref'])){
-        
+
             return [
             "success"=>"0",
             "message"=>"OTP Ref Missing"
             ];
-        
+
         }
-        
-        if (
-        !isset($raw['device_id']) ||
-        empty($raw['device_id'])
-    ) {
 
             return [
-                "success" => "0",
-                "message" => "Device ID Missing"
+            "success"=>"1",
+            "message"=>"OK"
             ];
-        }
-        
-        return [
-            "success"=>"1"
-            ];
-        
-        }
+
+         }
+
 
 
     private function validateToken() {
@@ -754,6 +750,50 @@ public function sendOwnerLoginAlert($data = [])
     curl_close($ch);
 
     return $response;
+}
+
+public function sendEmailOtp($data = [])
+{
+    $email = $data['email'];
+    $otp = (string)$data['otp'];
+
+    // Get store email if available for sender information
+    $store_email = '';
+
+    // Try to get store from customer first
+    $customer_id = $this->customer->getId();
+    if ($customer_id) {
+        $this->load->model('groceries/categories');
+        $customer_query = $this->db->query("SELECT store_id FROM " . DB_PREFIX . "customer WHERE customer_id = '" . (int)$customer_id . "'");
+        if ($customer_query->num_rows && $customer_query->row['store_id']) {
+            $store_info = $this->model_groceries_categories->getStore($customer_query->row['store_id']);
+            if ($store_info && !empty($store_info['store_email'])) {
+                $store_email = $store_info['store_email'];
+            }
+        }
+    }
+
+    // Add email to queue instead of sending directly
+    $this->load->model('setting/email_queue');
+
+    $email_data = [
+        'to_email' => $email,
+        'subject' => 'Your Login OTP',
+        'html' => 'Your OTP is: ' . $otp . '<br><br>This OTP will expire in a few minutes. Do not share it with anyone.',
+        'text' => 'Your OTP is: ' . $otp . '. This OTP will expire in a few minutes. Do not share it with anyone.',
+        'store_email' => $store_email
+    ];
+
+    try {
+        $email_queue_id = $this->model_setting_email_queue->addEmail($email_data);
+        if ($email_queue_id > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (\Exception $e) {
+        return false;
+    }
 }
 
 private function sendOrderWhatsApp($order_id, $phone)
@@ -1096,15 +1136,45 @@ public function Order_sendwhatsapp(): void
     public function getInitialData(): void {
 
     $this->response->addHeader('Content-Type: application/json');
-    
-    if (!$this->validateToken()) {
-    
+
+    // Rate limiting check
+    $customer_auth = $this->validateToken();
+    if (!$customer_auth) {
     $this->response->setOutput(json_encode([
     "status"=>"error",
     "message"=>"Invalid Token"
     ]));
-    
     return;
+    }
+
+    // Load rate limiter
+    $this->load->library('rate_limiter');
+
+    // Rate limit: configured requests per minute per customer
+    $rate_result = $this->library_rate_limiter->check(
+        'initial_data_' . $customer_auth['id'],
+        API_RATE_LIMIT_INITIAL_DATA_WINDOW,
+        API_RATE_LIMIT_INITIAL_DATA_MAX
+    );
+    
+    if (!$rate_result['allowed']) {
+        $this->response->addHeader('HTTP/1.1 429 Too Many Requests');
+        $this->response->addHeader('Retry-After: ' . ($rate_result['reset'] - time()));
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>"Too many requests. Please try again later."
+        ]));
+        return;
+    }
+
+    // Cache check
+    $language_id = (int)$this->config->get('config_language_id');
+    $cache_key = 'api.initial_data.' . $language_id;
+
+    $cached_data = $this->cache->get($cache_key);
+    if (!empty($cached_data)) {
+        $this->response->setOutput(json_encode($cached_data));
+        return;
     }
     
     $this->load->model('groceries/categories');
@@ -1137,7 +1207,7 @@ public function Order_sendwhatsapp(): void
     
     }
     
-    $this->response->setOutput(json_encode([
+    $response_data = [
                 "status"=>"success",
                 
                 "random_products"=>$random_products,
@@ -1147,7 +1217,12 @@ public function Order_sendwhatsapp(): void
                 
                 "offers"=>$offers
                 
-                ]));
+                ];
+    
+    // Cache for configured TTL
+    $this->cache->set($cache_key, $response_data, API_CACHE_TTL_INITIAL_DATA);
+    
+    $this->response->setOutput(json_encode($response_data));
     
     }
     
@@ -1183,42 +1258,70 @@ public function Order_sendwhatsapp(): void
    public function getCategoryData(): void {
 
     $this->response->addHeader('Content-Type: application/json');
-    
-    if(!$this->validateToken()){
+
+    // Rate limiting check
+    $customer_auth = $this->validateToken();
+    if(!$customer_auth){
         $this->response->setOutput(json_encode([
-    
             "status"=>"error",
             "message"=>"Invalid Token"
-            
             ]));
-            
             return;
-            
             }
-    
+
+    // Load rate limiter
+    $this->load->library('rate_limiter');
+
+    // Rate limit: configured requests per minute per customer
+    $rate_result = $this->library_rate_limiter->check(
+        'category_data_' . $customer_auth['id'],
+        API_RATE_LIMIT_CATEGORY_DATA_WINDOW,
+        API_RATE_LIMIT_CATEGORY_DATA_MAX
+    );
+
+    if (!$rate_result['allowed']) {
+        $this->response->addHeader('HTTP/1.1 429 Too Many Requests');
+        $this->response->addHeader('Retry-After: ' . ($rate_result['reset'] - time()));
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>"Too many requests. Please try again later."
+        ]));
+        return;
+    }
+
     $category_id = (int)($this->request->post['category_id'] ?? $this->request->get['category_id'] ?? 0);
-    
+
+    // Cache check
+    $language_id = (int)$this->config->get('config_language_id');
+    $cache_key = 'api.category_data.' . $category_id . '.' . $language_id;
+
+    $cached_data = $this->cache->get($cache_key);
+    if (!empty($cached_data)) {
+        $this->response->setOutput(json_encode($cached_data));
+        return;
+    }
+
     $this->load->model('groceries/categories');
 
     $category_products=$this->model_groceries_categories->getProductsOnly($category_id);
 
     $subcategories=$this->model_groceries_categories->getSubCategories($category_id);
     foreach($subcategories as &$subcategory){
-    
+
     $subcategory['products']=$this->model_groceries_categories->getProductsOnly($subcategory['category_id']);
-    
+
     }
 
-    $this->response->setOutput(
-    
-        json_encode([
-        
+    $response_data = [
         "status"=>"success",
         "products"=>$category_products,
         "subcategories"=>$subcategories
-        ])
-    
-    );
+        ];
+
+    // Cache for configured TTL
+    $this->cache->set($cache_key, $response_data, API_CACHE_TTL_CATEGORY_DATA);
+
+    $this->response->setOutput(json_encode($response_data));
 
 }
 
@@ -1463,12 +1566,14 @@ public function addOrder(): void {
     $order_id=$this->model_checkout_order->addOrder($order_data,$invoice_extra,$tracking);
     
     if(!$order_id){
-    
+
         throw new \Exception("Order Failed");
-    
+
     }
-    
-    
+
+    $this->load->model('groceries/categories');
+    $this->model_groceries_categories->insertOrderTrackingUpTo5($order_id);
+
     $this->model_checkout_order->addHistory(
     
         $order_id,
@@ -3205,6 +3310,8 @@ public function getZones(): void {
 
         $default   = isset($post['default']) ? (int)$post['default'] : 0;
         $tracking  = html_entity_decode($post['tracking'] ?? '', ENT_QUOTES, 'UTF-8');
+        $latitude  = isset($post['latitude']) ? trim((string)$post['latitude']) : '';
+        $longitude = isset($post['longitude']) ? trim((string)$post['longitude']) : '';
 
         if(!$firstname || !$address_1 || !$city || !$postcode){
 
@@ -3218,6 +3325,36 @@ public function getZones(): void {
         }
 
         $this->load->model('groceries/categories');
+
+        if (($latitude !== '' && $longitude === '') ||
+            ($latitude === '' && $longitude !== '')) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => "Both latitude and longitude are required"
+            ]));
+
+            return;
+        }
+
+        $delivery = null;
+
+        // If both coordinates are provided → check delivery range
+        if ($latitude !== '' && $longitude !== '') {
+
+            $delivery = $this->model_groceries_categories
+                ->checkDeliveryAvailability($latitude, $longitude);
+
+            if (!$delivery) {
+
+                $this->response->setOutput(json_encode([
+                    "status" => "error",
+                    "message" => "Delivery not available at this location"
+                ]));
+
+                return;
+            }
+        }
 
         $zone_id = $this->model_groceries_categories->getZoneByPostcode($postcode);
 
@@ -3245,7 +3382,9 @@ public function getZones(): void {
                                                                     "country_id"=>$country_id,
                                                                     "zone_id"=>$zone_id,
                                                                     "default"=>$default,
-                                                                    "tracking"=>$tracking
+                                                                    "tracking"=>$tracking,
+                                                                    "latitude"=>$latitude,
+                                                                    "longitude"=>$longitude
                                                                     ]);
 
         $this->response->setOutput(json_encode([
@@ -3255,47 +3394,132 @@ public function getZones(): void {
 
         }
 
-    public function getAddress(): void {
+    public function getAddress(): void
+{
+    $this->response->addHeader('Content-Type: application/json');
 
-        $this->response->addHeader('Content-Type: application/json');
-        
-        $customer_id = $this->validateToken();
-        
-        if(!$customer_id){
-            
-            $this->response->setOutput(json_encode([
-            "status"=>"error",
-            "message"=>"Invalid Token"
-            ]));
-            
-            return;
-        
-        }
-        
-        $telephone  = $this->request->get['telephone'] ?? '';
-        $address_id = (int)($this->request->get['address_id'] ?? 0);
-        
-        $this->load->model('groceries/categories');
-        
-        $addresses = $this->model_groceries_categories->getAddress($customer_id['id'],$telephone,$address_id);
-        
-        if(!$addresses){
-        
-            $this->response->setOutput(json_encode([
-                                            "status"=>"error",
-                                            "message"=>"No address found"
-                                            ]));
-        
-                                            return;
-        
-        }
-        
+    $customer_id = $this->validateToken();
+
+    if (!$customer_id) {
         $this->response->setOutput(json_encode([
-                                            "status"=>"success",
-                                            "data"=>$addresses
-                                            ]));
-                                            
+            "status"  => "error",
+            "message" => "Invalid Token"
+        ]));
+
+        return;
     }
+
+    $telephone  = $this->request->get['telephone'] ?? '';
+    $address_id = (int)($this->request->get['address_id'] ?? 0);
+
+    $this->load->model('groceries/categories');
+
+    $addresses = $this->model_groceries_categories->getAddress(
+        $customer_id['id'],
+        $telephone,
+        $address_id
+    );
+
+    if (!$addresses) {
+        $this->response->setOutput(json_encode([
+            "status"  => "error",
+            "message" => "No address found"
+        ]));
+
+        return;
+    }
+
+    /*
+     * Get store information
+     */
+    $store = $this->model_groceries_categories->getStore();
+
+    if (
+        !$store ||
+        $store['latitude'] === '' ||
+        $store['longitude'] === ''
+    ) {
+        $this->response->setOutput(json_encode([
+            "status"  => "error",
+            "message" => "Store location not available"
+        ]));
+
+        return;
+    }
+
+    $store_lat = (float)$store['latitude'];
+    $store_lon = (float)$store['longitude'];
+    $store_id  = (int)$store['store_id'];
+
+
+    /*
+     * Calculate distance for each address
+     */
+    foreach ($addresses as &$address) {
+
+        $distance = 0;
+        $delivery_charge = 0;
+
+        /*
+         * Get latitude and longitude directly
+         * from address table.
+         */
+        $customer_lat = $address['latitude'] ?? '';
+        $customer_lon = $address['longitude'] ?? '';
+
+
+        /*
+         * Make sure coordinates are available
+         */
+        if (
+            $customer_lat !== '' &&
+            $customer_lon !== '' &&
+            is_numeric($customer_lat) &&
+            is_numeric($customer_lon)
+        ) {
+
+            /*
+             * Calculate distance using MySQL
+             */
+            $distance = $this->model_groceries_categories->calculateDistance(
+                $store_lat,
+                $store_lon,
+                (float)$customer_lat,
+                (float)$customer_lon
+            );
+
+
+            /*
+             * Get delivery charge based on distance
+             */
+            $delivery_charge =
+                $this->model_groceries_categories->getDeliveryChargeByDistance(
+                    $store_id,
+                    $distance
+                );
+        }
+
+
+        /*
+         * Add distance and delivery charge
+         * to API response
+         */
+        $address['distance'] = round((float)$distance, 2);
+
+        $address['delivery_charge'] = $delivery_charge;
+    }
+
+    unset($address);
+
+
+    /*
+     * Return response
+     */
+    $this->response->setOutput(json_encode([
+        "status" => "success",
+        "data"   => $addresses
+    ]));
+}
     
     public function editAddress(): void {
 
@@ -3355,6 +3579,38 @@ $country_id= $post['country_id'] ?? 99;
 
 $default   = isset($post['default']) ? (int)$post['default'] : 0;
 $tracking  = html_entity_decode($post['tracking'] ?? '', ENT_QUOTES, 'UTF-8');
+$latitude  = isset($post['latitude']) ? trim((string)$post['latitude']) : '';
+$longitude = isset($post['longitude']) ? trim((string)$post['longitude']) : '';
+
+if (($latitude !== '' && $longitude === '') ||
+    ($latitude === '' && $longitude !== '')) {
+
+    $this->response->setOutput(json_encode([
+        "status" => "error",
+        "message" => "Both latitude and longitude are required"
+    ]));
+
+    return;
+}
+
+$delivery = null;
+
+// If both coordinates are provided → check delivery range
+if ($latitude !== '' && $longitude !== '') {
+
+    $delivery = $this->model_groceries_categories
+        ->checkDeliveryAvailability($latitude, $longitude);
+
+    if (!$delivery) {
+
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Delivery not available at this location"
+        ]));
+
+        return;
+    }
+}
 
 $zone_id = $this->model_groceries_categories->getZoneByPostcode($postcode);
 
@@ -3384,7 +3640,9 @@ $address_id,
 "country_id"=>$country_id,
 "zone_id"=>$zone_id,
 "default"=>$default,
-"tracking"=>$tracking
+"tracking"=>$tracking,
+"latitude"=>$latitude,
+"longitude"=>$longitude
 ]
 );
 
@@ -3471,6 +3729,76 @@ $this->response->setOutput(json_encode([
 "status"=>"success",
 "message"=>"Address deleted successfully"
 ]));
+
+}
+
+public function checkDeliveryZone(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    $customer_id = $this->validateToken();
+
+    if(!$customer_id){
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>"Invalid Token"
+        ]));
+        return;
+    }
+
+    $post = $this->request->post;
+    $raw = file_get_contents("php://input");
+
+    if($raw){
+        $json = json_decode($raw,true);
+        if(json_last_error() === JSON_ERROR_NONE){
+            $post = array_merge($post,$json);
+        }
+    }
+
+    $latitude  = isset($post['latitude'])  ? trim((string)$post['latitude'])  : '';
+    $longitude = isset($post['longitude']) ? trim((string)$post['longitude']) : '';
+
+    if($latitude === '' || $longitude === ''){
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>"Latitude and longitude are required"
+        ]));
+        return;
+    }
+
+    $this->load->model('groceries/categories');
+
+    $delivery = $this->model_groceries_categories
+        ->checkDeliveryAvailability($latitude, $longitude);
+
+    if(!$delivery){
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>"Delivery not available at this location"
+        ]));
+        return;
+    }
+
+    // ✅ NEW — compute the actual delivery charge for this distance,
+    // same logic used in getAddress(), so the fee returned here always
+    // matches what a saved address of this exact location would show.
+    $delivery_charge = $this->model_groceries_categories->getDeliveryChargeByDistance(
+        $delivery['store_id'],
+        $delivery['distance']
+    );
+
+    if ($delivery['distance'] == 0) {
+        $delivery_charge = 10;
+    }
+
+    $delivery['delivery_charge'] = $delivery_charge;
+
+    $this->response->setOutput(json_encode([
+        "status"=>"success",
+        "message"=>"Delivery available",
+        "data"=>$delivery
+    ]));
 
 }
 
@@ -3832,27 +4160,37 @@ public function searchProducts(): void {
     
             $name = trim($post['name'] ?? '');
             $url  = trim($post['url'] ?? '');
-            $contact  = trim($post['contact'] ?? '');
+            $contact = trim($post['contact'] ?? '');
             $upi_number = trim($post['upi_number'] ?? '');
             $min_order_value = trim($post['min_order_value'] ?? '');
             $delivery_order_value = trim($post['delivery_order_value'] ?? '');
             $delivery_fee = trim($post['delivery_fee'] ?? '');
+            $delivery_range = trim($post['delivery_range'] ?? '');
             $upi_id = trim($post['upi_id'] ?? '');
             $address = trim($post['address'] ?? '');
+            $latitude = trim($post['latitude'] ?? '');
+            $longitude = trim($post['longitude'] ?? '');
             $gst = trim($post['gst'] ?? '');
-    
+            $status = isset($post['status']) ? (int)$post['status'] : 1;
+
+            // Simplified email configuration - client only provides email
+            $store_email = trim($post['store_email'] ?? '');
+
+            // Delivery charges array
+            $delivery_charges = $post['delivery_charges'] ?? [];
+
             if(!$name){
                 throw new \Exception("Store name required");
             }
-    
+
             $logo = '';
-    
+
             if(!empty($post['logo'])){
                 $logo = $this->saveBase64Image1($post['logo'],$name);
             }
-    
+
             $this->load->model('groceries/categories');
-    
+
             $store_id = $this->model_groceries_categories->addStore([
                 "name"=>$name,
                 "url"=>$url,
@@ -3862,9 +4200,15 @@ public function searchProducts(): void {
                 "min_order_value"=>$min_order_value,
                 "delivery_order_value"=>$delivery_order_value,
                 "delivery_fee"=>$delivery_fee,
+                "delivery_range"=>$delivery_range,
                 "upi_id"=>$upi_id,
                 "address"=>$address,
-                "gst"=>$gst
+                "latitude"=>$latitude,
+                "longitude"=>$longitude,
+                "gst"=>$gst,
+                "store_email"=>$store_email,
+                "delivery_charges"=>$delivery_charges,
+                "status"=>$status
             ]);
     
             $this->response->setOutput(json_encode([
@@ -3917,22 +4261,32 @@ public function searchProducts(): void {
     
             $name = trim($post['name'] ?? '');
             $url  = trim($post['url'] ?? '');
-            $contact  = trim($post['contact'] ?? '');
+            $contact = trim($post['contact'] ?? '');
             $upi_number = trim($post['upi_number'] ?? '');
             $min_order_value = trim($post['min_order_value'] ?? '');
             $delivery_order_value = trim($post['delivery_order_value'] ?? '');
             $delivery_fee = trim($post['delivery_fee'] ?? '');
+            $delivery_range = trim($post['delivery_range'] ?? '');
             $upi_id = trim($post['upi_id'] ?? '');
             $address = trim($post['address'] ?? '');
+            $latitude = trim($post['latitude'] ?? '');
+            $longitude = trim($post['longitude'] ?? '');
             $gst = trim($post['gst'] ?? '');
+            $status = isset($post['status']) ? (int)$post['status'] : 1;
+
+            // Simplified email configuration - client only provides email
+            $store_email = trim($post['store_email'] ?? '');
+
+            // Delivery charges array
+            $delivery_charges = $post['delivery_charges'] ?? [];
             $logo = '';
-    
+
             if(!empty($post['logo'])){
                 $logo = $this->saveBase64Image1($post['logo'],$name);
             }
-    
+
             $this->load->model('groceries/categories');
-    
+
             $this->model_groceries_categories->editStore($store_id,[
                 "name"=>$name,
                 "url"=>$url,
@@ -3942,9 +4296,15 @@ public function searchProducts(): void {
                 "min_order_value"=>$min_order_value,
                 "delivery_order_value"=>$delivery_order_value,
                 "delivery_fee"=>$delivery_fee,
+                "delivery_range"=>$delivery_range,
                 "upi_id"=>$upi_id,
                 "address"=>$address,
-                "gst"=>$gst
+                "latitude"=>$latitude,
+                "longitude"=>$longitude,
+                "gst"=>$gst,
+                "store_email"=>$store_email,
+                "delivery_charges"=>$delivery_charges,
+                "status"=>$status
             ]);
     
             $this->response->setOutput(json_encode([
@@ -3965,9 +4325,9 @@ public function searchProducts(): void {
     public function getStores(): void {
 
         $this->response->addHeader('Content-Type: application/json');
-    
+
         $customer_id = $this->validateToken();
-    
+
         if(!$customer_id){
             $this->response->setOutput(json_encode([
                 "status"=>"error",
@@ -3975,15 +4335,28 @@ public function searchProducts(): void {
             ]));
             return;
         }
-    
+
         $this->load->model('groceries/categories');
-    
-        $stores = $this->model_groceries_categories->getStores();
-    
-        $this->response->setOutput(json_encode([
-            "status"=>"success",
-            "data"=>$stores
-        ]));
+
+        // Check if store_id filter is provided
+        $store_id = (int)($this->request->get['store_id'] ?? 0);
+
+        if ($store_id) {
+            // Get delivery charges for specific store
+            $delivery_charges = $this->model_groceries_categories->getDeliveryChargesByStoreId($store_id);
+            $this->response->setOutput(json_encode([
+                "status"=>"success",
+                "store_id"=>$store_id,
+                "delivery_charges"=>$delivery_charges
+            ]));
+        } else {
+            // Get all stores with their delivery charges
+            $stores = $this->model_groceries_categories->getStores();
+            $this->response->setOutput(json_encode([
+                "status"=>"success",
+                "data"=>$stores
+            ]));
+        }
     }
     
     private function saveKycImage(string $imageString,$prefix): string {
@@ -4415,6 +4788,54 @@ $this->response->setOutput(json_encode([
                 ]));
             }
         }
+
+        public function getDeliveryReport(): void {
+
+        $this->response->addHeader('Content-Type: application/json');
+
+        $agentId = $this->validateToken();
+
+        if(!$agentId){
+
+            $this->response->setOutput(json_encode([
+                "status"=>"error",
+                "message"=>"Invalid Token"
+            ]));
+
+            return;
+        }
+
+        if (!$this->request->post) {
+            $input = json_decode(file_get_contents("php://input"), true);
+            if ($input) {
+                $this->request->post = $input;
+            }
+        }
+
+        try{
+            $this->load->model('groceries/categories');
+
+            $from_date = isset($this->request->post['from_date']) ? $this->request->post['from_date'] : date('Y-m-d');
+            $to_date = isset($this->request->post['to_date']) ? $this->request->post['to_date'] : date('Y-m-d');
+
+            $report = $this->model_groceries_categories->getDeliveryReport([
+                'from_date' => $from_date,
+                'to_date' => $to_date
+            ]);
+
+            $this->response->setOutput(json_encode([
+                "status"=>"success",
+                "data"=>$report
+            ]));
+
+        }catch(\Throwable $e){
+
+            $this->response->setOutput(json_encode([
+                "status"=>"error",
+                "message"=>$e->getMessage()
+            ]));
+        }
+    }
 
     public function addProfile(): void {
  
@@ -5349,6 +5770,60 @@ public function getAllProducts(): void {
         "status" => "success",
         "data" => $products,
         "related_ids" => $related_ids
+        ]));
+
+        }
+
+public function get50perDiscountProducts(): void {
+
+        $this->response->addHeader('Content-Type: application/json');
+
+        $customer_id = $this->validateToken();
+
+        if(!$customer_id){
+        $this->response->setOutput(json_encode([
+        "status" => "error",
+        "message" => "Invalid Token"
+        ]));
+        return;
+        }
+
+        $search = $this->request->get['search'] ?? '';
+
+        $this->load->model('groceries/categories');
+
+        $products = $this->model_groceries_categories->get50perDiscountProducts($search);
+
+        $this->response->setOutput(json_encode([
+        "status" => "success",
+        "data" => $products
+        ]));
+
+        }
+
+public function get10to49perDiscountProducts(): void {
+
+        $this->response->addHeader('Content-Type: application/json');
+
+        $customer_id = $this->validateToken();
+
+        if(!$customer_id){
+        $this->response->setOutput(json_encode([
+        "status" => "error",
+        "message" => "Invalid Token"
+        ]));
+        return;
+        }
+
+        $search = $this->request->get['search'] ?? '';
+
+        $this->load->model('groceries/categories');
+
+        $products = $this->model_groceries_categories->get10to49perDiscountProducts($search);
+
+        $this->response->setOutput(json_encode([
+        "status" => "success",
+        "data" => $products
         ]));
 
         }
@@ -6359,6 +6834,534 @@ public function approveManualTransaction(): void {
         ]));
     }
 }
-    
+    // Payment Methods API Endpoints
+
+    public function addPaymentMethod(): void {
+
+        $this->response->addHeader('Content-Type: application/json');
+
+        $user = $this->validateToken();
+
+        if (!$user) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => "Invalid Token"
+            ]));
+
+            return;
+        }
+
+        if (!$this->request->post) {
+
+            $input = json_decode(file_get_contents("php://input"), true);
+            $this->request->post = $input;
+        }
+
+        try {
+
+            if (empty($this->request->post['name'])) {
+                throw new \Exception("Name is required");
+            }
+
+            if (empty($this->request->post['store_id'])) {
+                throw new \Exception("Store is required");
+            }
+
+
+            $this->load->model('groceries/categories');
+
+            $payment_method_id = $this->model_groceries_categories->addPaymentMethod($this->request->post);
+
+            $this->response->setOutput(json_encode([
+                "status" => "success",
+                "message" => "Payment method added successfully",
+                "payment_method_id" => $payment_method_id
+            ]));
+
+        } catch (\Exception $e) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => $e->getMessage()
+            ]));
+        }
+    }
+
+    public function editPaymentMethod(): void {
+
+        $this->response->addHeader('Content-Type: application/json');
+
+        $user = $this->validateToken();
+
+        if (!$user) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => "Invalid Token"
+            ]));
+
+            return;
+        }
+
+        if (!$this->request->post) {
+
+            $input = json_decode(file_get_contents("php://input"), true);
+            $this->request->post = $input;
+        }
+
+        try {
+
+            $payment_method_id = (int)($this->request->post['payment_method_id'] ?? 0);
+
+            if (!$payment_method_id) {
+                throw new \Exception("Payment method ID is required");
+            }
+
+            if (empty($this->request->post['name'])) {
+                throw new \Exception("Name is required");
+            }
+
+            if (empty($this->request->post['store_id'])) {
+                throw new \Exception("Store is required");
+            }
+
+
+            $this->load->model('groceries/categories');
+
+            $this->model_groceries_categories->editPaymentMethod($payment_method_id, $this->request->post);
+
+            $this->response->setOutput(json_encode([
+                "status" => "success",
+                "message" => "Payment method updated successfully"
+            ]));
+
+        } catch (\Exception $e) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => $e->getMessage()
+            ]));
+        }
+    }
+
+    public function deletePaymentMethod(): void {
+
+        $this->response->addHeader('Content-Type: application/json');
+
+        $user = $this->validateToken();
+
+        if (!$user) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => "Invalid Token"
+            ]));
+
+            return;
+        }
+
+        if (!$this->request->post) {
+
+            $input = json_decode(file_get_contents("php://input"), true);
+            $this->request->post = $input;
+        }
+
+        try {
+
+            $payment_method_id = (int)($this->request->post['payment_method_id'] ?? 0);
+
+            if (!$payment_method_id) {
+                throw new \Exception("Payment method ID is required");
+            }
+
+            $this->load->model('groceries/categories');
+
+            $this->model_groceries_categories->deletePaymentMethod($payment_method_id);
+
+            $this->response->setOutput(json_encode([
+                "status" => "success",
+                "message" => "Payment method deleted successfully"
+            ]));
+
+        } catch (\Exception $e) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => $e->getMessage()
+            ]));
+        }
+    }
+
+    public function getPaymentMethods(): void {
+    $this->response->addHeader('Content-Type: application/json');
+    $user = $this->validateToken();
+    if (!$user) {
+        $this->response->setOutput(json_encode(["status" => "error", "message" => "Invalid Token"]));
+        return;
+    }
+
+    try {
+        $this->load->model('groceries/categories');
+        $data = array();
+
+        if (!empty($this->request->get['store_id'])) {
+            $data['store_id'] = $this->request->get['store_id'];
+        }
+        if (isset($this->request->get['sort']))  $data['sort']  = $this->request->get['sort'];
+        if (isset($this->request->get['order'])) $data['order'] = $this->request->get['order'];
+        if (isset($this->request->get['start'])) $data['start'] = $this->request->get['start'];
+        if (isset($this->request->get['limit'])) $data['limit'] = $this->request->get['limit'];
+
+        $payment_methods = $this->model_groceries_categories->getPaymentMethods($data);
+        $total = $this->model_groceries_categories->getTotalPaymentMethods($data);
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "data" => $payment_methods,
+            "total" => $total
+        ]));
+    } catch (\Exception $e) {
+        $this->response->setOutput(json_encode(["status" => "error", "message" => $e->getMessage()]));
+    }
+}
+
+    public function getPaymentMethod(): void {
+
+        $this->response->addHeader('Content-Type: application/json');
+
+        $user = $this->validateToken();
+
+        if (!$user) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => "Invalid Token"
+            ]));
+
+            return;
+        }
+
+        try {
+
+            $payment_method_id = (int)($this->request->get['payment_method_id'] ?? 0);
+
+            if (!$payment_method_id) {
+                throw new \Exception("Payment method ID is required");
+            }
+
+            $store_id = !empty($this->request->get['store_id']) ? (int)$this->request->get['store_id'] : null;
+
+            $this->load->model('groceries/categories');
+
+            $payment_method = $this->model_groceries_categories->getPaymentMethod($payment_method_id, $store_id);
+
+            if (!$payment_method) {
+                throw new \Exception("Payment method not found");
+            }
+
+            $this->response->setOutput(json_encode([
+                "status" => "success",
+                "data" => $payment_method
+            ]));
+
+        } catch (\Exception $e) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => $e->getMessage()
+            ]));
+        }
+    }
+
+    // Order Cancellation Request API Endpoints
+
+    public function requestOrderCancellation(): void {
+
+        $this->response->addHeader('Content-Type: application/json');
+
+        $customer_id = $this->validateToken();
+
+        if (!$customer_id) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => "Invalid Token"
+            ]));
+
+            return;
+        }
+
+        if (!$this->request->post) {
+
+            $input = json_decode(file_get_contents("php://input"), true);
+            $this->request->post = $input;
+        }
+        
+
+        try {
+
+            if (empty($this->request->post['order_id'])) {
+                throw new \Exception("Order ID is required");
+            }
+
+            if (empty($this->request->post['reason'])) {
+                throw new \Exception("Reason is required");
+            }
+
+            $this->load->model('groceries/categories');
+
+            // Check if order belongs to customer
+            $order_query = $this->db->query("SELECT customer_id FROM `" . DB_PREFIX . "order` WHERE order_id = '" . (int)$this->request->post['order_id'] . "'");
+            
+            if (!$order_query->row || $order_query->row['customer_id'] != $customer_id['id']) {
+                throw new \Exception("Order not found or does not belong to you");
+            }
+
+            // Check if cancellation request already exists for this order
+            $existing_request = $this->model_groceries_categories->getCancellationRequests([
+                'order_id' => $this->request->post['order_id'],
+                'status' => 0
+            ]);
+
+            if ($existing_request) {
+                throw new \Exception("Cancellation request already pending for this order");
+            }
+
+            $request_id = $this->model_groceries_categories->addCancellationRequest([
+                'order_id' => $this->request->post['order_id'],
+                'customer_id' => $customer_id['id'],
+                'reason' => $this->request->post['reason']
+            ]);
+
+            $this->response->setOutput(json_encode([
+                "status" => "success",
+                "message" => "Cancellation request submitted successfully",
+                "request_id" => $request_id
+            ]));
+
+        } catch (\Exception $e) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => $e->getMessage()
+            ]));
+        }
+    }
+
+    public function getCancellationRequests(): void {
+
+        $this->response->addHeader('Content-Type: application/json');
+
+        $user = $this->validateToken();
+
+        if (!$user) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => "Invalid Token"
+            ]));
+
+            return;
+        }
+
+        try {
+
+            $this->load->model('groceries/categories');
+
+            $data = array();
+
+            if (!empty($this->request->get['order_id'])) {
+                $data['order_id'] = $this->request->get['order_id'];
+            }
+
+            if (!empty($this->request->get['customer_id'])) {
+                $data['customer_id'] = $this->request->get['customer_id'];
+            }
+
+            if (isset($this->request->get['status'])) {
+                $data['status'] = $this->request->get['status'];
+            }
+
+            if (isset($this->request->get['start'])) {
+                $data['start'] = $this->request->get['start'];
+            }
+
+            if (isset($this->request->get['limit'])) {
+                $data['limit'] = $this->request->get['limit'];
+            }
+
+            $requests = $this->model_groceries_categories->getCancellationRequests($data);
+            $total = $this->model_groceries_categories->getTotalCancellationRequests($data);
+
+            $this->response->setOutput(json_encode([
+                "status" => "success",
+                "data" => $requests,
+                "total" => $total
+            ]));
+
+        } catch (\Exception $e) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => $e->getMessage()
+            ]));
+        }
+    }
+
+    public function approveCancellationRequest(): void {
+
+        $this->response->addHeader('Content-Type: application/json');
+
+        $user = $this->validateToken();
+
+        if (!$user) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => "Invalid Token"
+            ]));
+
+            return;
+        }
+
+        if (!$this->request->post) {
+
+            $input = json_decode(file_get_contents("php://input"), true);
+            $this->request->post = $input;
+        }
+
+        try {
+
+            if (empty($this->request->post['request_id'])) {
+                throw new \Exception("Request ID is required");
+            }
+
+            if (empty($this->request->post['amount'])) {
+                throw new \Exception("Refund amount is required");
+            }
+
+            $amount = (float)$this->request->post['amount'];
+            if ($amount <= 0) {
+                throw new \Exception("Amount must be greater than 0");
+            }
+
+            $this->load->model('groceries/categories');
+
+            $request = $this->model_groceries_categories->getCancellationRequest($this->request->post['request_id']);
+
+            if (!$request) {
+                throw new \Exception("Cancellation request not found");
+            }
+
+            if ($request['status'] != 0) {
+                throw new \Exception("Request already processed");
+            }
+
+            // Load checkout/order model for wallet operations
+            $this->load->model('checkout/order');
+
+            // Add refund amount to customer wallet
+            $description = 'Order cancellation refund for order #' . $request['order_id'];
+            $wallet_result = $this->model_checkout_order->adjustWallet(
+                $request['customer_id'],
+                $amount,
+                'CREDIT',
+                'TRADE',
+                $description
+            );
+
+            if (!$wallet_result) {
+                throw new \Exception("Failed to add refund to wallet");
+            }
+
+            // Update cancellation request status to approved
+            $this->model_groceries_categories->updateCancellationRequest(
+                $this->request->post['request_id'],
+                1,
+                $this->request->post['admin_comment'] ?? ''
+            );
+
+            // Update order status to 7 (cancelled)
+            $this->model_groceries_categories->updateOrderStatus(
+                $request['order_id'],
+                7
+            );
+
+            $this->response->setOutput(json_encode([
+                "status" => "success",
+                "message" => "Cancellation request approved, refund added to wallet, and order status updated to cancelled"
+            ]));
+
+        } catch (\Exception $e) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => $e->getMessage()
+            ]));
+        }
+    }
+
+    public function rejectCancellationRequest(): void {
+
+        $this->response->addHeader('Content-Type: application/json');
+
+        $user = $this->validateToken();
+
+        if (!$user) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => "Invalid Token"
+            ]));
+
+            return;
+        }
+
+        if (!$this->request->post) {
+
+            $input = json_decode(file_get_contents("php://input"), true);
+            $this->request->post = $input;
+        }
+
+        try {
+
+            if (empty($this->request->post['request_id'])) {
+                throw new \Exception("Request ID is required");
+            }
+
+            $this->load->model('groceries/categories');
+
+            $request = $this->model_groceries_categories->getCancellationRequest($this->request->post['request_id']);
+
+            if (!$request) {
+                throw new \Exception("Cancellation request not found");
+            }
+
+            if ($request['status'] != 0) {
+                throw new \Exception("Request already processed");
+            }
+
+            // Update cancellation request status to rejected
+            $this->model_groceries_categories->updateCancellationRequest(
+                $this->request->post['request_id'],
+                2,
+                $this->request->post['admin_comment'] ?? ''
+            );
+
+            $this->response->setOutput(json_encode([
+                "status" => "success",
+                "message" => "Cancellation request rejected"
+            ]));
+
+        } catch (\Exception $e) {
+
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => $e->getMessage()
+            ]));
+        }
+    }
+
 }
 

@@ -83,6 +83,7 @@ class Addproducts extends \Opencart\System\Engine\Model {
                                                                                 description = '" . $this->db->escape($val['description']) . "',
                                                                                 meta_title = '" . $this->db->escape($val['name']) . "',
                                                                                 meta_description = '',
+                                                                                is_veg = '" . $data['is_veg'] . "',
                                                                                 tag = '',
                                                                                 meta_keyword = ''");
         }
@@ -146,6 +147,7 @@ public function deleteProductImages($product_id): void {
                                                                                 description = '" . $this->db->escape($val['description']) . "',
                                                                                 meta_title = '',
                                                                                 meta_description = '',
+                                                                                is_veg = '" . (int)$data['is_veg'] . "',
                                                                                 tag = '',
                                                                                 meta_keyword = ''");
         }

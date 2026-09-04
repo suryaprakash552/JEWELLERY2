@@ -50,23 +50,16 @@ class Home extends \Opencart\System\Engine\Controller {
     public function addorder()
     {
         $this->response->addHeader("Content-Type: application/json");
-        
+
         $agentId = $this->validateToken();
 
-        if(!$agentId){
-        
-        return $this->response->setOutput(
-        
-        json_encode([
-        
-        "status"=>"error",
-        
-        "message"=>"Invalid Token"
-        
-        ])
-        
-        );
-        
+        if (!$agentId) {
+            return $this->response->setOutput(
+                json_encode([
+                    "status" => "error",
+                    "message" => "Invalid Token"
+                ])
+            );
         }
 
         $post = $this->request->post;
@@ -160,7 +153,7 @@ class Home extends \Opencart\System\Engine\Controller {
                 $upi_image = $this->saveUpiImage($orderDetails['UPIImage']);
             }
             $takeaway_amount = $money($get($orderDetails, "TakeawayAmount", 0));
-            $delivary_time = "20 mins";
+            $delivary_time = "60 mins";
             $advance_used = $money($get($orderDetails, "AdvanceUsed", 0));
             $total_received = $money(
                 $get($orderDetails, "TotalReceivedAmount", 0)
@@ -405,8 +398,7 @@ class Home extends \Opencart\System\Engine\Controller {
             
                     $this->model_checkout_order->doWalletCredit($credit);
                 }
-            
-                // 2) Due -> manage_wallet.aeps_amount (AEPS)
+
                 if ($dueAmountValue > 0) {
             
                     $aepsCredit = [
@@ -469,7 +461,7 @@ if ($customer_id > 0) {
             $this->load->model("account/customer");
 
             $credit = [
-                "customerid" => $agentId['id'],
+                "customerid" => '1',
                 "order_id" => $order_id,
                 "amount" => $subtotal,
                 "description" => $mobile,

@@ -6036,7 +6036,13 @@ public function getEnrollInfoByFPAEPSId_pending($ourrequestid)
     }
     public function GET_CUSTOMER_OTP_ATTEMPTS($input,$source)
     {
-        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "customer_otp_session` o WHERE number = '" . $this->db->escape($input['telephone'])."' and date(created)=date(now())");
+        // Support both telephone and email as identifier
+        if (isset($input['email'])) {
+            $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "customer_otp_session` o WHERE email = '" . $this->db->escape($input['email'])."' and date(created)=date(now())");
+        } else {
+            $identifier = isset($input['telephone']) ? $input['telephone'] : $source;
+            $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "customer_otp_session` o WHERE number = '" . $this->db->escape($identifier)."' and date(created)=date(now())");
+        }
         if ($query->num_rows) {
             $result = $query->row;
             $result['exstatus'] = true;
@@ -6048,9 +6054,13 @@ public function getEnrollInfoByFPAEPSId_pending($ourrequestid)
 
     public function INSERT_CUSTOMER_OTP_ATTEMPTS($data,$raw,$otp)
     {
+        // Support both telephone and email as identifier
+        $identifier = isset($raw->post['telephone']) ? $raw->post['telephone'] : (isset($raw->post['email']) ? 0 : $raw->post['telephone']);
+        $email = isset($raw->post['email']) ? $raw->post['email'] : '';
+        
         $this->db->query("INSERT INTO " . DB_PREFIX . "customer_otp_session SET
-                                                            number = '" . $raw->post['telephone'] . "',
-															device_id = '" .$this->db->escape($data['device_id'] ?? '') . "',
+                                                            number = '" . $this->db->escape($identifier) . "',
+                                                            email = '" . $this->db->escape($email) . "',
                                                             salt = '" . $this->db->escape($salt = random_int(100000000, 999999999)) . "',
                                                             otp = '" . $this->db->escape(sha1($salt . sha1($salt . sha1($otp)))) . "',
                                                             hits = 1,
@@ -6060,61 +6070,97 @@ public function getEnrollInfoByFPAEPSId_pending($ourrequestid)
     }
     public function VERIFY_CUSTOMER_OTP($input)
     {
-        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "customer_otp_session`
-                                                                       WHERE number = '" . $this->db->escape($input['telephone']) . "'
-																	   AND device_id = '" .$this->db->escape($input['device_id']) . "'
+        // Support both telephone and email as identifier
+        if (isset($input['email'])) {
+            $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "customer_otp_session`
+                                                                       WHERE email = '" . $this->db->escape($input['email']) . "'
                                                                        AND otp = '" . $this->db->escape($input['otp_ref']) . "'
                                                                        AND DATE(created) = DATE(NOW())
                                                                        AND verified = '0'");
-    
+        } else {
+            $identifier = isset($input['telephone']) ? $input['telephone'] : $input['email'];
+            $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "customer_otp_session`
+                                                                       WHERE number = '" . $this->db->escape($identifier) . "'
+                                                                       AND otp = '" . $this->db->escape($input['otp_ref']) . "'
+                                                                       AND DATE(created) = DATE(NOW())
+                                                                       AND verified = '0'");
+        }
+
         if ($query->num_rows == 0) {
             $result['exstatus'] = false;
             return $result;
         }
-    
+
         $row = $query->row;
         $otp = $input['otp'];
         $otpHash = sha1($row['salt'] . sha1($row['salt'] . sha1($otp)));
-    
+
         if ($otpHash != $row['otp']) {
             $result['exstatus'] = false;
             return $result;
         }
-    
+
         $row['exstatus'] = true;
         return $row;
     }
     public function RELEASE_OTP_ATTEMPTS($raw)
     {
         $salt = random_int(100000000, 999999999);
-    
-        $otp_ref = sha1($salt . sha1($salt . sha1($raw['telephone'] . time())));
-    
-        $this->db->query("UPDATE `" . DB_PREFIX . "customer_otp_session`
-                                                      SET verified = '1',
-                                                          hits = hits + 1,
-                                                          salt = '" . $this->db->escape($salt) . "',
-                                                          otp = '" . $this->db->escape($otp_ref) . "',
-                                                          input = '" . $this->db->escape(json_encode($raw)) . "'
-                                                      WHERE number = '" . $this->db->escape($raw['telephone']) . "'
-                                                      AND device_id = '" . $this->db->escape($raw['device_id']) . "'
-                                                      AND otp = '" . $this->db->escape($raw['otp_ref']) . "'
-                                                      AND DATE(created) = DATE(NOW())");
-    
+
+        // Support both telephone and email as identifier
+        $identifier = isset($raw['telephone']) ? $raw['telephone'] : (isset($raw['email']) ? 0 : '');
+        $otp_ref = sha1($salt . sha1($salt . sha1($identifier . time())));
+
+        if (isset($raw['email'])) {
+            $this->db->query("UPDATE `" . DB_PREFIX . "customer_otp_session`
+                                                          SET verified = '1',
+                                                              hits = hits + 1,
+                                                              salt = '" . $this->db->escape($salt) . "',
+                                                              otp = '" . $this->db->escape($otp_ref) . "',
+                                                              input = '" . $this->db->escape(json_encode($raw)) . "'
+                                                          WHERE email = '" . $this->db->escape($raw['email']) . "'
+                                                          AND otp = '" . $this->db->escape($raw['otp_ref']) . "'
+                                                          AND DATE(created) = DATE(NOW())");
+        } else {
+            $this->db->query("UPDATE `" . DB_PREFIX . "customer_otp_session`
+                                                          SET verified = '1',
+                                                              hits = hits + 1,
+                                                              salt = '" . $this->db->escape($salt) . "',
+                                                              otp = '" . $this->db->escape($otp_ref) . "',
+                                                              input = '" . $this->db->escape(json_encode($raw)) . "'
+                                                          WHERE number = '" . $this->db->escape($identifier) . "'
+                                                          AND otp = '" . $this->db->escape($raw['otp_ref']) . "'
+                                                          AND DATE(created) = DATE(NOW())");
+        }
+
         return $otp_ref;
     }
 
     public function UPDATE_OTP_ATTEMPTS($data,$raw,$otp)
     {
-        $this->db->query("UPDATE " . DB_PREFIX . "customer_otp_session SET salt='" . $this->db->escape($salt = random_int(100000000, 999999999)) . "',
-                                                                          otp = '" . $this->db->escape(sha1($salt . sha1($salt . sha1($otp)))) . "',
-                                                                          hits=hits+1,
-                                                                          input='" . json_encode($raw->post) . "',
-                                                                          verified=0
-                                                                          where number='" . $this->db->escape($raw->post['telephone']) . "'
-																		  AND device_id = '" .$this->db->escape($data['device_id'] ?? '') . "'
-                                                                          and date(created)=date(now())"
-                                                                          );
+        // Support both telephone and email as identifier
+        $identifier = isset($raw->post['telephone']) ? $raw->post['telephone'] : (isset($raw->post['email']) ? 0 : $raw->post['telephone']);
+        $email = isset($raw->post['email']) ? $raw->post['email'] : '';
+        
+        if (isset($raw->post['email'])) {
+            $this->db->query("UPDATE " . DB_PREFIX . "customer_otp_session SET salt='" . $this->db->escape($salt = random_int(100000000, 999999999)) . "',
+                                                                              otp = '" . $this->db->escape(sha1($salt . sha1($salt . sha1($otp)))) . "',
+                                                                              hits=hits+1,
+                                                                              input='" . json_encode($raw->post) . "',
+                                                                              verified=0
+                                                                              where email='" . $this->db->escape($email) . "'
+                                                                              and date(created)=date(now())"
+                                                                              );
+        } else {
+            $this->db->query("UPDATE " . DB_PREFIX . "customer_otp_session SET salt='" . $this->db->escape($salt = random_int(100000000, 999999999)) . "',
+                                                                              otp = '" . $this->db->escape(sha1($salt . sha1($salt . sha1($otp)))) . "',
+                                                                              hits=hits+1,
+                                                                              input='" . json_encode($raw->post) . "',
+                                                                              verified=0
+                                                                              where number='" . $this->db->escape($identifier) . "'
+                                                                              and date(created)=date(now())"
+                                                                              );
+        }
     }
     
 
