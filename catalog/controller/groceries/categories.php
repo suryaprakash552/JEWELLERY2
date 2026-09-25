@@ -681,10 +681,10 @@ public function sendNavigationNotification(): void {
 
     $result = $this->model_groceries_categories->sendNavigationNotificationToAllCustomers(
         $type,
-        $category_id,
-        $product_id,
         $title,
         $body,
+        $category_id,
+        $product_id,
         $image_url
     );
 
@@ -872,9 +872,8 @@ public function uploadNotificationImage(): void {
     imagedestroy($image);
     imagedestroy($new_image);
 
-    // Generate public URL - use ngrok for local testing, production domain for production
-    // Change this to production domain when deploying
-    $image_url = 'https://defy-handler-dwindling.ngrok-free.dev/image/notifications/' . $filename;
+    // Generate public URL - use production domain for DBMarts
+    $image_url = 'https://dbmarts.com/DBM/image/notifications/' . $filename;
 
     $this->response->setOutput(json_encode([
         "status" => "success",

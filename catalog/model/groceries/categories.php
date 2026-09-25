@@ -232,7 +232,7 @@ private function sendNavigationNotification(
     return $messaging->send($message);
 }
 
-public function sendNavigationNotificationToAllCustomers($type, $category_id = null, $product_id = null, $title, $body, $image_url = null) {
+public function sendNavigationNotificationToAllCustomers($type, $title, $body, $category_id = null, $product_id = null, $image_url = null) {
     // Validate type
     if (!in_array($type, ['category', 'product'])) {
         return ['success' => false, 'message' => 'Invalid type'];
