@@ -181,6 +181,194 @@ private function sendPushNotification(
     return $messaging->send($message);
 }
 
+private function sendNavigationNotification(
+    $deviceToken,
+    $title,
+    $body,
+    $type,
+    $category_id = null,
+    $product_id = null,
+    $image_url = null
+){
+
+    $factory = (new Factory())
+        ->withServiceAccount(
+            DIR_STORAGE . 'firebase/service-account.json'
+        );
+
+    $messaging = $factory->createMessaging();
+
+    $data = [
+        'type' => (string)$type
+    ];
+
+    if ($category_id !== null) {
+        $data['category_id'] = (string)$category_id;
+    }
+
+    if ($product_id !== null) {
+        $data['product_id'] = (string)$product_id;
+    }
+
+    if ($image_url !== null && !empty($image_url)) {
+        $data['image_url'] = (string)$image_url;
+    }
+
+    // Create notification with image
+    $notificationObj = Notification::create(
+        $title,
+        $body
+    );
+
+    if ($image_url !== null && !empty($image_url)) {
+        $notificationObj = $notificationObj->withImageUrl($image_url);
+    }
+
+    $message = CloudMessage::new()
+        ->withToken($deviceToken)
+        ->withNotification($notificationObj)
+        ->withData($data);
+
+    return $messaging->send($message);
+}
+
+public function sendNavigationNotificationToAllCustomers($type, $category_id = null, $product_id = null, $title, $body, $image_url = null) {
+    // Validate type
+    if (!in_array($type, ['category', 'product'])) {
+        return ['success' => false, 'message' => 'Invalid type'];
+    }
+
+    // Validate category_id if type is category
+    if ($type === 'category' && empty($category_id)) {
+        return ['success' => false, 'message' => 'category_id is required for category type'];
+    }
+
+    // Validate product_id if type is product
+    if ($type === 'product' && empty($product_id)) {
+        return ['success' => false, 'message' => 'product_id is required for product type'];
+    }
+
+    // Verify category exists if type is category
+    if ($type === 'category') {
+        $category = $this->db->query("
+            SELECT category_id
+            FROM `" . DB_PREFIX . "category`
+            WHERE category_id = '" . (int)$category_id . "'
+            AND status = 1
+            LIMIT 1
+        ");
+        if (!$category->num_rows) {
+            return ['success' => false, 'message' => 'Invalid category'];
+        }
+    }
+
+    // Verify product exists if type is product
+    if ($type === 'product') {
+        $product = $this->db->query("
+            SELECT product_id
+            FROM `" . DB_PREFIX . "product`
+            WHERE product_id = '" . (int)$product_id . "'
+            AND status = 1
+            LIMIT 1
+        ");
+        if (!$product->num_rows) {
+            return ['success' => false, 'message' => 'Invalid product'];
+        }
+    }
+
+    // Store notification in queue for background processing
+    $this->db->query("
+        INSERT INTO `" . DB_PREFIX . "notification_queue` SET
+        type = '" . $this->db->escape($type) . "',
+        category_id = " . ($category_id ? "'" . (int)$category_id . "'" : "NULL") . ",
+        product_id = " . ($product_id ? "'" . (int)$product_id . "'" : "NULL") . ",
+        title = '" . $this->db->escape($title) . "',
+        body = '" . $this->db->escape($body) . "',
+        image_url = '" . $this->db->escape($image_url) . "',
+        status = 'pending',
+        created_at = NOW()
+    ");
+
+    $queue_id = $this->db->getLastId();
+    
+    // Trigger background processing using exec (non-blocking)
+    $phpPath = PHP_BINARY;
+    $scriptPath = '/home/surya/Videos/JEWELLERY2/catalog/model/groceries/process_notification.php';
+    $command = "nohup $phpPath $scriptPath $queue_id > /dev/null 2>&1 &";
+    exec($command);
+
+    return [
+        'success' => true,
+        'message' => 'Notification queued for sending',
+        'queue_id' => $queue_id
+    ];
+}
+
+public function processNotificationQueue($queue_id = null) {
+    // Get pending notifications
+    $where = $queue_id ? "WHERE id = '" . (int)$queue_id . "'" : "WHERE status = 'pending' LIMIT 10";
+    
+    $notifications = $this->db->query("
+        SELECT * FROM `" . DB_PREFIX . "notification_queue`
+        $where
+    ");
+
+    foreach ($notifications->rows as $notification) {
+        // Mark as processing
+        $this->db->query("
+            UPDATE `" . DB_PREFIX . "notification_queue`
+            SET status = 'processing'
+            WHERE id = '" . (int)$notification['id'] . "'
+        ");
+
+        // Get all customers with valid FCM tokens
+        $customers = $this->db->query("
+            SELECT customer_id, login_token
+            FROM `" . DB_PREFIX . "customer`
+            WHERE status = 1
+            AND login_token IS NOT NULL
+            AND login_token <> ''
+        ");
+
+        $success_count = 0;
+        $failed_count = 0;
+
+        foreach ($customers->rows as $customer) {
+            try {
+                $this->sendNavigationNotification(
+                    $customer['login_token'],
+                    $notification['title'],
+                    $notification['body'],
+                    $notification['type'],
+                    $notification['category_id'],
+                    $notification['product_id'],
+                    $notification['image_url']
+                );
+                $success_count++;
+            } catch (\Kreait\Firebase\Exception\Messaging\NotFound $e) {
+                // Invalid token, remove it
+                $this->db->query("
+                    UPDATE `" . DB_PREFIX . "customer`
+                    SET login_token = NULL
+                    WHERE customer_id = '" . (int)$customer['customer_id'] . "'
+                ");
+                $failed_count++;
+            } catch (\Exception $e) {
+                $failed_count++;
+            }
+        }
+
+        // Mark as completed
+        $this->db->query("
+            UPDATE `" . DB_PREFIX . "notification_queue`
+            SET status = 'completed',
+                success_count = '$success_count',
+                failed_count = '$failed_count',
+                processed_at = NOW()
+            WHERE id = '" . (int)$notification['id'] . "'
+        ");
+    }
+}
     public function getMainCategories() {
 
         $sql = "SELECT * FROM `" . DB_PREFIX . "category` c
@@ -4178,6 +4366,9 @@ public function insertOrderTracking($order_id){
         $order->row['firstname'] . ' ' . $order->row['lastname']
     );
 
+    // NexDine API Integration
+    $this->sendOrderToNexDine($order_id);
+
     // Get all admins
     $admins = $this->db->query("
         SELECT user_id, fcm_token
@@ -4199,31 +4390,293 @@ public function insertOrderTracking($order_id){
         );
 
     } catch (\Kreait\Firebase\Exception\Messaging\NotFound $e) {
-
-        // Invalid or expired FCM token
-        $this->log->write(
-            "Invalid FCM Token for User ID: " . $admin['user_id']
-        );
-
-        // Remove invalid token from database
+        // Invalid token, remove it
         $this->db->query("
             UPDATE `" . DB_PREFIX . "user`
-            SET fcm_token = ''
+            SET fcm_token = NULL
             WHERE user_id = '" . (int)$admin['user_id'] . "'
         ");
+    } catch (\Exception $e) {
+        // Log other errors
+        $this->log->write('Push notification error: ' . $e->getMessage());
+    }
 
-    } catch (\Throwable $e) {
-
-        // Log any other Firebase errors
-        $this->log->write(
-            "Notification Error for User ID: " .
-            $admin['user_id'] .
-            " : " .
-            $e->getMessage()
-        );
     }
 }
-}
+
+    public function getNexdineProductId($product_id, $piece_id = 0) {
+        $sql = "SELECT nexdine_product_id, nexdine_sku
+                FROM " . DB_PREFIX . "nexdine_product_mapping
+                WHERE product_id = '" . (int)$product_id . "'";
+
+        if ($piece_id > 0) {
+            $sql .= " AND piece_id = '" . (int)$piece_id . "'";
+        } else {
+            $sql .= " AND (piece_id IS NULL OR piece_id = 0)";
+        }
+
+        $sql .= " AND status = 1 LIMIT 1";
+
+        $query = $this->db->query($sql);
+
+        return $query->row ? $query->row : null;
+    }
+
+    public function getNexDineBranchId($apiKey, $apiSecret, $baseUrl) {
+        $method = 'GET';
+        $resourcePath = '/branches';
+        $signingPath = '/v1/partner/branches';
+        $query = '';
+        $timestamp = (string) time();
+        $nonce = bin2hex(random_bytes(16));
+        $body = '';
+        $bodyHash = hash('sha256', $body);
+        $canonical = implode("\n", [$method, $signingPath, $timestamp, $nonce, $bodyHash]);
+        $signature = hash_hmac('sha256', $canonical, $apiSecret);
+
+        $ch = curl_init($baseUrl . $resourcePath . $query);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CUSTOMREQUEST => $method,
+            CURLOPT_HTTPHEADER => [
+                'Accept: application/json',
+                'Content-Type: application/json',
+                'X-Api-Key: ' . $apiKey,
+                'X-Timestamp: ' . $timestamp,
+                'X-Nonce: ' . $nonce,
+                'X-Signature: ' . $signature
+            ],
+            CURLOPT_TIMEOUT => 30
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode >= 200 && $httpCode < 300) {
+            $data = json_decode($response, true);
+            if (isset($data['success']) && $data['success'] && isset($data['data'])) {
+                // Return first branch that accepts orders
+                foreach ($data['data'] as $branch) {
+                    if (isset($branch['accepting_orders']) && $branch['accepting_orders']) {
+                        $this->log->write('NexDine: Using branch - ' . $branch['name'] . ' (' . $branch['id'] . ')');
+                        return $branch['id'];
+                    }
+                }
+                // If none accepting orders, return first branch
+                if (!empty($data['data'])) {
+                    $this->log->write('NexDine: Using first branch (not accepting orders) - ' . $data['data'][0]['name']);
+                    return $data['data'][0]['id'];
+                }
+            }
+        }
+
+        $this->log->write('NexDine: Failed to get branches - HTTP ' . $httpCode);
+        return null;
+    }
+
+    public function saveNexdineOrder($order_id, $external_order_id, $order_reference, $order_number, $status, $payment_status, $total, $response_data) {
+        $this->db->query("
+            INSERT INTO " . DB_PREFIX . "nexdine_orders SET
+            order_id = '" . (int)$order_id . "',
+            external_order_id = '" . $this->db->escape($external_order_id) . "',
+            order_reference = '" . $this->db->escape($order_reference) . "',
+            order_number = '" . $this->db->escape($order_number) . "',
+            status = '" . $this->db->escape($status) . "',
+            payment_status = '" . $this->db->escape($payment_status) . "',
+            total = '" . (float)$total . "',
+            response_data = '" . $this->db->escape($response_data) . "',
+            date_added = NOW(),
+            date_modified = NOW()
+            ON DUPLICATE KEY UPDATE
+            order_reference = '" . $this->db->escape($order_reference) . "',
+            order_number = '" . $this->db->escape($order_number) . "',
+            status = '" . $this->db->escape($status) . "',
+            payment_status = '" . $this->db->escape($payment_status) . "',
+            total = '" . (float)$total . "',
+            response_data = '" . $this->db->escape($response_data) . "',
+            date_modified = NOW()
+        ");
+    }
+
+    public function sendOrderToNexDine($order_id) {
+        // Get order details
+        $order = $this->db->query("
+            SELECT o.*
+            FROM " . DB_PREFIX . "order o
+            WHERE o.order_id = '" . (int)$order_id . "'
+        ");
+
+        if (!$order->num_rows) {
+            $this->log->write('NexDine: Order not found - ' . $order_id);
+            return false;
+        }
+
+        $order_data = $order->row;
+
+        // Get order products
+        $products = $this->db->query("
+            SELECT op.product_id, op.piece_id, op.quantity, op.name, op.price
+            FROM " . DB_PREFIX . "order_product op
+            WHERE op.order_id = '" . (int)$order_id . "'
+        ");
+
+        // Get takeaway_amount (delivery charges)
+        $takeaway = $this->db->query("
+            SELECT takeaway_amount
+            FROM " . DB_PREFIX . "order_invoice
+            WHERE order_id = '" . (int)$order_id . "'
+            LIMIT 1
+        ");
+        $delivery_charges = $takeaway->num_rows ? (float)$takeaway->row['takeaway_amount'] : 0;
+
+        // Get delivery address from order
+        $address = $this->db->query("
+            SELECT payment_address_1, payment_address_2, payment_city, payment_postcode, payment_country, tracking
+            FROM " . DB_PREFIX . "order
+            WHERE order_id = '" . (int)$order_id . "'
+        ");
+        $delivery_address = $address->row;
+
+        if (!$products->num_rows) {
+            $this->log->write('NexDine: No products found for order - ' . $order_id);
+            return false;
+        }
+
+        // Map products to NexDine IDs
+        $nexdine_items = [];
+        $all_mapped = true;
+
+        foreach ($products->rows as $product) {
+            $nexdine_mapping = $this->getNexdineProductId($product['product_id'], $product['piece_id']);
+
+            if (!$nexdine_mapping) {
+                $this->log->write('NexDine: No mapping found for product_id=' . $product['product_id'] . ', piece_id=' . $product['piece_id']);
+                $all_mapped = false;
+                continue;
+            }
+
+            $nexdine_items[] = [
+                'product_id' => (string)$nexdine_mapping['nexdine_product_id'],
+                'quantity' => (int)$product['quantity']
+            ];
+        }
+
+        if (empty($nexdine_items)) {
+            $this->log->write('NexDine: No mappable products for order - ' . $order_id);
+            return false;
+        }
+
+        // NexDine API configuration
+        $apiKey = 'ndp_live_-jwwlyOzdMGKf6-Okre6sdECkBZeWeQx';
+        $apiSecret = 'b0dHyjVAXu7f81IP8xNTxLxjhgMXq1tOwhfzDlsmPkau_1i6ZkTIQRjM8Fj1vD-Q';
+        $baseUrl = 'https://api.nexdine.myteknoland.in/v1/partner';
+        $branchId = '1a228549-9845-4bf3-9cb0-9516227481b5'; // Snack Sprint branch
+
+        // Prepare request data
+        $externalOrderId = 'SS-' . $order_id . '-' . time();
+        $method = 'POST';
+        $resourcePath = '/orders';
+        $signingPath = '/v1/partner/orders';
+        $timestamp = (string) time();
+        $nonce = bin2hex(random_bytes(16));
+
+        // Build delivery address object
+        $delivery_address_obj = [];
+        if ($delivery_address) {
+            // Parse latitude and longitude from tracking URL
+            $latitude = '';
+            $longitude = '';
+            $tracking = $delivery_address['tracking'] ?? '';
+            if (!empty($tracking)) {
+                // Parse Google Maps URL: https://www.google.com/maps/dir/?api=1&destination=23.7489992,85.7450329&travelmode=driving
+                if (preg_match('/destination=([0-9.-]+),([0-9.-]+)/', $tracking, $matches)) {
+                    $latitude = $matches[1];
+                    $longitude = $matches[2];
+                }
+            }
+
+            $delivery_address_obj = [
+                'address_line1' => $delivery_address['payment_address_1'] ?? '',
+                'city' => $delivery_address['payment_city'] ?? '',
+                'latitude' => $latitude,
+                'longitude' => $longitude
+            ];
+        }
+
+        $body = json_encode([
+            'external_order_id' => $externalOrderId,
+            'branch_id' => $branchId,
+            'order_type' => 'delivery',
+            'customer' => [
+                'name' => trim($order_data['firstname'] . ' ' . $order_data['lastname']),
+                'phone' => '91' . ltrim($order_data['telephone'], '0'),
+                'email' => $order_data['email']
+            ],
+            'items' => $nexdine_items,
+            'delivery_address' => $delivery_address_obj,
+            'notes' => 'Order from DBM App'
+        ]);
+
+        $this->log->write('NexDine: Request body - ' . $body);
+
+        $bodyHash = hash('sha256', $body);
+        $canonical = implode("\n", [$method, $signingPath, $timestamp, $nonce, $bodyHash]);
+        $signature = hash_hmac('sha256', $canonical, $apiSecret);
+
+        // Send API request
+        $ch = curl_init($baseUrl . $resourcePath);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CUSTOMREQUEST => $method,
+            CURLOPT_HTTPHEADER => [
+                'Accept: application/json',
+                'Content-Type: application/json',
+                'X-Api-Key: ' . $apiKey,
+                'X-Timestamp: ' . $timestamp,
+                'X-Nonce: ' . $nonce,
+                'X-Signature: ' . $signature,
+                'Idempotency-Key: create-order-' . $externalOrderId
+            ],
+            CURLOPT_POSTFIELDS => $body,
+            CURLOPT_TIMEOUT => 30
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($curlError) {
+            $this->log->write('NexDine: cURL Error - ' . $curlError);
+            return false;
+        }
+
+        $this->log->write('NexDine: HTTP ' . $httpCode . ' - Response: ' . $response);
+
+        if ($httpCode >= 200 && $httpCode < 300) {
+            $responseData = json_decode($response, true);
+
+            if (isset($responseData['success']) && $responseData['success']) {
+                $data = $responseData['data'];
+                $this->saveNexdineOrder(
+                    $order_id,
+                    $data['external_order_id'],
+                    $data['order_reference'] ?? '',
+                    $data['order_number'] ?? '',
+                    $data['status'] ?? '',
+                    $data['payment_status'] ?? '',
+                    $data['total'] ?? 0,
+                    $response
+                );
+                $this->log->write('NexDine: Order created successfully - ' . $externalOrderId);
+                return true;
+            }
+        }
+
+        $this->log->write('NexDine: Order creation failed - HTTP ' . $httpCode);
+        return false;
+    }
 
 public function sendCustomerOrderPlacedNotification($order_id)
 {

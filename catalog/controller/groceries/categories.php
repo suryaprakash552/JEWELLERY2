@@ -194,6 +194,14 @@ class Categories extends \Opencart\System\Engine\Controller {
             'phone' => isset($this->request->post['email']) ? $this->request->post['email'] : $this->request->post['telephone']
         ]);
 
+        // Save FCM token (login_token) if provided
+        if (isset($this->request->post['login_token']) && !empty($this->request->post['login_token'])) {
+            $this->model_groceries_categories->saveLoginToken(
+                $customer['customer_id'],
+                $this->request->post['login_token']
+            );
+        }
+
         $json=[
 
             "success"=>"1",
@@ -611,6 +619,267 @@ public function saveAdminFcmToken(): void {
     $this->response->setOutput(json_encode([
         "status" => "success",
         "message" => "FCM Token Saved"
+    ]));
+}
+
+
+public function sendNavigationNotification(): void {
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user || $user['type'] != 'admin') {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+        return;
+    }
+
+    // Read JSON input
+    $raw = file_get_contents("php://input");
+    if ($raw) {
+        $decoded = json_decode($raw, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            $this->request->post = array_merge($this->request->post, $decoded);
+        }
+    }
+
+    $type = $this->request->post['type'] ?? '';
+    $category_id = $this->request->post['category_id'] ?? null;
+    $product_id = $this->request->post['product_id'] ?? null;
+    $title = $this->request->post['title'] ?? '';
+    $body = $this->request->post['body'] ?? '';
+    $image_url = $this->request->post['image_url'] ?? '';
+
+    // Validate required fields
+    if (empty($type)) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Type is required"
+        ]));
+        return;
+    }
+
+    if (empty($title)) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Title is required"
+        ]));
+        return;
+    }
+
+    if (empty($body)) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Body is required"
+        ]));
+        return;
+    }
+
+    $this->load->model('groceries/categories');
+
+    $result = $this->model_groceries_categories->sendNavigationNotificationToAllCustomers(
+        $type,
+        $category_id,
+        $product_id,
+        $title,
+        $body,
+        $image_url
+    );
+
+    $this->response->setOutput(json_encode($result));
+}
+
+public function uploadNotificationImage(): void {
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user || $user['type'] != 'admin') {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+        return;
+    }
+
+    // Check if file was uploaded
+    if (empty($this->request->files['image']) || !is_file($this->request->files['image']['tmp_name'])) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "No image file uploaded"
+        ]));
+        return;
+    }
+
+    $file = $this->request->files['image'];
+
+    // Validate file size (max 5MB)
+    $max_size = 5 * 1024 * 1024; // 5MB
+    if ($file['size'] > $max_size) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Image size must be less than 5MB"
+        ]));
+        return;
+    }
+
+    // Validate file extension
+    $allowed_extensions = ['jpg', 'jpeg', 'png', 'webp'];
+    $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+    if (!in_array($file_extension, $allowed_extensions)) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid image type. Allowed: jpg, jpeg, png, webp"
+        ]));
+        return;
+    }
+
+    // Validate MIME type (more lenient - check fileinfo as fallback)
+    $allowed_mime_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/pjpeg', 'application/octet-stream'];
+    $detected_mime = $file['type'];
+    
+    // Try to detect MIME type using fileinfo if available
+    if (function_exists('finfo_open')) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $detected_mime = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+    }
+    
+    // Allow if MIME type is in allowed list or if extension is valid (some clients send generic MIME types)
+    $is_valid_mime = in_array($detected_mime, $allowed_mime_types);
+    $is_valid_extension = in_array($file_extension, $allowed_extensions);
+    
+    if (!$is_valid_mime && !$is_valid_extension) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid MIME type: " . $detected_mime
+        ]));
+        return;
+    }
+
+    // Create notification images directory if it doesn't exist
+    $notification_dir = \DIR_IMAGE . 'notifications/';
+    if (!is_dir($notification_dir)) {
+        mkdir($notification_dir, 0755, true);
+    }
+
+    // Generate unique filename
+    $filename = uniqid('notif_', true) . '.jpg';
+    $filepath = $notification_dir . $filename;
+
+    // Load and compress image
+    $image_info = getimagesize($file['tmp_name']);
+    if (!$image_info) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid image file"
+        ]));
+        return;
+    }
+
+    // Create image resource based on type
+    switch ($image_info[2]) {
+        case IMAGETYPE_JPEG:
+            $image = imagecreatefromjpeg($file['tmp_name']);
+            break;
+        case IMAGETYPE_PNG:
+            $image = imagecreatefrompng($file['tmp_name']);
+            break;
+        case IMAGETYPE_WEBP:
+            $image = imagecreatefromwebp($file['tmp_name']);
+            break;
+        default:
+            $this->response->setOutput(json_encode([
+                "status" => "error",
+                "message" => "Unsupported image type"
+            ]));
+            return;
+    }
+
+    if (!$image) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Failed to process image"
+        ]));
+        return;
+    }
+
+    // Get original dimensions
+    $width = imagesx($image);
+    $height = imagesy($image);
+
+    // Calculate new dimensions (max 300x300)
+    $max_size = 300;
+    if ($width > $max_size || $height > $max_size) {
+        if ($width > $height) {
+            $new_width = $max_size;
+            $new_height = (int)($height * ($max_size / $width));
+        } else {
+            $new_height = $max_size;
+            $new_width = (int)($width * ($max_size / $height));
+        }
+    } else {
+        $new_width = $width;
+        $new_height = $height;
+    }
+
+    // Create new image with resized dimensions
+    $new_image = imagecreatetruecolor($new_width, $new_height);
+
+    // Handle transparency for PNG
+    if ($image_info[2] == IMAGETYPE_PNG) {
+        imagealphablending($new_image, false);
+        imagesavealpha($new_image, true);
+        $transparent = imagecolorallocatealpha($new_image, 255, 255, 255, 127);
+        imagefilledrectangle($new_image, 0, 0, $new_width, $new_height, $transparent);
+    }
+
+    // Resize image
+    imagecopyresampled($new_image, $image, 0, 0, 0, 0, $new_width, $new_height, $width, $height);
+
+    // Save with compression (start at 75% quality, reduce if still too large)
+    $quality = 75;
+    $max_file_size = 100 * 1024; // 100KB
+
+    do {
+        ob_start();
+        imagejpeg($new_image, null, $quality);
+        $image_data = ob_get_clean();
+        $file_size = strlen($image_data);
+
+        if ($file_size <= $max_file_size || $quality <= 5) {
+            break;
+        }
+
+        $quality -= 5;
+    } while ($quality > 5);
+
+    // Save compressed image
+    if (!file_put_contents($filepath, $image_data)) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Failed to save compressed image"
+        ]));
+        return;
+    }
+
+    $final_size_kb = round($file_size / 1024, 2);
+
+    // Free memory
+    imagedestroy($image);
+    imagedestroy($new_image);
+
+    // Generate public URL - use ngrok for local testing, production domain for production
+    // Change this to production domain when deploying
+    $image_url = 'https://defy-handler-dwindling.ngrok-free.dev/image/notifications/' . $filename;
+
+    $this->response->setOutput(json_encode([
+        "status" => "success",
+        "image_url" => $image_url,
+        "size_kb" => $final_size_kb
     ]));
 }
    public function sendWhatsAppOtp($data = [])
@@ -1269,17 +1538,29 @@ public function Order_sendwhatsapp(): void
             return;
             }
 
+    // Check if this is a notification-triggered call (bypass rate limit)
+    $is_notification = isset($this->request->get['notification']) && $this->request->get['notification'] === 'true';
+
     // Load rate limiter
     $this->load->library('rate_limiter');
 
     // Rate limit: configured requests per minute per customer
+    // Use separate rate limit key for notification-triggered calls to avoid conflicts with normal app usage
+    $rate_limit_key = $is_notification ? 'category_data_notification_' . $customer_auth['id'] : 'category_data_' . $customer_auth['id'];
+    $rate_limit_max = $is_notification ? 60 : API_RATE_LIMIT_CATEGORY_DATA_MAX; // Higher limit for notification clicks (60 per minute)
+    $rate_limit_window = API_RATE_LIMIT_CATEGORY_DATA_WINDOW;
+
+    // Log rate limit check for debugging
+    error_log("getCategoryData - Customer ID: {$customer_auth['id']}, Is Notification: " . ($is_notification ? 'true' : 'false') . ", Rate Limit Key: $rate_limit_key, Max: $rate_limit_max");
+
     $rate_result = $this->library_rate_limiter->check(
-        'category_data_' . $customer_auth['id'],
-        API_RATE_LIMIT_CATEGORY_DATA_WINDOW,
-        API_RATE_LIMIT_CATEGORY_DATA_MAX
+        $rate_limit_key,
+        $rate_limit_window,
+        $rate_limit_max
     );
 
     if (!$rate_result['allowed']) {
+        error_log("getCategoryData - Rate limit exceeded for customer {$customer_auth['id']}. Key: $rate_limit_key, Reset time: {$rate_result['reset']}");
         $this->response->addHeader('HTTP/1.1 429 Too Many Requests');
         $this->response->addHeader('Retry-After: ' . ($rate_result['reset'] - time()));
         $this->response->setOutput(json_encode([
@@ -7241,10 +7522,7 @@ public function approveManualTransaction(): void {
                 throw new \Exception("Refund amount is required");
             }
 
-            $amount = (float)$this->request->post['amount'];
-            if ($amount <= 0) {
-                throw new \Exception("Amount must be greater than 0");
-            }
+            
 
             $this->load->model('groceries/categories');
 
