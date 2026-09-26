@@ -7546,7 +7546,7 @@ public function approveManualTransaction(): void {
                 throw new \Exception("Request ID is required");
             }
 
-            if (empty($this->request->post['amount'])) {
+            if (!isset($this->request->post['amount']) || !is_numeric($this->request->post['amount'])) {
                 throw new \Exception("Refund amount is required");
             }
 
@@ -7571,7 +7571,7 @@ public function approveManualTransaction(): void {
             $description = 'Order cancellation refund for order #' . $request['order_id'];
             $wallet_result = $this->model_checkout_order->adjustWallet(
                 $request['customer_id'],
-                $amount,
+                $this->request->post['amount'],
                 'CREDIT',
                 'TRADE',
                 $description
