@@ -4,7 +4,7 @@ namespace Opencart\Catalog\Controller\Groceries;
 // API Rate Limiting and Cache Configuration
 define('API_RATE_LIMIT_INITIAL_DATA_MAX', 30); // Max requests per minute
 define('API_RATE_LIMIT_INITIAL_DATA_WINDOW', 60); // Time window in seconds
-define('API_RATE_LIMIT_CATEGORY_DATA_MAX', 300); // Max requests per minute (increased from 60)
+define('API_RATE_LIMIT_CATEGORY_DATA_MAX', 1000); // Max requests per minute (increased from 300 to prevent 429 errors)
 define('API_RATE_LIMIT_CATEGORY_DATA_WINDOW', 60); // Time window in seconds
 define('API_CACHE_TTL_INITIAL_DATA', 300); // Cache TTL in seconds (5 minutes)
 define('API_CACHE_TTL_CATEGORY_DATA', 180); // Cache TTL in seconds (3 minutes)
