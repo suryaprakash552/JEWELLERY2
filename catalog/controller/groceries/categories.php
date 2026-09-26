@@ -7567,18 +7567,20 @@ public function approveManualTransaction(): void {
             // Load checkout/order model for wallet operations
             $this->load->model('checkout/order');
 
-            // Add refund amount to customer wallet
-            $description = 'Order cancellation refund for order #' . $request['order_id'];
-            $wallet_result = $this->model_checkout_order->adjustWallet(
-                $request['customer_id'],
-                $this->request->post['amount'],
-                'CREDIT',
-                'TRADE',
-                $description
-            );
+            // Add refund amount to customer wallet (skip if amount is 0)
+            if ($this->request->post['amount'] > 0) {
+                $description = 'Order cancellation refund for order #' . $request['order_id'];
+                $wallet_result = $this->model_checkout_order->adjustWallet(
+                    $request['customer_id'],
+                    $this->request->post['amount'],
+                    'CREDIT',
+                    'TRADE',
+                    $description
+                );
 
-            if (!$wallet_result) {
-                throw new \Exception("Failed to add refund to wallet");
+                if (!$wallet_result) {
+                    throw new \Exception("Failed to add refund to wallet");
+                }
             }
 
             // Update cancellation request status to approved
