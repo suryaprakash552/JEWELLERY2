@@ -292,7 +292,8 @@ public function sendNavigationNotificationToAllCustomers($type, $title, $body, $
     $queue_id = $this->db->getLastId();
 
     // Trigger background processing using exec (non-blocking)
-    $phpPath = PHP_BINARY;
+    // Use PHP CLI instead of PHP_BINARY (which may be php-fpm)
+    $phpPath = '/usr/bin/php';
     $scriptPath = DIR_APPLICATION . 'model/groceries/process_notification.php';
     $command = "nohup $phpPath $scriptPath $queue_id > /tmp/notification_debug.log 2>&1 &";
     $output = [];
