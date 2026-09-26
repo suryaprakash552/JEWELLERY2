@@ -290,12 +290,17 @@ public function sendNavigationNotificationToAllCustomers($type, $title, $body, $
     ");
 
     $queue_id = $this->db->getLastId();
-    
+
     // Trigger background processing using exec (non-blocking)
     $phpPath = PHP_BINARY;
-    $scriptPath = '/home/surya/Videos/JEWELLERY2/catalog/model/groceries/process_notification.php';
-    $command = "nohup $phpPath $scriptPath $queue_id > /dev/null 2>&1 &";
-    exec($command);
+    $scriptPath = DIR_APPLICATION . 'model/groceries/process_notification.php';
+    $command = "nohup $phpPath $scriptPath $queue_id > /tmp/notification_debug.log 2>&1 &";
+    $output = [];
+    $return_var = 0;
+    exec($command, $output, $return_var);
+
+    // Log for debugging
+    error_log("Notification queue trigger - Command: $command, Return: $return_var, Output: " . implode(', ', $output));
 
     return [
         'success' => true,

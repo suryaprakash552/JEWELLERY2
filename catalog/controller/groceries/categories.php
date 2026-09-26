@@ -691,6 +691,35 @@ public function sendNavigationNotification(): void {
     $this->response->setOutput(json_encode($result));
 }
 
+public function processNotificationQueue(): void {
+    $this->response->addHeader('Content-Type: application/json');
+
+    $user = $this->validateToken();
+
+    if (!$user || $user['type'] != 'admin') {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "Invalid Token"
+        ]));
+        return;
+    }
+
+    $queue_id = (int)($this->request->get['queue_id'] ?? 0);
+
+    if (!$queue_id) {
+        $this->response->setOutput(json_encode([
+            "status" => "error",
+            "message" => "queue_id is required"
+        ]));
+        return;
+    }
+
+    $this->load->model('groceries/categories');
+    $result = $this->model_groceries_categories->processNotificationQueue($queue_id);
+
+    $this->response->setOutput(json_encode($result));
+}
+
 public function uploadNotificationImage(): void {
     $this->response->addHeader('Content-Type: application/json');
 
