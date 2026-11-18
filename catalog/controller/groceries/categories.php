@@ -1475,18 +1475,18 @@ public function Order_sendwhatsapp(): void
     }
     
     $this->load->model('groceries/categories');
-    
-    
-    // 1 RANDOM PRODUCTS
-    
-    $random_products=$this->model_groceries_categories->getRandomProducts();
-    
-    $combo_products=$this->model_groceries_categories->getComboProducts();
-    $main_categories =$this->model_groceries_categories->getMainCategories();
+
+
+    // 1 RANDOM PRODUCTS (exclude fashion)
+
+    $random_products=$this->model_groceries_categories->getRandomProducts(0);
+
+    $combo_products=$this->model_groceries_categories->getComboProducts(0);
+    $main_categories =$this->model_groceries_categories->getMainCategories(0);
 
     
 
-    $offer_categories=$this->model_groceries_categories->getOfferCategories();
+    $offer_categories=$this->model_groceries_categories->getOfferCategories(0);
 
     $offers=[];
     
@@ -1520,7 +1520,86 @@ public function Order_sendwhatsapp(): void
     $this->cache->set($cache_key, $response_data, API_CACHE_TTL_INITIAL_DATA);
     
     $this->response->setOutput(json_encode($response_data));
-    
+
+    }
+
+    public function getFashionData(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    // Rate limiting check
+    $customer_auth = $this->validateToken();
+    if (!$customer_auth) {
+    $this->response->setOutput(json_encode([
+    "status"=>"error",
+    "message"=>"Invalid Token"
+    ]));
+    return;
+    }
+
+    // Load rate limiter
+    $this->load->library('rate_limiter');
+
+    // Rate limit: configured requests per minute per customer
+    $rate_result = $this->library_rate_limiter->check(
+        'fashion_data_' . $customer_auth['id'],
+        API_RATE_LIMIT_INITIAL_DATA_WINDOW,
+        API_RATE_LIMIT_INITIAL_DATA_MAX
+    );
+
+    if (!$rate_result['allowed']) {
+        $this->response->addHeader('HTTP/1.1 429 Too Many Requests');
+        $this->response->addHeader('Retry-After: ' . ($rate_result['reset'] - time()));
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>"Too many requests. Please try again later."
+        ]));
+        return;
+    }
+
+    // Cache check
+    $language_id = (int)$this->config->get('config_language_id');
+    $cache_key = 'api.fashion_data.' . $language_id;
+
+    $cached_data = $this->cache->get($cache_key);
+    if (!empty($cached_data)) {
+        $this->response->setOutput(json_encode($cached_data));
+        return;
+    }
+
+    $this->load->model('groceries/categories');
+
+    // Get fashion data (is_fashion = 1)
+    $random_products = $this->model_groceries_categories->getRandomProducts(1);
+    $combo_products = $this->model_groceries_categories->getComboProducts(1);
+    $main_categories = $this->model_groceries_categories->getMainCategories(1);
+    $offer_categories = $this->model_groceries_categories->getOfferCategories(1);
+
+    $offers = [];
+
+    foreach($offer_categories as $offer) {
+        $products = $this->model_groceries_categories->getOfferProducts($offer['category_id'], 0, 6);
+
+        $offers[] = [
+            "category_id" => $offer['category_id'],
+            "name" => $offer['name'],
+            "products" => $products
+        ];
+    }
+
+    $response_data = [
+        "status" => "success",
+        "random_products" => $random_products,
+        "combo_products" => $combo_products,
+        "categories" => $main_categories,
+        "offers" => $offers
+    ];
+
+    // Cache for configured TTL
+    $this->cache->set($cache_key, $response_data, API_CACHE_TTL_INITIAL_DATA);
+
+    $this->response->setOutput(json_encode($response_data));
+
     }
     
     public function getOfferMoreProducts(){
@@ -2217,6 +2296,24 @@ public function getDeliveryFee(): void {
                     $post['pieces'][$k]['image'] = '';
 
                 }
+
+                // Handle colors for this piece (color + image variants)
+                if (!empty($piece['colors']) && is_array($piece['colors'])) {
+                    foreach ($piece['colors'] as $c => $color) {
+                        if (!empty($color['image_base64'])) {
+                            $post['pieces'][$k]['colors'][$c]['image'] =
+                                $this->saveBase64Image($color['image_base64']);
+                            unset($post['pieces'][$k]['colors'][$c]['image_base64']);
+                        } elseif (!empty($color['image'])) {
+                            $post['pieces'][$k]['colors'][$c]['image'] = $color['image'];
+                        } else {
+                            $post['pieces'][$k]['colors'][$c]['image'] = '';
+                        }
+
+                        $post['pieces'][$k]['colors'][$c]['pos_quantity'] =
+                            (int)($color['pos_quantity'] ?? 0);
+                    }
+                }
             }
         }
             
@@ -2470,6 +2567,7 @@ public function getDeliveryFee(): void {
         $gst = (float)($post['gst'] ?? 0);
         $sort_order = (int)($post['sort_order'] ?? 0);
         $is_banner = (int)($post['is_banner'] ?? 0);
+        $is_fashion = (int)($post['is_fashion'] ?? 0);
         $status = (int)($post['status'] ?? 1);
 
         $this->load->model('groceries/categories');
@@ -2484,7 +2582,8 @@ public function getDeliveryFee(): void {
                                                             "offer_percentage"=>$offer_percentage,
                                                             "gst"=>$gst,
                                                             "sort_order"=>$sort_order,
-                                                            "is_banner"=>$sort_order,
+                                                            "is_banner"=>$is_banner,
+                                                            "is_fashion"=>$is_fashion,
                                                             "status"=>$status,
                                                             "offer_products" => $post['offer_products'] ?? []
                                                             ]);
@@ -2588,6 +2687,7 @@ public function editCategory(): void {
             "gst" => (float)($post['gst'] ?? 0),
             "sort_order" => (int)($post['sort_order'] ?? 0),
             "is_banner" => (int)($post['is_banner'] ?? 0),
+            "is_fashion" => (int)($post['is_fashion'] ?? 0),
             "status" => (int)($post['status'] ?? 1),
             "offer_products" => $post['offer_products'] ?? []
         ];
@@ -5437,7 +5537,7 @@ public function addBanner(): void {
                 $this->model_groceries_categories->addBannerImage([
                     "banner_id"=>$banner_id,
                     "title"=>$img['title'] ?? '',
-                    "link"=>$img['category_id'] ?? '',
+                    "link"=>$img['link'] ?? $img['category_id'] ?? '',
                     "image"=>$path,
                     "sort_order"=>$img['sort_order'] ?? 0
                 ]);
@@ -5504,7 +5604,7 @@ public function editBanner(): void {
                 $this->model_groceries_categories->addBannerImage([
                     "banner_id"  => $banner_id,
                     "title"      => $img['title'] ?? '',
-                    "link"       => $img['category_id'] ?? '',
+                    "link"       => $img['link'] ?? $img['category_id'] ?? '',
                     "image"      => $image,
                     "sort_order" => $img['sort_order'] ?? 0
                 ]);
@@ -5704,7 +5804,7 @@ public function addRunningBanner(): void {
                 $this->model_groceries_categories->addRunningBannerImage([
                     "banner_id"=>$banner_id,
                     "title"=>$img['title'] ?? '',
-                    "link"=>$img['category_id'] ?? '',
+                    "link"=>$img['link'] ?? $img['category_id'] ?? '',
                     "image"=>$path,
                     "sort_order"=>$img['sort_order'] ?? 0
                 ]);
@@ -5773,7 +5873,7 @@ public function editRunningBanner(): void {
                 $this->model_groceries_categories->addRunningBannerImage([
                     "banner_id"  => $banner_id,
                     "title"      => $img['title'] ?? '',
-                    "link"       => $img['category_id'] ?? '',
+                    "link"       => $img['link'] ?? $img['category_id'] ?? '',
                     "image"      => $image,
                     "sort_order" => $img['sort_order'] ?? 0
                 ]);
@@ -5882,7 +5982,7 @@ public function addBottomBanner(): void {
                 $this->model_groceries_categories->addBottomBannerImage([
                     "banner_id"=>$banner_id,
                     "title"=>$img['title'] ?? '',
-                    "link"=>$img['category_id'] ?? '',
+                    "link"=>$img['link'] ?? $img['category_id'] ?? '',
                     "image"=>$path,
                     "sort_order"=>$img['sort_order'] ?? 0
                 ]);
@@ -5951,7 +6051,7 @@ public function editBottomBanner(): void {
                 $this->model_groceries_categories->addBottomBannerImage([
                     "banner_id"  => $banner_id,
                     "title"      => $img['title'] ?? '',
-                    "link"       => $img['category_id'] ?? '',
+                    "link"       => $img['link'] ?? $img['category_id'] ?? '',
                     "image"      => $image,
                     "sort_order" => $img['sort_order'] ?? 0
                 ]);
@@ -6018,6 +6118,184 @@ public function getAllBottomBanners(): void {
         ]));
     }
 }
+public function addFashionBanner(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    try{
+
+        $post = $this->request->post;
+
+        $raw = file_get_contents("php://input");
+
+        if($raw){
+            $json = json_decode($raw,true);
+            if(json_last_error() === JSON_ERROR_NONE){
+                $post = array_merge($post,$json);
+            }
+        }
+
+        $name = trim($post['name'] ?? '');
+
+        if(!$name){
+            throw new \Exception("Banner name required");
+        }
+
+        $this->load->model('groceries/categories');
+
+        $banner_id = $this->model_groceries_categories->addFashionBanner([
+            "name"=>$name,
+            "from_date"=>$post['from_date'] ?? null,
+            "to_date"=>$post['to_date'] ?? null,
+            "status"=>1
+        ]);
+
+        if(!empty($post['images'])){
+
+            foreach($post['images'] as $img){
+
+                $path = $this->saveBannerImage($img['image'],$img['title']);
+
+                $this->model_groceries_categories->addFashionBannerImage([
+                    "banner_id"=>$banner_id,
+                    "title"=>$img['title'] ?? '',
+                    "link"=>$img['link'] ?? $img['category_id'] ?? '',
+                    "image"=>$path,
+                    "sort_order"=>$img['sort_order'] ?? 0
+                ]);
+            }
+        }
+
+        $this->response->setOutput(json_encode([
+            "status"=>"success",
+            "banner_id"=>$banner_id
+        ]));
+
+    }catch(\Throwable $e){
+
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>$e->getMessage()
+        ]));
+    }
+}
+public function editFashonBanner(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    try{
+
+        $post = $this->request->post;
+
+        $raw = file_get_contents("php://input");
+
+        if($raw){
+            $json = json_decode($raw,true);
+            if(json_last_error() === JSON_ERROR_NONE){
+                $post = array_merge($post,$json);
+            }
+        }
+
+        $banner_id = (int)($post['banner_id'] ?? 0);
+
+        if(!$banner_id){
+            throw new \Exception("Banner ID required");
+        }
+
+        $this->load->model('groceries/categories');
+
+        // update banner table only
+        $this->model_groceries_categories->editFashionBanner($banner_id,[
+            "name"=>$post['name'] ?? '',
+            "from_date"=>$post['from_date'] ?? null,
+            "to_date"=>$post['to_date'] ?? null,
+            "status"=>$post['status'] ?? 1
+        ]);
+
+        $this->model_groceries_categories->deletefashionBannerImages($banner_id);
+
+        // add new images only if provided (do not delete old ones)
+        if (!empty($post['images'])) {
+
+            foreach ($post['images'] as $img) {
+
+                if (!empty($img['existing_image'])) {
+                    $image = $img['existing_image'];
+                } else {
+                    $image = $this->saveBannerImage($img['image'], $img['title']);
+                }
+
+                $this->model_groceries_categories->addFashionBannerImage([
+                    "banner_id"  => $banner_id,
+                    "title"      => $img['title'] ?? '',
+                    "link"       => $img['link'] ?? $img['category_id'] ?? '',
+                    "image"      => $image,
+                    "sort_order" => $img['sort_order'] ?? 0
+                ]);
+            }
+        }
+
+        $this->response->setOutput(json_encode([
+            "status"=>"success",
+            "message"=>"Banner updated"
+        ]));
+
+    }catch(\Throwable $e){
+
+        $this->response->setOutput(json_encode([
+            "status"=>"error",
+            "message"=>$e->getMessage()
+        ]));
+    }
+}
+
+public function getFashionsBanners(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    try{
+
+        $this->load->model('groceries/categories');
+
+        $banners = $this->model_groceries_categories->getActiveFashionBanners();
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "data"   => $banners
+        ]));
+
+    }catch(\Throwable $e){
+
+        $this->response->setOutput(json_encode([
+            "status"  => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
+
+public function getAllFashionBanners(): void {
+
+    $this->response->addHeader('Content-Type: application/json');
+
+    try{
+
+        $this->load->model('groceries/categories');
+
+        $banners = $this->model_groceries_categories->getAllFashionBanners();
+
+        $this->response->setOutput(json_encode([
+            "status" => "success",
+            "data"   => $banners
+        ]));
+
+    }catch(\Throwable $e){
+
+        $this->response->setOutput(json_encode([
+            "status"  => "error",
+            "message" => $e->getMessage()
+        ]));
+    }
+}
 
 public function getReward(): void {
 
@@ -6065,7 +6343,44 @@ public function getAllProducts(): void {
 
         $this->load->model('groceries/categories');
 
-        $products = $this->model_groceries_categories->getAllProducts($search);
+        $products = $this->model_groceries_categories->getAllProducts($search, 0);
+
+        $related_ids = [];
+        if ($product_id > 0) {
+            $related = $this->model_groceries_categories->getRelatedProducts($product_id);
+            foreach ($related as $r) {
+                $related_ids[] = (int)$r['product_id'];
+            }
+        }
+
+        $this->response->setOutput(json_encode([
+        "status" => "success",
+        "data" => $products,
+        "related_ids" => $related_ids
+        ]));
+
+        }
+
+public function getFashionProducts(): void {
+
+        $this->response->addHeader('Content-Type: application/json');
+
+        $customer_id = $this->validateToken();
+
+        if(!$customer_id){
+        $this->response->setOutput(json_encode([
+        "status" => "error",
+        "message" => "Invalid Token"
+        ]));
+        return;
+        }
+
+        $search = $this->request->get['search'] ?? '';
+        $product_id = (int)($this->request->get['product_id'] ?? 0);
+
+        $this->load->model('groceries/categories');
+
+        $products = $this->model_groceries_categories->getAllProducts($search, 1);
 
         $related_ids = [];
         if ($product_id > 0) {
@@ -6341,6 +6656,49 @@ public function get10to49perDiscountProducts(): void {
 
 
             $products = $this->model_groceries_categories->getProductStockReport($filter_data);
+
+            $category_totals = $this->model_groceries_categories->getCategoryWiseStockTotal();
+
+            $this->response->setOutput(json_encode([
+                "status" => "success",
+                "products" => $products,
+                "category_totals" => $category_totals,
+                "pagination" => [
+                    "page" => (int)$page,
+                    "limit" => (int)$limit
+                ]
+            ]));
+        }
+
+        public function fashionProductStockReport(): void {
+
+            $this->response->addHeader('Content-Type: application/json');
+
+            if (!$this->validateToken()) {
+                $this->response->setOutput(json_encode([
+                    "status" => "error",
+                    "message" => "Invalid Token"
+                ]));
+                return;
+            }
+
+            $this->load->model('groceries/categories');
+
+
+            $search = $this->request->get['search'] ?? '';
+            $page   = $this->request->get['page'] ?? 1;
+            $limit  = $this->request->get['limit'] ?? 10;
+
+            $start = ($page - 1) * $limit;
+
+            $filter_data = [
+                'search' => $search,
+                'start' => $start,
+                'limit' => $limit
+            ];
+
+
+            $products = $this->model_groceries_categories->getFashionProductStockReport($filter_data);
 
             $category_totals = $this->model_groceries_categories->getCategoryWiseStockTotal();
 

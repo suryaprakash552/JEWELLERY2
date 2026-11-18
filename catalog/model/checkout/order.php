@@ -291,6 +291,7 @@ foreach ($posQtyMap as $product_id => $qty) {
                                                     `name`       = '" . $this->db->escape($product['name'] ?? '') . "',
                                                     `model`      = '',
                                                     `piece_id`   = '" . (int)($product['piece_id'] ?? 0) . "',
+                                                    `color_id`   = '" . (int)($product['color_id'] ?? 0) . "',
                                                     `is_combo`   = '" . $this->db->escape($product['is_combo'] ?? 'No') . "',
                                                     `min_quantity` = '" . (int)($product['min_quantity'] ?? 0) . "',
                                                     `selected_quantity` = '" . (int)($product['selected_quantity'] ?? 0) . "',
@@ -311,6 +312,8 @@ foreach ($posQtyMap as $product_id => $qty) {
 
                 $piece_id = (int)($product['piece_id'] ?? 0);
 
+                $color_id = (int)($product['color_id'] ?? 0);
+
                 $qty = (int)($product['quantity'] ?? 0);
 
                 if ($product_id > 0 && $piece_id > 0 && $qty > 0) {
@@ -320,6 +323,15 @@ foreach ($posQtyMap as $product_id => $qty) {
                         SET pos_quantity = GREATEST(pos_quantity - '" . (int)$qty . "', 0)
                         WHERE product_id = '" . (int)$product_id . "'
                         AND piece_id = '" . (int)$piece_id . "'
+                    ");
+                }
+
+                if ($color_id > 0 && $qty > 0) {
+
+                    $this->db->query("
+                        UPDATE `" . DB_PREFIX . "product_colors`
+                        SET pos_quantity = GREATEST(pos_quantity - '" . (int)$qty . "', 0)
+                        WHERE id = '" . (int)$color_id . "'
                     ");
                 }
             }
@@ -500,6 +512,8 @@ public function editPreviousOrder(int $order_id, array $data, array $invoice_ext
                     order_id   = '$order_id',
                     product_id = '" . (int)$product['product_id'] . "',
                     name       = '" . $this->db->escape($product['name']) . "',
+                    piece_id   = '" . (int)($product['piece_id'] ?? 0) . "',
+                    color_id   = '" . (int)($product['color_id'] ?? 0) . "',
                     quantity   = '" . (int)$product['quantity'] . "',
                     price      = '" . (float)$product['price'] . "',
                     total      = '" . (float)$product['total'] . "',
@@ -1537,6 +1551,8 @@ public function addHoldOrder($data)
                                                     order_id   = '" . $order_id . "',
                                                     product_id = '" . (int)$product['product_id'] . "',
                                                     name       = '" . $this->db->escape($product['name']) . "',
+                                                    piece_id   = '" . (int)($product['piece_id'] ?? 0) . "',
+                                                    color_id   = '" . (int)($product['color_id'] ?? 0) . "',
                                                     quantity   = '" . (int)$product['quantity'] . "',
                                                     price      = '" . (float)$product['price'] . "',
                                                     total      = '" . (float)$product['total'] . "'");
@@ -1562,6 +1578,8 @@ public function updateHoldOrder($data)
                                                     `product_id` = '" . (int)($product['product_id'] ?? 0) . "',
                                                     `name`       = '" . $this->db->escape($product['name'] ?? '') . "',
                                                     `model`      = '',
+                                                    `piece_id`   = '" . (int)($product['piece_id'] ?? 0) . "',
+                                                    `color_id`   = '" . (int)($product['color_id'] ?? 0) . "',
                                                     `quantity`   = '" . (int)($product['quantity'] ?? 1) . "',
                                                     `price`      = '" . (float)($product['price'] ?? 0) . "',
                                                     `total`      = '" . (float)($product['total'] ?? 0) . "'";
@@ -1803,6 +1821,7 @@ private function restorePosQuantity(int $order_id): void
         SELECT
             product_id,
             piece_id,
+            color_id,
             quantity
         FROM `" . DB_PREFIX . "order_product`
         WHERE order_id = '" . (int)$order_id . "'
@@ -1825,6 +1844,16 @@ private function restorePosQuantity(int $order_id): void
                 SET pos_quantity = pos_quantity + " . (int)$p['quantity'] . "
                 WHERE product_id = '" . (int)$p['product_id'] . "'
                 AND piece_id = '" . (int)$p['piece_id'] . "'
+            ");
+        }
+
+        // Restore color POS quantity
+        if ((int)$p['color_id'] > 0) {
+
+            $this->db->query("
+                UPDATE `" . DB_PREFIX . "product_colors`
+                SET pos_quantity = pos_quantity + " . (int)$p['quantity'] . "
+                WHERE id = '" . (int)$p['color_id'] . "'
             ");
         }
     }
@@ -2703,6 +2732,7 @@ public function addProduct(int $order_id, array $data): int {
     $total       = (float)($data['total']     ?? 0);
     $tax         = (float)($data['tax']       ?? 0);
     $reward      = (int)($data['reward']      ?? 0);
+    $color_id    = (int)($data['color_id']    ?? 0);
     $options     = $data['option']            ?? [];
     $subscription= $data['subscription']      ?? [];
 
@@ -2713,6 +2743,7 @@ public function addProduct(int $order_id, array $data): int {
                                                                 `master_id`  = '" . $master_id . "',
                                                                 `name`       = '" . $name . "',
                                                                 `model`      = '" . $model . "',
+                                                                `color_id`   = '" . $color_id . "',
                                                                 `quantity`   = '" . $quantity . "',
                                                                 `price`      = '" . $price . "',
                                                                 `total`      = '" . $total . "',

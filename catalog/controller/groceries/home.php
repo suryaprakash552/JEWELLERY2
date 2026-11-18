@@ -209,6 +209,7 @@ class Home extends \Opencart\System\Engine\Controller {
                     "model" => "",
                     "option" => [],
                     "piece_id" => (int)($p["piece_id"] ?? 0),
+                    "color_id" => (int)($p["color_id"] ?? 0),
                     "is_combo" => $p["is_combo"] ?? "No",
                     "min_quantity" => (int)($p["min_quantity"] ?? 0),
                     "selected_quantity" => (int)($p["selected_quantity"] ?? 0),
@@ -301,42 +302,46 @@ class Home extends \Opencart\System\Engine\Controller {
 
             if ($editOrderId > 0) {
 
-                $this->model_checkout_order->addHistory(
-                    $order_id,
-                    17,
-                    "",
-                    false,
-                    true
-                );
+                try {
+                    $this->model_checkout_order->addHistory(
+                        $order_id,
+                        17,
+                        "",
+                        false,
+                        true
+                    );
+                } catch (\Throwable $e) {
+                    $this->log->write("Order History Error: " . $e->getMessage());
+                }
             
             // 2️⃣ RETURN ORDER
             } elseif ($previousOrderId > 0) {
             
-                $this->model_checkout_order->addHistory(
-                    $previousOrderId,
-                    4,
-                    "",
-                    false,
-                    true
-                );
-            
-                $this->model_checkout_order->addHistory(
-                    $order_id,
-                    6, // Return Completed
-                    "",
-                    false,
-                    true
-                );
+                try {
+                    $this->model_checkout_order->addHistory(
+                        $order_id,
+                        6, // Return Completed
+                        "",
+                        false,
+                        true
+                    );
+                } catch (\Throwable $e) {
+                    $this->log->write("Order History Error: " . $e->getMessage());
+                }
             
             } else {
             
-                $this->model_checkout_order->addHistory(
-                    $order_id,
-                    5, // Complete
-                    "",
-                    false,
-                    true
-                );
+                try {
+                    $this->model_checkout_order->addHistory(
+                        $order_id,
+                        5, // Complete
+                        "",
+                        false,
+                        true
+                    );
+                } catch (\Throwable $e) {
+                    $this->log->write("Order History Error: " . $e->getMessage());
+                }
             }
 
             try {

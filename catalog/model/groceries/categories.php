@@ -375,7 +375,7 @@ public function processNotificationQueue($queue_id = null) {
         ");
     }
 }
-    public function getMainCategories() {
+    public function getMainCategories($is_fashion = null) {
 
         $sql = "SELECT * FROM `" . DB_PREFIX . "category` c
                 JOIN `" . DB_PREFIX . "category_description` cd
@@ -383,6 +383,10 @@ public function processNotificationQueue($queue_id = null) {
                 WHERE c.parent_id = 0
                 AND c.is_banner = 0
                 AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
+
+        if ($is_fashion !== null) {
+            $sql .= " AND c.is_fashion = '" . (int)$is_fashion . "'";
+        }
 
         return $this->db->query($sql)->rows;
     }
@@ -491,9 +495,40 @@ public function getProductPiecesBatch(array $product_ids): array {
 
     $rows = $this->db->query($sql)->rows;
 
+    // Fetch color variants for all products in one query
+    $all_colors = $this->getProductColorsBatch($product_ids);
+
     $result = [];
     foreach ($rows as $row) {
+        $row['colors'] = $all_colors[$row['product_id']][$row['piece_id']] ?? [];
         $result[$row['product_id']][] = $row;
+    }
+
+    return $result;
+}
+
+public function getProductColorsBatch(array $product_ids): array {
+    if (empty($product_ids)) {
+        return [];
+    }
+
+    $product_ids = array_map('intval', array_unique($product_ids));
+
+    $sql = "SELECT id, product_id, piece_id, color, pos_quantity, image
+            FROM " . DB_PREFIX . "product_colors
+            WHERE product_id IN (" . implode(',', $product_ids) . ")
+            ORDER BY id ASC";
+
+    $rows = $this->db->query($sql)->rows;
+
+    $result = [];
+    foreach ($rows as $row) {
+        $result[$row['product_id']][$row['piece_id']][] = [
+            'id'           => $row['id'],
+            'color'        => $row['color'],
+            'pos_quantity' => $row['pos_quantity'],
+            'image'        => $row['image']
+        ];
     }
 
     return $result;
@@ -678,9 +713,9 @@ public function getProductPiecesStockBatch(array $product_ids): array {
     return $result;
 }
 
-    public function getAllProducts($search = '') {
+    public function getAllProducts($search = '', $is_fashion = null) {
 
-        $sql = "SELECT 
+        $sql = "SELECT
                 p.product_id,
                 p.received_price,
                 p.price,
@@ -697,9 +732,18 @@ public function getProductPiecesStockBatch(array $product_ids): array {
                 ON p.product_id = pd.product_id
                 LEFT JOIN " . DB_PREFIX . "pts_pos_product pp
                 ON p.product_id = pp.product_id
-                
+
 
                 WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
+
+        if ($is_fashion !== null) {
+            $sql .= " AND p.product_id IN (
+                SELECT pc.product_id
+                FROM `" . DB_PREFIX . "product_to_category` pc
+                JOIN `" . DB_PREFIX . "category` c ON pc.category_id = c.category_id
+                WHERE c.is_fashion = '" . (int)$is_fashion . "'
+            )";
+        }
 
         if(!empty($search)){
         $sql .= " AND pd.name LIKE '%".$this->db->escape($search)."%'";
@@ -1172,7 +1216,7 @@ public function getProductPiecesByCategory($product_id, $category_id): array {
     return $this->db->query($sql . " ORDER BY ptp.id")->rows;
 }
     
-    public function getRandomProducts() {
+    public function getRandomProducts($is_fashion = null) {
 
     $sql = "SELECT *
         FROM `" . DB_PREFIX . "product` p
@@ -1183,8 +1227,18 @@ public function getProductPiecesByCategory($product_id, $category_id): array {
             ON p.product_id = pp.product_id
 
         WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
-        AND p.featured = '1'
-        ORDER BY p.date_added DESC
+        AND p.featured = '1'";
+
+    if ($is_fashion !== null) {
+        $sql .= " AND p.product_id IN (
+            SELECT pc.product_id
+            FROM `" . DB_PREFIX . "product_to_category` pc
+            JOIN `" . DB_PREFIX . "category` c ON pc.category_id = c.category_id
+            WHERE c.is_fashion = '" . (int)$is_fashion . "'
+        )";
+    }
+
+    $sql .= " ORDER BY p.date_added DESC
         LIMIT 9";
 
     $products = $this->db->query($sql)->rows;
@@ -1207,7 +1261,7 @@ public function getProductPiecesByCategory($product_id, $category_id): array {
     return $this->formatProductResponse($products);
 }
 
-    public function getComboProducts() {
+    public function getComboProducts($is_fashion = null) {
 
     $sql = "SELECT *
         FROM `" . DB_PREFIX . "product` p
@@ -1218,8 +1272,18 @@ public function getProductPiecesByCategory($product_id, $category_id): array {
             ON p.product_id = pp.product_id
 
         WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
-        AND p.is_combo = 'Yes'
-        ORDER BY p.date_added DESC
+        AND p.is_combo = 'Yes'";
+
+    if ($is_fashion !== null) {
+        $sql .= " AND p.product_id IN (
+            SELECT pc.product_id
+            FROM `" . DB_PREFIX . "product_to_category` pc
+            JOIN `" . DB_PREFIX . "category` c ON pc.category_id = c.category_id
+            WHERE c.is_fashion = '" . (int)$is_fashion . "'
+        )";
+    }
+
+    $sql .= " ORDER BY p.date_added DESC
         LIMIT 9";
 
     $products = $this->db->query($sql)->rows;
@@ -1242,7 +1306,7 @@ public function getProductPiecesByCategory($product_id, $category_id): array {
     return $this->formatProductResponse($products);
 }
 
-        public function getOfferCategories() {
+        public function getOfferCategories($is_fashion = null) {
 
         $sql="SELECT *
         FROM `" . DB_PREFIX . "category` c
@@ -1251,9 +1315,13 @@ public function getProductPiecesByCategory($product_id, $category_id): array {
         WHERE c.offer='1'
         AND c.status='1'
         AND cd.language_id='".(int)$this->config->get('config_language_id')."'";
-        
+
+        if ($is_fashion !== null) {
+            $sql .= " AND c.is_fashion = '" . (int)$is_fashion . "'";
+        }
+
         return $this->db->query($sql)->rows;
-        
+
         }
         
         public function getOfferProducts($category_id) {
@@ -1641,6 +1709,8 @@ sort_order='".(int)$data['sort_order']."',
 
 is_banner='".(int)$data['is_banner']."',
 
+is_fashion='".(int)$data['is_fashion']."',
+
 status='".(int)$data['status']."'
 ");
 
@@ -1745,6 +1815,7 @@ public function getCategories(): array {
                 c.gst,
                 c.sort_order,
                 c.is_banner,
+                c.is_fashion,
                 c.status,
 
                 GROUP_CONCAT(DISTINCT cd2.name ORDER BY cp.level SEPARATOR ' > ') AS category_name,
@@ -1812,6 +1883,7 @@ public function getCategories(): array {
                 'gst'              => $row['gst'],
                 'sort_order'       => $row['sort_order'],
                 'is_banner'        => $row['is_banner'],
+                'is_fashion'       => $row['is_fashion'],
                 'status'           => $row['status'],
                 'products'         => []
             ];
@@ -1868,6 +1940,7 @@ public function editCategory($category_id, $data) {
         gst = '" . (float)$data['gst'] . "',
         sort_order = '" . (int)$data['sort_order'] . "',
         is_banner = '" . (int)$data['is_banner'] . "',
+        is_fashion = '" . (int)$data['is_fashion'] . "',
         status = '" . (int)$data['status'] . "'";
 
     if (!empty($data['image'])) {
@@ -2075,7 +2148,8 @@ public function getFullOrderDetails(int $order_id) {
                 p.price
         END AS mrp,
 
-        p.image AS product_image
+        p.image AS product_image,
+        ps.piece AS piece_name
 
     FROM `" . DB_PREFIX . "order_product` op
 
@@ -2085,6 +2159,9 @@ public function getFullOrderDetails(int $order_id) {
     LEFT JOIN `" . DB_PREFIX . "piece_to_product` ptp
         ON ptp.product_id = op.product_id
         AND ptp.piece_id = op.piece_id
+
+    LEFT JOIN `" . DB_PREFIX . "pieces` ps
+        ON ps.piece_id = op.piece_id
 
     WHERE op.order_id = '" . (int)$order_id . "'
 ")->rows;
@@ -3644,6 +3721,7 @@ public function addBanner($data){
                 b.*,
                 bi.title,
                 bi.link AS category_id,
+                bi.link AS link,
                 bi.image,
                 bi.sort_order,
                 cd.name AS category_name
@@ -3655,13 +3733,14 @@ public function addBanner($data){
 
             LEFT JOIN " . DB_PREFIX . "category c
                 ON c.category_id = bi.link
+                AND bi.link REGEXP '^[0-9]+$'
 
             LEFT JOIN " . DB_PREFIX . "category_description cd
                 ON cd.category_id = c.category_id
+                AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
 
             WHERE b.status = 1
             AND b.type = 1
-            AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
             AND b.from_date IS NOT NULL
             AND b.to_date IS NOT NULL
             AND CURDATE() BETWEEN b.from_date AND b.to_date
@@ -3692,6 +3771,7 @@ public function getAllBanners(){
                 b.*,
                 bi.title,
                 bi.link AS category_id,
+                bi.link AS link,
                 bi.image,
                 bi.sort_order,
                 cd.name AS category_name
@@ -3703,11 +3783,11 @@ public function getAllBanners(){
 
             LEFT JOIN " . DB_PREFIX . "category c
                 ON c.category_id = bi.link
+                AND bi.link REGEXP '^[0-9]+$'
 
             LEFT JOIN " . DB_PREFIX . "category_description cd
                 ON cd.category_id = c.category_id
-
-            AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+                AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
 
             WHERE b.type = 1
 
@@ -3806,6 +3886,7 @@ public function addRunningBanner($data){
                 b.*,
                 bi.title,
                 bi.link AS category_id,
+                bi.link AS link,
                 bi.image,
                 bi.sort_order,
                 cd.name AS category_name
@@ -3817,13 +3898,14 @@ public function addRunningBanner($data){
 
             LEFT JOIN " . DB_PREFIX . "category c
                 ON c.category_id = bi.link
+                AND bi.link REGEXP '^[0-9]+$'
 
             LEFT JOIN " . DB_PREFIX . "category_description cd
                 ON cd.category_id = c.category_id
+                AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
 
             WHERE b.status = 1
             AND b.type = 2
-            AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
             AND b.from_date IS NOT NULL
             AND b.to_date IS NOT NULL
             AND CURDATE() BETWEEN b.from_date AND b.to_date
@@ -3839,6 +3921,7 @@ public function getAllRunningBanners(){
                 b.*,
                 bi.title,
                 bi.link AS category_id,
+                bi.link AS link,
                 bi.image,
                 bi.sort_order,
                 cd.name AS category_name
@@ -3850,11 +3933,11 @@ public function getAllRunningBanners(){
 
             LEFT JOIN " . DB_PREFIX . "category c
                 ON c.category_id = bi.link
+                AND bi.link REGEXP '^[0-9]+$'
 
             LEFT JOIN " . DB_PREFIX . "category_description cd
                 ON cd.category_id = c.category_id
-
-            AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+                AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
 
             WHERE b.type = 2
 
@@ -3956,6 +4039,7 @@ public function addBottomBanner($data){
                 b.*,
                 bi.title,
                 bi.link AS category_id,
+                bi.link AS link,
                 bi.image,
                 bi.sort_order,
                 cd.name AS category_name
@@ -3967,13 +4051,14 @@ public function addBottomBanner($data){
 
             LEFT JOIN " . DB_PREFIX . "category c
                 ON c.category_id = bi.link
+                AND bi.link REGEXP '^[0-9]+$'
 
             LEFT JOIN " . DB_PREFIX . "category_description cd
                 ON cd.category_id = c.category_id
+                AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
 
             WHERE b.status = 1
             AND b.type = 3
-            AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
             AND b.from_date IS NOT NULL
             AND b.to_date IS NOT NULL
             AND CURDATE() BETWEEN b.from_date AND b.to_date
@@ -3989,6 +4074,7 @@ public function getAllBottomBanners(){
                 b.*,
                 bi.title,
                 bi.link AS category_id,
+                bi.link AS link,
                 bi.image,
                 bi.sort_order,
                 cd.name AS category_name
@@ -4000,11 +4086,11 @@ public function getAllBottomBanners(){
 
             LEFT JOIN " . DB_PREFIX . "category c
                 ON c.category_id = bi.link
+                AND bi.link REGEXP '^[0-9]+$'
 
             LEFT JOIN " . DB_PREFIX . "category_description cd
                 ON cd.category_id = c.category_id
-
-            AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+                AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
 
             WHERE b.type = 3
 
@@ -4022,6 +4108,156 @@ public function updateBottomBannerImage($data): void {
             sort_order = '" . (int)$data['sort_order'] . "'
         WHERE banner_id = '" . (int)$data['banner_id'] . "'
     ");
+}
+
+public function addFashionBanner($data){
+
+        $this->db->query("INSERT INTO " . DB_PREFIX . "banner SET
+            name = '" . $this->db->escape($data['name']) . "',
+            from_date = '" . $this->db->escape($data['from_date']) . "',
+            to_date = '" . $this->db->escape($data['to_date']) . "',
+            type = '4',
+            status = '" . (int)$data['status'] . "',
+            created_at = NOW(),
+            updated_at = NOW()");
+
+        return $this->db->getLastId();
+    }
+
+
+    // EDIT BANNER
+    public function editFashionBanner($banner_id,$data){
+
+        $this->db->query("UPDATE " . DB_PREFIX . "banner SET
+            name = '" . $this->db->escape($data['name']) . "',
+            from_date = '" . $this->db->escape($data['from_date']) . "',
+            to_date = '" . $this->db->escape($data['to_date']) . "',
+            type = '4',
+            status = '" . (int)$data['status'] . "',
+            updated_at = NOW()
+            WHERE banner_id = '" . (int)$banner_id . "'");
+    }
+
+
+    // ADD BANNER IMAGE
+    public function addFashionBannerImage($data){
+
+        $this->db->query("INSERT INTO " . DB_PREFIX . "banner_image SET
+            banner_id = '" . (int)$data['banner_id'] . "',
+            language_id = '1',
+            title = '" . $this->db->escape($data['title']) . "',
+            link = '" . $this->db->escape($data['link']) . "',
+            image = '" . $this->db->escape($data['image']) . "',
+            sort_order = '" . (int)$data['sort_order'] . "'");
+    }
+
+
+    // DELETE BANNER IMAGES
+    public function deleteFashionBannerImages($banner_id){
+
+        $this->db->query("DELETE FROM " . DB_PREFIX . "banner_image
+        WHERE banner_id = '" . (int)$banner_id . "'");
+    }
+
+
+    // GET BANNER
+    public function getFashionBanner($banner_id){
+
+        $query = $this->db->query("SELECT *
+        FROM " . DB_PREFIX . "banner
+        WHERE banner_id = '" . (int)$banner_id . "'
+        AND type = '4'");
+
+        return $query->row;
+    }
+
+
+    // GET BANNER IMAGES
+    public function getFashionBannerImages($banner_id){
+
+        $query = $this->db->query("SELECT *
+        FROM " . DB_PREFIX . "banner_image
+        WHERE banner_id = '" . (int)$banner_id . "'
+        ORDER BY sort_order ASC");
+
+        return $query->rows;
+    }
+
+    public function getAllFashionBanners(){
+
+    $sql = "SELECT 
+                b.*,
+                bi.title,
+                bi.link AS category_id,
+                bi.link AS link,
+                bi.image,
+                bi.sort_order,
+                cd.name AS category_name
+
+            FROM " . DB_PREFIX . "banner b
+
+            LEFT JOIN " . DB_PREFIX . "banner_image bi
+                ON b.banner_id = bi.banner_id
+
+            LEFT JOIN " . DB_PREFIX . "category c
+                ON c.category_id = bi.link
+                AND bi.link REGEXP '^[0-9]+$'
+
+            LEFT JOIN " . DB_PREFIX . "category_description cd
+                ON cd.category_id = c.category_id
+                AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+
+            WHERE b.type = 4
+
+            ORDER BY b.banner_id DESC";
+
+    return $this->db->query($sql)->rows;
+}
+
+public function updateFashionBannerImage($data): void {
+    $this->db->query("
+        UPDATE " . DB_PREFIX . "banner_image 
+        SET title = '" . $this->db->escape($data['title']) . "',
+            link  = '" . $this->db->escape($data['link'])  . "',
+            image = '" . $this->db->escape($data['image']) . "',
+            sort_order = '" . (int)$data['sort_order'] . "'
+        WHERE banner_id = '" . (int)$data['banner_id'] . "'
+    ");
+}
+
+public function getActiveFashionBanners(){
+
+    $sql = "SELECT 
+                b.*,
+                bi.title,
+                bi.link AS category_id,
+                bi.link AS link,
+                bi.image,
+                bi.sort_order,
+                cd.name AS category_name
+
+            FROM " . DB_PREFIX . "banner b
+
+            LEFT JOIN " . DB_PREFIX . "banner_image bi
+                ON b.banner_id = bi.banner_id
+
+            LEFT JOIN " . DB_PREFIX . "category c
+                ON c.category_id = bi.link
+                AND bi.link REGEXP '^[0-9]+$'
+
+            LEFT JOIN " . DB_PREFIX . "category_description cd
+                ON cd.category_id = c.category_id
+                AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+
+            WHERE b.status = 1
+            AND b.type = 4
+            AND b.from_date IS NOT NULL
+            AND b.to_date IS NOT NULL
+            AND CURDATE() BETWEEN b.from_date AND b.to_date
+
+            ORDER BY b.banner_id DESC";
+
+    return $this->db->query($sql)->rows;
 }
 
 public function getRewardPoints($customer_id) {
@@ -4775,7 +5011,8 @@ public function sendCustomerOrderPlacedNotification($order_id)
                 p.product_id,
                 p.is_combo,
                 pd.name AS product_name,
-                IFNULL(pp.pos_quentity,0) AS pos_quentity,
+                IFNULL(MIN(ptp.pos_quantity), IFNULL(MAX(pp.pos_quentity),0)) AS pos_quentity,
+                SUM(CASE WHEN ptp.pos_quantity <= 0 THEN 1 ELSE 0 END) AS zero_stock_pieces,
                 c.category_id,
                 cd.name AS category_name
 
@@ -4787,6 +5024,9 @@ public function sendCustomerOrderPlacedNotification($order_id)
                 LEFT JOIN " . DB_PREFIX . "pts_pos_product pp 
                     ON p.product_id = pp.product_id
 
+                LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
+                    ON ptp.product_id = p.product_id
+
                 LEFT JOIN " . DB_PREFIX . "product_to_category pc 
                     ON p.product_id = pc.product_id
 
@@ -4797,7 +5037,14 @@ public function sendCustomerOrderPlacedNotification($order_id)
                     ON c.category_id = cd.category_id
 
                 WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
-                AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
+                AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+                AND p.product_id NOT IN (
+                    SELECT pc2.product_id
+                    FROM " . DB_PREFIX . "product_to_category pc2
+                    JOIN " . DB_PREFIX . "category c2
+                        ON pc2.category_id = c2.category_id
+                    WHERE c2.is_fashion = '1'
+                )";
 
         // 🔍 SEARCH
         if (!empty($data['search'])) {
@@ -4809,11 +5056,12 @@ public function sendCustomerOrderPlacedNotification($order_id)
         // 🔥 LOW STOCK FIRST (MAIN LOGIC)
         $sql .= " ORDER BY 
                     CASE 
-                        WHEN IFNULL(pp.pos_quentity,0) = 0 THEN 0
-                        WHEN IFNULL(pp.pos_quentity,0) <= 10 THEN 1
-                        ELSE 2
+                        WHEN SUM(CASE WHEN ptp.pos_quantity <= 0 THEN 1 ELSE 0 END) > 0 THEN 0
+                        WHEN IFNULL(MIN(ptp.pos_quantity), IFNULL(MAX(pp.pos_quentity),0)) = 0 THEN 1
+                        WHEN IFNULL(MIN(ptp.pos_quantity), IFNULL(MAX(pp.pos_quentity),0)) <= 10 THEN 2
+                        ELSE 3
                     END,
-                    IFNULL(pp.pos_quentity,0) ASC";
+                    IFNULL(MIN(ptp.pos_quantity), IFNULL(MAX(pp.pos_quentity),0)) ASC";
 
         // 📄 PAGINATION
         if (isset($data['start']) && isset($data['limit'])) {
@@ -4830,6 +5078,97 @@ public function sendCustomerOrderPlacedNotification($order_id)
 
             foreach ($products as &$product) {
                 $product['pieces'] = $all_pieces[$product['product_id']] ?? [];
+            }
+        }
+
+return $products;
+    }
+
+    public function getFashionProductStockReport($data = []) {
+
+        $sql = "SELECT 
+                p.product_id,
+                p.is_combo,
+                pd.name AS product_name,
+                IFNULL(col.min_color_qty, IFNULL(MIN(ptp.pos_quantity), IFNULL(MAX(pp.pos_quentity),0))) AS pos_quentity,
+                IFNULL(col.zero_colors,0) AS zero_stock_colors,
+                c.category_id,
+                cd.name AS category_name
+
+                FROM " . DB_PREFIX . "product p
+
+                JOIN " . DB_PREFIX . "product_description pd 
+                    ON p.product_id = pd.product_id
+
+                LEFT JOIN " . DB_PREFIX . "pts_pos_product pp 
+                    ON p.product_id = pp.product_id
+
+                LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
+                    ON ptp.product_id = p.product_id
+
+                LEFT JOIN (
+                    SELECT product_id,
+                           MIN(pos_quantity) AS min_color_qty,
+                           SUM(CASE WHEN pos_quantity <= 0 THEN 1 ELSE 0 END) AS zero_colors
+                    FROM " . DB_PREFIX . "product_colors
+                    GROUP BY product_id
+                ) col ON col.product_id = p.product_id
+
+                LEFT JOIN " . DB_PREFIX . "product_to_category pc 
+                    ON p.product_id = pc.product_id
+
+                LEFT JOIN " . DB_PREFIX . "category c 
+                    ON pc.category_id = c.category_id
+
+                LEFT JOIN " . DB_PREFIX . "category_description cd 
+                    ON c.category_id = cd.category_id
+
+                WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+                AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "'
+                AND c.is_fashion = '1'";
+
+        // 🔍 SEARCH
+        if (!empty($data['search'])) {
+            $sql .= " AND pd.name LIKE '%" . $this->db->escape($data['search']) . "%'";
+        }
+
+        $sql .= " GROUP BY p.product_id";
+
+        // 🔥 COLOR STOCK FIRST (MAIN LOGIC)
+        $sql .= " ORDER BY 
+                    CASE 
+                        WHEN IFNULL(col.zero_colors,0) > 0 THEN 0
+                        WHEN IFNULL(col.min_color_qty, IFNULL(MIN(ptp.pos_quantity), IFNULL(MAX(pp.pos_quentity),0))) = 0 THEN 1
+                        WHEN IFNULL(col.min_color_qty, IFNULL(MIN(ptp.pos_quantity), IFNULL(MAX(pp.pos_quentity),0))) <= 10 THEN 2
+                        ELSE 3
+                    END,
+                    IFNULL(col.min_color_qty, IFNULL(MIN(ptp.pos_quantity), IFNULL(MAX(pp.pos_quentity),0))) ASC";
+
+        // 📄 PAGINATION
+        if (isset($data['start']) && isset($data['limit'])) {
+            $start = (int)$data['start'];
+            $limit = (int)$data['limit'];
+            $sql .= " LIMIT $start,$limit";
+        }
+
+        $products = $this->db->query($sql)->rows;
+
+        if (!empty($products)) {
+            $product_ids = array_column($products, 'product_id');
+            $all_pieces = $this->getProductPiecesStockBatch($product_ids);
+            $all_colors = $this->getProductColorsBatch($product_ids);
+
+            foreach ($products as &$product) {
+                $product['pieces'] = $all_pieces[$product['product_id']] ?? [];
+
+                $product['colors'] = [];
+                if (!empty($all_colors[$product['product_id']])) {
+                    foreach ($all_colors[$product['product_id']] as $piece_colors) {
+                        foreach ($piece_colors as $color) {
+                            $product['colors'][] = $color;
+                        }
+                    }
+                }
             }
         }
 

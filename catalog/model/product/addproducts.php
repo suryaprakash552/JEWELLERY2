@@ -68,9 +68,26 @@ class Addproducts extends \Opencart\System\Engine\Model {
                             created_at  = NOW()
                     ");
                 }
+
+                // Save color/image variants for this piece
+                if (!empty($piece['colors']) && is_array($piece['colors'])) {
+                    foreach ($piece['colors'] as $color) {
+                        if (empty($color['color']) && empty($color['image'])) {
+                            continue;
+                        }
+                        $this->db->query("INSERT INTO " . DB_PREFIX . "product_colors SET
+                            product_id = '" . (int)$product_id . "',
+                            piece_id = '" . (int)$piece['piece_id'] . "',
+                            color = '" . $this->db->escape($color['color'] ?? '') . "',
+                            pos_quantity = '" . (int)($color['pos_quantity'] ?? 0) . "',
+                            image = '" . $this->db->escape($color['image'] ?? '') . "',
+                            created_at = NOW()
+                        ");
+                    }
+                }
             }
         }
-        
+
         // Attach product to default store
         $this->db->query("INSERT INTO " . DB_PREFIX . "product_to_store SET product_id = '" . (int)$product_id . "',store_id = '0'");
         $this->db->query("INSERT INTO " . DB_PREFIX . "product_to_layout SET product_id = '" . (int)$product_id . "',store_id = '0',layout_id = '0'");
@@ -167,6 +184,7 @@ public function deleteProductImages($product_id): void {
                 
                 $this->db->query("DELETE FROM " . DB_PREFIX . "piece_to_product WHERE product_id = '" . (int)$product_id . "'");
 $this->db->query("DELETE FROM `" . DB_PREFIX . "piece_category` WHERE product_id = '" . (int)$product_id . "'");
+$this->db->query("DELETE FROM `" . DB_PREFIX . "product_colors` WHERE product_id = '" . (int)$product_id . "'");
 
 if (!empty($data['pieces'])) {
 
@@ -196,6 +214,23 @@ if (!empty($data['pieces'])) {
                 piece_id    = '" . (int)$piece['piece_id'] . "',
                 created_at  = NOW()
         ");
+        }
+
+        // Save color/image variants for this piece
+        if (!empty($piece['colors']) && is_array($piece['colors'])) {
+            foreach ($piece['colors'] as $color) {
+                if (empty($color['color']) && empty($color['image'])) {
+                    continue;
+                }
+                $this->db->query("INSERT INTO " . DB_PREFIX . "product_colors SET
+                    product_id = '" . (int)$product_id . "',
+                    piece_id = '" . (int)$piece['piece_id'] . "',
+                    color = '" . $this->db->escape($color['color'] ?? '') . "',
+                    pos_quantity = '" . (int)($color['pos_quantity'] ?? 0) . "',
+                    image = '" . $this->db->escape($color['image'] ?? '') . "',
+                    created_at = NOW()
+                ");
+            }
         }
     }
 }
@@ -247,6 +282,9 @@ public function delete(int $product_id): void {
 
     // piece category mapping
     $this->db->query("DELETE FROM " . DB_PREFIX . "piece_category WHERE product_id = '" . (int)$product_id . "'");
+
+    // product colors
+    $this->db->query("DELETE FROM " . DB_PREFIX . "product_colors WHERE product_id = '" . (int)$product_id . "'");
     $this->db->query("
     DELETE FROM " . DB_PREFIX . "product_image
     WHERE product_id = '" . (int)$product_id . "'
