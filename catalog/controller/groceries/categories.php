@@ -7954,6 +7954,9 @@ public function approveManualTransaction(): void {
                 7
             );
 
+            // Restore POS stock (product, piece and color quantities)
+            $this->model_checkout_order->restorePosQuantity($request['order_id']);
+
             $this->response->setOutput(json_encode([
                 "status" => "success",
                 "message" => "Cancellation request approved, refund added to wallet, and order status updated to cancelled"

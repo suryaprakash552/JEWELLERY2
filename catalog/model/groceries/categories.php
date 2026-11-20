@@ -5090,7 +5090,7 @@ return $products;
                 p.product_id,
                 p.is_combo,
                 pd.name AS product_name,
-                IFNULL(col.min_color_qty, IFNULL(MIN(ptp.pos_quantity), IFNULL(MAX(pp.pos_quentity),0))) AS pos_quentity,
+                IFNULL(col.total_color_qty, IFNULL(MAX(pp.pos_quentity),0)) AS pos_quentity,
                 IFNULL(col.zero_colors,0) AS zero_stock_colors,
                 c.category_id,
                 cd.name AS category_name
@@ -5103,12 +5103,9 @@ return $products;
                 LEFT JOIN " . DB_PREFIX . "pts_pos_product pp 
                     ON p.product_id = pp.product_id
 
-                LEFT JOIN " . DB_PREFIX . "piece_to_product ptp
-                    ON ptp.product_id = p.product_id
-
                 LEFT JOIN (
                     SELECT product_id,
-                           MIN(pos_quantity) AS min_color_qty,
+                           SUM(pos_quantity) AS total_color_qty,
                            SUM(CASE WHEN pos_quantity <= 0 THEN 1 ELSE 0 END) AS zero_colors
                     FROM " . DB_PREFIX . "product_colors
                     GROUP BY product_id
@@ -5138,11 +5135,11 @@ return $products;
         $sql .= " ORDER BY 
                     CASE 
                         WHEN IFNULL(col.zero_colors,0) > 0 THEN 0
-                        WHEN IFNULL(col.min_color_qty, IFNULL(MIN(ptp.pos_quantity), IFNULL(MAX(pp.pos_quentity),0))) = 0 THEN 1
-                        WHEN IFNULL(col.min_color_qty, IFNULL(MIN(ptp.pos_quantity), IFNULL(MAX(pp.pos_quentity),0))) <= 10 THEN 2
+                        WHEN IFNULL(col.total_color_qty, IFNULL(MAX(pp.pos_quentity),0)) = 0 THEN 1
+                        WHEN IFNULL(col.total_color_qty, IFNULL(MAX(pp.pos_quentity),0)) <= 10 THEN 2
                         ELSE 3
                     END,
-                    IFNULL(col.min_color_qty, IFNULL(MIN(ptp.pos_quantity), IFNULL(MAX(pp.pos_quentity),0))) ASC";
+                    IFNULL(col.total_color_qty, IFNULL(MAX(pp.pos_quentity),0)) ASC";
 
         // 📄 PAGINATION
         if (isset($data['start']) && isset($data['limit'])) {

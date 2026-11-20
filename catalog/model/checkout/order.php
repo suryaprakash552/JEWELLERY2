@@ -1815,7 +1815,7 @@ public function cancelOrderFull(int $order_id, string $reason = ''): void
     }
 }
 
-private function restorePosQuantity(int $order_id): void
+public function restorePosQuantity(int $order_id): void
 {
     $products = $this->db->query("
         SELECT
